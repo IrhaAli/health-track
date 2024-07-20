@@ -34,7 +34,7 @@ export default function TabLayout() {
             title: "Fast",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "code-slash" : "code-slash-outline"}
+                name={focused ? "time" : "time-outline"}
                 color={color}
               />
             ),
@@ -46,7 +46,7 @@ export default function TabLayout() {
             title: "Food",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "code-slash" : "code-slash-outline"}
+                name={focused ? "fast-food" : "fast-food-outline"}
                 color={color}
               />
             ),
@@ -58,7 +58,7 @@ export default function TabLayout() {
             title: "Sleep",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "code-slash" : "code-slash-outline"}
+                name={focused ? "bed" : "bed-outline"}
                 color={color}
               />
             ),
@@ -70,7 +70,7 @@ export default function TabLayout() {
             title: "Water",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "code-slash" : "code-slash-outline"}
+                name={focused ? "water" : "water-outline"}
                 color={color}
               />
             ),
@@ -82,7 +82,7 @@ export default function TabLayout() {
             title: "Weight",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "code-slash" : "code-slash-outline"}
+                name={focused ? "scale" : "scale-outline"}
                 color={color}
               />
             ),
