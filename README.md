@@ -1,5 +1,8 @@
 # Welcome to your Expo app 👋
 
+## Project Planning
+[Project Planning](https://docs.google.com/document/d/1oYRPSbkb6HhlWatJA-d478_CG9tEqU3KYQII20RtZiQ/edit?usp=sharing)
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
