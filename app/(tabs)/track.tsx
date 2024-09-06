@@ -48,11 +48,11 @@ export default function TabTwoScreen() {
         testID={testIDs.expandableCalendar.CONTAINER}
         // horizontal={false}
         // hideArrows
-        // disablePan
-        // hideKnob
-        // initialPosition={ExpandableCalendar.positions.OPEN}
-        // calendarStyle={styles.calendar}
-        // headerStyle={styles.header} // for horizontal only
+        disablePan
+        hideKnob
+        initialPosition={ExpandableCalendar.positions.OPEN}
+        calendarStyle={styles.calendar}
+        headerStyle={styles.header} // for horizontal only
         // disableWeekScroll
         theme={theme.current}
         // disableAllTouchEventsForDisabledDays
@@ -60,13 +60,13 @@ export default function TabTwoScreen() {
         markedDates={marked.current}
         leftArrowImageSource={leftArrowIcon}
         rightArrowImageSource={rightArrowIcon}
-        // animateScroll
+        // animateScroll={false}
         // closeOnDayPress={false}
       />
       <AgendaList
         sections={ITEMS}
         renderItem={renderItem}
-        // scrollToNextEvent
+        // scrollToNextEvent={false}
         sectionStyle={styles.section}
         // dayFormat={'yyyy-MM-d'}
       />
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "lightgrey",
+    marginTop: 50,
   },
   section: {
     backgroundColor: lightThemeColor,
