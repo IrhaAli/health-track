@@ -29,9 +29,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="fast"
+          name="track"
           options={{
-            title: "Fast",
+            title: "Track",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "time" : "time-outline"}
@@ -41,21 +41,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="food"
+          name="media"
           options={{
-            title: "Food",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "fast-food" : "fast-food-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="sleep"
-          options={{
-            title: "Sleep",
+            title: "Media",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
                 name={focused ? "bed" : "bed-outline"}
@@ -65,24 +53,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="water"
+          name="profile"
           options={{
-            title: "Water",
+            title: "Profile",
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon
-                name={focused ? "water" : "water-outline"}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="weight"
-          options={{
-            title: "Weight",
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "scale" : "scale-outline"}
+                name={focused ? "fast-food" : "fast-food-outline"}
                 color={color}
               />
             ),
