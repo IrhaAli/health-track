@@ -6,9 +6,9 @@ import {
   CalendarProvider,
   WeekCalendar,
 } from "react-native-calendars";
-import testIDs from "./calendar_files/testIDs";
-import { agendaItems, getMarkedDates } from "./calendar_files/agendaItems";
-import AgendaItem from "./calendar_files/AgendaItem";
+import testIDs from "../_calendar_files/testIDs";
+import { agendaItems, getMarkedDates } from "../_calendar_files/agendaItems";
+import AgendaItem from "../_calendar_files/AgendaItem";
 import { getTheme, themeColor, lightThemeColor } from "../theme";
 
 const leftArrowIcon = require("../img/previous.png");
