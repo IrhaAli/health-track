@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -7,11 +7,21 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Link } from "expo-router";
+import { Button, Alert } from "react-native";
+import { Link, router } from "expo-router";
 import { SocialIcon } from "@rneui/base";
 
-export default function LoginForm() {
-  const [username, setUsername] = useState("");
+const LoginForm = () => {
+  const [email, setEmail] = useState("");
+
+  const onEmailSubmit = () => {
+    const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+    if (reg.test(email) === false) {
+      Alert.alert("This is NOT a valid email");
+    } else {
+      router.push({ pathname: `/(authenticate)/${email}`})
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -20,35 +30,28 @@ export default function LoginForm() {
         <TextInput
           style={styles.input}
           placeholder="EMAIL"
-          value={username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
           autoCorrect={false}
           autoCapitalize="none"
         />
       </View>
       <View style={styles.buttonView}>
-        <Pressable style={styles.button}>
-          <Link href="/(authentication)">
-            <Text style={styles.buttonText}>LOGIN</Text>
-          </Link>
-        </Pressable>
+        <Button onPress={onEmailSubmit} title="Submit" color="#841584" />
+        {/* <Pressable style={styles.button}>
+            <Link href="/(authentication)">
+              <Text style={styles.buttonText}>LOGIN</Text>
+            </Link>
+          </Pressable> */}
       </View>
       {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
       <View style={styles.socialIcons}>
         <SocialIcon button type="facebook" />
         <SocialIcon button type="google" />
       </View> */}
-
-      <Text style={styles.footerText}>
-        Don't Have Account?
-        <Link href="/(signup)" style={styles.signup}>
-          {" "}
-          Sign Up
-        </Link>
-      </Text>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   socialIcons: {
@@ -150,3 +153,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
+export default LoginForm;
