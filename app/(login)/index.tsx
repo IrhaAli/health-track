@@ -19,7 +19,7 @@ const LoginForm = () => {
     if (reg.test(email) === false) {
       Alert.alert("This is NOT a valid email");
     } else {
-      router.push({ pathname: `/(authenticate)/${email}`})
+      router.push({ pathname: `/(authenticate)/${email}` });
     }
   };
 
@@ -37,12 +37,9 @@ const LoginForm = () => {
         />
       </View>
       <View style={styles.buttonView}>
-        <Button onPress={onEmailSubmit} title="Submit" color="#841584" />
-        {/* <Pressable style={styles.button}>
-            <Link href="/(authentication)">
-              <Text style={styles.buttonText}>LOGIN</Text>
-            </Link>
-          </Pressable> */}
+        <Pressable style={styles.button} onPress={onEmailSubmit}>
+          <Text style={styles.buttonText}>LOGIN</Text>
+        </Pressable>
       </View>
       {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
       <View style={styles.socialIcons}>
