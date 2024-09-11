@@ -11,11 +11,12 @@ import { Button, Alert } from "react-native";
 import { Link, router } from "expo-router";
 import { SocialIcon } from "@rneui/base";
 import "../../firebaseConfig";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
-const LoginForm = () => {
+const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -25,12 +26,14 @@ const LoginForm = () => {
       Alert.alert("This is not a valid email.");
     } else if (password.length === 0) {
       Alert.alert("Password field is empty.");
+    } else if (password !== confirmPassword) {
+      Alert.alert("The password does not match.");
     } else {
       const auth = getAuth();
-      signInWithEmailAndPassword(auth, email, password)
+      createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          router.push("/(tabs)");
+          router.push("/(signup_questionnaire)");
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -61,15 +64,24 @@ const LoginForm = () => {
           autoCapitalize="none"
           secureTextEntry={true}
         />
+        <TextInput
+          style={styles.input}
+          placeholder="CONFIRM PASSWORD"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          autoCorrect={false}
+          autoCapitalize="none"
+          secureTextEntry={true}
+        />
       </View>
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>SIGN IN</Text>
+          <Text style={styles.buttonText}>SIGN UP</Text>
         </Pressable>
       </View>
-      <Text>Don't have an account? </Text>
-      <Link href="/(signup)">Sign Up</Link>
-      {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
+      <Text>Aleady have an account? </Text>
+      <Link href="/(login)">Sign In</Link>
+      {/* <Text style={styles.optionsText}>OR SIGNUP LOGIN WITH</Text>
       <View style={styles.socialIcons}>
         <SocialIcon button type="facebook" />
         <SocialIcon button type="google" />
@@ -179,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginForm;
+export default SignupForm;
