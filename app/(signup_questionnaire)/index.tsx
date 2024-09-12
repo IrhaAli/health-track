@@ -6,13 +6,38 @@ import {
   Text,
   TextInput,
   View,
+  Alert,
 } from "react-native";
-import { Link } from "expo-router";
-import { SocialIcon } from "@rneui/base";
+import { Link, useLocalSearchParams } from "expo-router";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import * as Notifications from "expo-notifications";
 
 export default function SignUpForm() {
-  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
+  const { email, uid, auth_type } = useLocalSearchParams();
+  const language = "en";
 
+  const onSubmit = async () => {
+    if (fullName.length === 0) {
+      Alert.alert("Please add your name");
+    } else {
+      // const token = (await Notifications.getExpoPushTokenAsync()).data;
+      const userInfo = {
+        email,
+        uid,
+        created_at: new Date(),
+        full_name: fullName,
+        auth_type,
+        language,
+        // fcm_token: "",
+      };
+      console.log(userInfo);
+      await addDoc(collection(db, "users"), userInfo);
+    }
+  };
+
+  // token
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Health App</Text>
@@ -20,17 +45,15 @@ export default function SignUpForm() {
         <TextInput
           style={styles.input}
           placeholder="Full Name"
-          value={username}
-          onChangeText={setUsername}
+          value={fullName}
+          onChangeText={setFullName}
           autoCorrect={false}
           autoCapitalize="none"
         />
       </View>
       <View style={styles.buttonView}>
-        <Pressable style={styles.button}>
-          <Link href="/(tabs)">
-            <Text style={styles.buttonText}>SUBMIT</Text>
-          </Link>
+        <Pressable style={styles.button} onPress={onSubmit}>
+          <Text style={styles.buttonText}>SUBMIT</Text>
         </Pressable>
       </View>
     </SafeAreaView>

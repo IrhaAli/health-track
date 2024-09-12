@@ -32,8 +32,16 @@ const SignupForm = () => {
       const auth = getAuth();
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          const user = userCredential.user;
-          router.push("/(signup_questionnaire)");
+          const user: any = userCredential.user;
+          const userInfo = {
+            email: user.email,
+            uid: user.uid,
+            auth_type: "EMAIL_PASSWORD",
+          };
+          router.push({
+            pathname: "/(signup_questionnaire)",
+            params: userInfo,
+          });
         })
         .catch((error) => {
           const errorCode = error.code;
