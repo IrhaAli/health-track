@@ -9,11 +9,7 @@ const index = () => {
   //   // router.push(page);
   // }, [token]);
 
-  return (
-    <>
-      <Redirect href={token ? "/(tabs)" : "/(signup)"} />
-    </>
-  );
+  return <Redirect href={token ? "/(tabs)" : "/(signup)"} />;
 };
 
 export default index;
