@@ -56,7 +56,7 @@ export default function DietaryPreferences() {
 
   const onSubmit = async () => {
     await addDoc(collection(db, "dietary_preferences"), {
-      uid: uid,
+      user_id: uid,
       ...dietaryPreferences,
     });
     router.push({

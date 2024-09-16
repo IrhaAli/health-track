@@ -84,7 +84,7 @@ export default function SignUpForm() {
     } else {
       // const token = (await Notifications.getExpoPushTokenAsync()).data;
       const user = {
-        uid: uid,
+        user_id: uid,
         email: email,
         full_name: fullName,
         auth_type: auth_type || "EMAIL_PASSWORD",
@@ -96,7 +96,7 @@ export default function SignUpForm() {
         updated_at: new Date(),
       };
       const userDetails = {
-        uid,
+        user_id: uid,
         gender,
         dob,
         height,

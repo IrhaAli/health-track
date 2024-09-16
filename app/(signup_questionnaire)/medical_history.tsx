@@ -20,9 +20,56 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 export default function MedicalHistory() {
   const { uid } = useLocalSearchParams();
-  // uid: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+  const [condition, setCondition] = useState();
+  const [allergies, setAllergies] = useState("");
+  const [isConditionFocus, setIsConditionFocus] = useState(false);
+  const [treatmentStatus, setTreatmentStatus] = useState();
+  const [isTreatmentStatusFocus, setIsTreatmentStatusFocus] = useState(false);
+  const [dateOfDiagnosis, setDateOfDiagnosis] = useState(new Date());
+  const [medicalHistory, setMedicalHistory] = useState([
+    {
+      user_id: uid,
+      condition: "",
+      diagnosis_date: null,
+      treatment_status: "",
+      allergies: "",
+    },
+  ]);
+  const conditionOptions = [
+    {
+      label: "Taking medication",
+      value: "heart_condition",
+    },
+  ];
+  const treatmentStatusOptions = [
+    {
+      label: "Taking Medication",
+      value: "taking_medication",
+    },
+  ];
 
-  const onSubmit = () => {};
+  const additionalMedicalHistory = () => {
+    setMedicalHistory((prev) => [
+      ...prev,
+      {
+        user_id: uid,
+        condition: "",
+        diagnosis_date: null,
+        treatment_status: "",
+        allergies: "",
+      },
+    ]);
+  };
+
+  const removeMedicalHistory = (index: number) => {
+    console.log(medicalHistory.length);
+    setMedicalHistory((prev) => prev.splice(index, 1));
+    console.log(medicalHistory.length);
+  };
+
+  const onSubmit = () => {
+    // uid: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+  };
 
   return (
     <ParallaxScrollView
@@ -37,7 +84,98 @@ export default function MedicalHistory() {
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Medical History</Text>
         <View style={styles.inputView}>
-          <Text>Date of Birth</Text>
+          {medicalHistory.map((item, index) => (
+            <>
+              <Pressable
+                style={styles.button}
+                onPress={() => removeMedicalHistory(index)}
+              >
+                <Text style={styles.buttonText}>Remove Record</Text>
+              </Pressable>
+              <Text>Condition</Text>
+              <Dropdown
+                style={[
+                  styles.dropdown,
+                  isConditionFocus && { borderColor: "blue" },
+                ]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                iconStyle={styles.iconStyle}
+                data={conditionOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isConditionFocus ? "Select a Condition" : "..."}
+                value={item.condition}
+                onFocus={() => setIsConditionFocus(true)}
+                onBlur={() => setIsConditionFocus(false)}
+                onChange={(item: any) => {
+                  setCondition(item.value);
+                  setIsConditionFocus(false);
+                }}
+                renderLeftIcon={() => (
+                  <AntDesign
+                    style={styles.icon}
+                    color={isConditionFocus ? "blue" : "black"}
+                    name="Safety"
+                    size={20}
+                  />
+                )}
+              />
+              <Text>Diagnosis Date</Text>
+              <DateTimePicker
+                mode="date"
+                value={dateOfDiagnosis}
+                onChange={(event: any, value: Date | undefined) =>
+                  setDateOfDiagnosis(value || new Date())
+                }
+              />
+              <Text>Treatment Status</Text>
+              <Dropdown
+                style={[
+                  styles.dropdown,
+                  isTreatmentStatusFocus && { borderColor: "blue" },
+                ]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                iconStyle={styles.iconStyle}
+                data={treatmentStatusOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={
+                  !isTreatmentStatusFocus ? "Treatment Status" : "..."
+                }
+                value={treatmentStatus}
+                onFocus={() => setIsTreatmentStatusFocus(true)}
+                onBlur={() => setIsTreatmentStatusFocus(false)}
+                onChange={(item: any) => {
+                  setTreatmentStatus(item.value);
+                  setIsTreatmentStatusFocus(false);
+                }}
+                renderLeftIcon={() => (
+                  <AntDesign
+                    style={styles.icon}
+                    color={isConditionFocus ? "blue" : "black"}
+                    name="Safety"
+                    size={20}
+                  />
+                )}
+              />
+              <Text>Allergies</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Any allergies..."
+                value={allergies}
+                onChangeText={setAllergies}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+            </>
+          ))}
+          <Pressable style={styles.button} onPress={additionalMedicalHistory}>
+            <Text style={styles.buttonText}>Add More Records</Text>
+          </Pressable>
         </View>
         <View style={styles.buttonView}>
           <Pressable style={styles.button} onPress={onSubmit}>
@@ -119,5 +257,15 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
+  },
+  placeholderStyle: {
+    fontSize: 16,
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
+  iconStyle: {
+    width: 20,
+    height: 20,
   },
 });
