@@ -9,8 +9,8 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { Link, useLocalSearchParams } from "expo-router";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { useLocalSearchParams, router } from "expo-router";
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import * as Notifications from "expo-notifications";
 import { Dropdown } from "react-native-element-dropdown";
@@ -83,19 +83,36 @@ export default function SignUpForm() {
       Alert.alert("Please add your name");
     } else {
       // const token = (await Notifications.getExpoPushTokenAsync()).data;
-      const userInfo = {
-        email: email || "irhaali@gmail.com",
-        uid: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2",
-        created_at: new Date(),
+      const user = {
+        uid: uid,
+        email: email,
         full_name: fullName,
         auth_type: auth_type || "EMAIL_PASSWORD",
         language,
+        // fcm_token: "",
+        is_deleted: false,
+        is_ban: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+      const userDetails = {
+        uid,
         gender,
         dob,
         height,
-        // fcm_token: "",
+        weight,
+        body_type: bodyType,
+        activity: activityType,
+        health_goal: healthGoal,
+        sleep_time: sleepTime,
+        wakeup_time: wakeupTime,
       };
-      await addDoc(collection(db, "users"), userInfo);
+      await addDoc(collection(db, "users"), user);
+      await addDoc(collection(db, "user_details"), userDetails);
+      router.push({
+        pathname: "/(signup_questionnaire)/dietary_preferences",
+        params: { uid },
+      });
     }
   };
 
