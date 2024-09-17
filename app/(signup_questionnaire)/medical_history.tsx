@@ -67,13 +67,9 @@ export default function MedicalHistory() {
     setCurrentMedicalCondition(emptyCondition);
   };
 
-  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
-  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
-  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
-  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
   const removeMedicalHistory = (index: number) => {
     setMedicalHistory((prev) =>
-      prev.length === 1 ? [] : prev.splice(index, 1)
+      prev.length === 1 ? [] : prev.filter((item, i) => i !== index)
     );
   };
 
@@ -110,7 +106,7 @@ export default function MedicalHistory() {
             {/* Added conditions */}
             {medicalHistory.map((item, index) => {
               return (
-                <>
+                <View key={index}>
                   <Pressable
                     style={styles.button}
                     onPress={() => removeMedicalHistory(index)}
@@ -124,7 +120,7 @@ export default function MedicalHistory() {
                   <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
                   <Text>Treatment Status: {item.treatment_status_label}</Text>
                   <Text>Allergies {item.allergies}</Text>
-                </>
+                </View>
               );
             })}
             {/* Add a new condition form */}
@@ -167,10 +163,10 @@ export default function MedicalHistory() {
               <DateTimePicker
                 mode="date"
                 value={currentMedicalCondition.diagnosis_date}
-                onChange={(item: any) =>
+                onChange={(event: any, value: Date | undefined) =>
                   setCurrentMedicalCondition((prev) => ({
                     ...prev,
-                    diagnosis_date: item.value,
+                    diagnosis_date: value || new Date(),
                   }))
                 }
               />
