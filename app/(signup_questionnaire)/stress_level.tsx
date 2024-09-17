@@ -1,52 +1,60 @@
 import React, { useState } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Alert,
-  Image,
-} from "react-native";
-import { Link, useLocalSearchParams, router } from "expo-router";
+import Slider from "react-native-sliders";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import * as Notifications from "expo-notifications";
-import { Dropdown } from "react-native-element-dropdown";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 export default function StressLevel() {
   const { uid } = useLocalSearchParams();
-  // uid: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+  const stressLevelRange = [10];
+  const [stressLevel, setStressLevel] = useState(0);
+  const [notes, setNotes] = useState("");
 
-  const onSubmit = () => {};
+  const onSubmit = async () => {
+    await addDoc(collection(db, "stress_level"), {
+      user_id: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2",
+      stress_level: stressLevel,
+      notes,
+    });
+    router.push({
+      pathname: "/(tabs)",
+      params: { uid },
+    });
+  };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/home-image.png")}
-          style={styles.appLogo}
+    <>
+      <View style={styles.inputView}>
+        <Text>Value: {stressLevel}</Text>
+        <Slider
+          value={stressLevelRange}
+          onValueChange={(value: number) => setStressLevel(value)}
+          // step={1}
         />
-      }
-    >
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>Stress Level</Text>
-        <View style={styles.inputView}>
-          <Text>Date of Birth</Text>
-        </View>
-        <View style={styles.buttonView}>
-          <Pressable style={styles.button} onPress={onSubmit}>
-            <Text style={styles.buttonText}>Submit</Text>
-          </Pressable>
-          <Link href={"/(tabs)"}>Skip</Link>
-        </View>
-      </SafeAreaView>
-    </ParallaxScrollView>
+        <Text>Notes</Text>
+        <TextInput
+          style={styles.input}
+          multiline
+          numberOfLines={5}
+          placeholder="Any notes..."
+          value={notes}
+          onChangeText={(item: string) => {
+            setNotes(item);
+          }}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+      </View>
+      <View style={styles.buttonView}>
+        <Pressable style={styles.button} onPress={onSubmit}>
+          <Text style={styles.buttonText}>SUBMIT</Text>
+        </Pressable>
+        <Pressable onPress={onSubmit}>
+          <Text>Skip</Text>
+        </Pressable>
+      </View>
+    </>
   );
 }
 
@@ -78,7 +86,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   input: {
-    height: 50,
+    height: 200,
     paddingHorizontal: 20,
     borderColor: "red",
     borderWidth: 1,
