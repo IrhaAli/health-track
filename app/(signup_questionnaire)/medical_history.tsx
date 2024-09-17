@@ -89,6 +89,13 @@ export default function MedicalHistory() {
     });
   };
 
+  const onSkip = () => {
+    router.push({
+      pathname: "/(signup_questionnaire)/stress_level",
+      params: { uid },
+    });
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -239,7 +246,7 @@ export default function MedicalHistory() {
           <Pressable style={styles.button} onPress={onSubmit}>
             <Text style={styles.buttonText}>NEXT</Text>
           </Pressable>
-          <Pressable onPress={onSubmit}>
+          <Pressable onPress={onSkip}>
             <Text>Skip</Text>
           </Pressable>
         </View>
