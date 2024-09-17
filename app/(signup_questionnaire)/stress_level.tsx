@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Slider from "react-native-sliders";
+import Slider from "@react-native-community/slider";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
@@ -7,7 +7,6 @@ import { db } from "../../firebaseConfig";
 
 export default function StressLevel() {
   const { uid } = useLocalSearchParams();
-  const stressLevelRange = [10];
   const [stressLevel, setStressLevel] = useState(0);
   const [notes, setNotes] = useState("");
 
@@ -26,11 +25,12 @@ export default function StressLevel() {
   return (
     <>
       <View style={styles.inputView}>
-        <Text>Value: {stressLevel}</Text>
+        <Text>Stress Level: {stressLevel}</Text>
         <Slider
-          value={stressLevelRange}
+          minimumValue={1}
+          maximumValue={10}
+          step={1}
           onValueChange={(value: number) => setStressLevel(value)}
-          // step={1}
         />
         <Text>Notes</Text>
         <TextInput
