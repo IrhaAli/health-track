@@ -17,27 +17,35 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+interface Item {
+  user_id: string;
+  condition: string;
+  diagnosis_date: Date;
+  treatment_status: string;
+  allergies: string;
+  condition_label: string;
+  treatment_status_label: string;
+}
+interface MedicalCondition extends Array<Item> {}
 
 export default function MedicalHistory() {
-  const { uid } = useLocalSearchParams();
-  const [condition, setCondition] = useState();
-  const [allergies, setAllergies] = useState("");
-  const [isConditionFocus, setIsConditionFocus] = useState(false);
-  const [treatmentStatus, setTreatmentStatus] = useState();
-  const [isTreatmentStatusFocus, setIsTreatmentStatusFocus] = useState(false);
-  const [dateOfDiagnosis, setDateOfDiagnosis] = useState(new Date());
-  const [medicalHistory, setMedicalHistory] = useState([
-    {
-      user_id: uid,
-      condition: "",
-      diagnosis_date: null,
-      treatment_status: "",
-      allergies: "",
-    },
-  ]);
+  const uid = "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+  // const { uid } = useLocalSearchParams();
+  const emptyCondition = {
+    user_id: uid,
+    condition: "",
+    condition_label: "",
+    diagnosis_date: new Date(),
+    treatment_status: "",
+    treatment_status_label: "",
+    allergies: "",
+  };
+  const [medicalHistory, setMedicalHistory] = useState<MedicalCondition>([]);
+  const [currentMedicalCondition, setCurrentMedicalCondition] =
+    useState<Item>(emptyCondition);
   const conditionOptions = [
     {
-      label: "Taking medication",
+      label: "Heart Condition",
       value: "heart_condition",
     },
   ];
@@ -47,28 +55,42 @@ export default function MedicalHistory() {
       value: "taking_medication",
     },
   ];
+  const [isConditionFocus, setIsConditionFocus] = useState(false);
+  const [isTreatmentStatusFocus, setIsTreatmentStatusFocus] = useState(false);
 
-  const additionalMedicalHistory = () => {
+  const addMedicalHistory = () => {
+    if (currentMedicalCondition.condition.length === 0) return;
     setMedicalHistory((prev) => [
       ...prev,
-      {
-        user_id: uid,
-        condition: "",
-        diagnosis_date: null,
-        treatment_status: "",
-        allergies: "",
-      },
+      { ...currentMedicalCondition, user_id: uid },
     ]);
+    setCurrentMedicalCondition(emptyCondition);
   };
 
+  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
+  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
+  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
+  // ONLY ISSUE IS REMOVING MEDICAL HISTORY. FRONTEND GLITCH. medicalHistory STATE IS UPDATING AS NORMAL.
   const removeMedicalHistory = (index: number) => {
-    console.log(medicalHistory.length);
-    setMedicalHistory((prev) => prev.splice(index, 1));
-    console.log(medicalHistory.length);
+    setMedicalHistory((prev) =>
+      prev.length === 1 ? [] : prev.splice(index, 1)
+    );
   };
 
   const onSubmit = () => {
-    // uid: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+    medicalHistory.forEach(async (item) => {
+      await addDoc(collection(db, "medical_history"), {
+        user_id: uid,
+        condition: item.condition,
+        diagnosis_date: item.diagnosis_date,
+        treatment_status: item.treatment_status,
+        allergies: item.allergies,
+      });
+    });
+    router.push({
+      pathname: "/(signup_questionnaire)/stress_level",
+      params: { uid },
+    });
   };
 
   return (
@@ -84,14 +106,29 @@ export default function MedicalHistory() {
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Medical History</Text>
         <View style={styles.inputView}>
-          {medicalHistory.map((item, index) => (
+          <>
+            {/* Added conditions */}
+            {medicalHistory.map((item, index) => {
+              return (
+                <>
+                  <Pressable
+                    style={styles.button}
+                    onPress={() => removeMedicalHistory(index)}
+                  >
+                    <Text style={styles.buttonText}>Remove Record</Text>
+                  </Pressable>
+                  <Text>Condition # {index + 1}</Text>
+                  <Text>
+                    Condition: {medicalHistory[index].condition_label}
+                  </Text>
+                  <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
+                  <Text>Treatment Status: {item.treatment_status_label}</Text>
+                  <Text>Allergies {item.allergies}</Text>
+                </>
+              );
+            })}
+            {/* Add a new condition form */}
             <>
-              <Pressable
-                style={styles.button}
-                onPress={() => removeMedicalHistory(index)}
-              >
-                <Text style={styles.buttonText}>Remove Record</Text>
-              </Pressable>
               <Text>Condition</Text>
               <Dropdown
                 style={[
@@ -106,11 +143,15 @@ export default function MedicalHistory() {
                 labelField="label"
                 valueField="value"
                 placeholder={!isConditionFocus ? "Select a Condition" : "..."}
-                value={item.condition}
+                value={currentMedicalCondition.condition}
                 onFocus={() => setIsConditionFocus(true)}
                 onBlur={() => setIsConditionFocus(false)}
                 onChange={(item: any) => {
-                  setCondition(item.value);
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    condition: item.value,
+                    condition_label: item.label,
+                  }));
                   setIsConditionFocus(false);
                 }}
                 renderLeftIcon={() => (
@@ -125,9 +166,12 @@ export default function MedicalHistory() {
               <Text>Diagnosis Date</Text>
               <DateTimePicker
                 mode="date"
-                value={dateOfDiagnosis}
-                onChange={(event: any, value: Date | undefined) =>
-                  setDateOfDiagnosis(value || new Date())
+                value={currentMedicalCondition.diagnosis_date}
+                onChange={(item: any) =>
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    diagnosis_date: item.value,
+                  }))
                 }
               />
               <Text>Treatment Status</Text>
@@ -146,11 +190,15 @@ export default function MedicalHistory() {
                 placeholder={
                   !isTreatmentStatusFocus ? "Treatment Status" : "..."
                 }
-                value={treatmentStatus}
+                value={currentMedicalCondition.treatment_status}
                 onFocus={() => setIsTreatmentStatusFocus(true)}
                 onBlur={() => setIsTreatmentStatusFocus(false)}
                 onChange={(item: any) => {
-                  setTreatmentStatus(item.value);
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    treatment_status: item.value,
+                    treatment_status_label: item.label,
+                  }));
                   setIsTreatmentStatusFocus(false);
                 }}
                 renderLeftIcon={() => (
@@ -166,22 +214,38 @@ export default function MedicalHistory() {
               <TextInput
                 style={styles.input}
                 placeholder="Any allergies..."
-                value={allergies}
-                onChangeText={setAllergies}
+                value={currentMedicalCondition.allergies}
+                onChangeText={(item: string) => {
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    allergies: item,
+                  }));
+                }}
                 autoCorrect={false}
                 autoCapitalize="none"
               />
+
+              <Pressable
+                style={
+                  currentMedicalCondition.condition.length === 0
+                    ? styles.button_disabled
+                    : styles.button
+                }
+                onPress={addMedicalHistory}
+                disabled={currentMedicalCondition.condition.length === 0}
+              >
+                <Text style={styles.buttonText}>Add</Text>
+              </Pressable>
             </>
-          ))}
-          <Pressable style={styles.button} onPress={additionalMedicalHistory}>
-            <Text style={styles.buttonText}>Add More Records</Text>
-          </Pressable>
+          </>
         </View>
         <View style={styles.buttonView}>
           <Pressable style={styles.button} onPress={onSubmit}>
             <Text style={styles.buttonText}>NEXT</Text>
           </Pressable>
-          <Link href={"/(signup_questionnaire)/stress_level"}>Skip</Link>
+          <Pressable onPress={onSubmit}>
+            <Text>Skip</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </ParallaxScrollView>
@@ -267,5 +331,14 @@ const styles = StyleSheet.create({
   iconStyle: {
     width: 20,
     height: 20,
+  },
+  button_disabled: {
+    backgroundColor: "#FFCCCB",
+    height: 45,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
