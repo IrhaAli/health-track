@@ -1,15 +1,20 @@
 import { Redirect, Stack } from "expo-router";
+import { getAuth } from "firebase/auth";
 import { useEffect, useState } from "react";
 
 const index = () => {
-  const [token, setToken] = useState(undefined);
+  const [auth, setAuth] = useState("");
 
-  // useEffect(() => {
-  //   const page = "/" + (token ? "(tabs)" : "(signup)") + "/index.tsx";
-  //   // router.push(page);
-  // }, [token]);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user: any = await getAuth().currentUser;
+      const userJSON: any = user?.toJSON();
+      setAuth(userJSON?.uid);
+    };
+    fetchUser();
+  }, []);
 
-  return <Redirect href={token ? "/(tabs)" : "/(signup)"} />;
+  return <Redirect href={auth ? "/(tabs)" : "/(signup)"} />;
 };
 
 export default index;

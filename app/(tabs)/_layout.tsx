@@ -1,12 +1,18 @@
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import React from "react";
 import { Stack } from "expo-router";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { getAuth } from "firebase/auth";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const userId = getAuth().currentUser?.uid;
+
+  if (!userId) {
+    router.push("/(signup)");
+  }
 
   return (
     <>

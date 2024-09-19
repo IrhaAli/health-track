@@ -1,6 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { initializeAuth } from "firebase/auth"
+import { getReactNativePersistence, setPersistence, browserSessionPersistence } from "firebase/auth"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -16,4 +19,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+setPersistence(auth, browserSessionPersistence)
+.then(() => { 
+  return signInWithEmailAndPassword(auth, email, password); }) 
+  .catch((error) => { 
+    const errorCode = error.code; 
+    const errorMessage = error.message; 
+    });
+
 export const db = getFirestore(app);
