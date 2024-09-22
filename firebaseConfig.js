@@ -4,6 +4,7 @@ import { getFirestore } from "firebase/firestore";
 import { initializeAuth } from "firebase/auth"
 import { getReactNativePersistence, setPersistence, browserSessionPersistence } from "firebase/auth"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getStorage } from "firebase/storage"
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -18,6 +19,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const storage = getStorage(app);
 const auth = getAuth(app);
 setPersistence(auth, browserSessionPersistence)
 .then(() => { 
