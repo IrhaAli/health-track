@@ -27,7 +27,15 @@ import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { getAuth } from "firebase/auth";
 import { router } from "expo-router";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -35,74 +43,77 @@ const leftArrowIcon = require("../img/previous.png");
 const rightArrowIcon = require("../img/next.png");
 
 export default function TabTwoScreen() {
-  const storage = getStorage();
+  const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
+  const [ITEMS, setITEMS] = useState([]);
+  const [visible, setVisible] = useState(false);
+  const [formTab, setFormTab] = useState("sleep");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sleepTime, setSleepTime] = useState(new Date());
   const [sleepDuration, setSleepDuration] = useState(0);
+  const [sleepDate, setSleepDate] = useState(new Date());
+  const [sleepQuality, setSleepQuality] = useState(0);
   const [wakeupTime, setWakeupTime] = useState(new Date());
   const [mealTime, setMealTime] = useState(new Date());
-  const [sleepDate, setSleepDate] = useState(new Date());
-  const marked = useRef(getMarkedDates());
-  const theme = useRef(getTheme());
-  const [ITEMS, setITEMS] = useState([]);
-  const todayBtnTheme = useRef({
-    todayButtonTextColor: themeColor,
-  });
-  const [visible, setVisible] = useState(false);
-  const [formTab, setFormTab] = useState("sleep");
   const [water, setWater] = useState("");
-  const [waterType, setWaterType] = useState("");
+  const [waterType, setWaterType] = useState("millilitres");
   const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
-  const [weightType, setWeightType] = useState("");
+  const [weightType, setWeightType] = useState("kg");
   const [weight, setWeight] = useState("");
   const [isWeightTypeFocus, setIsWeightTypeFocus] = useState(false);
-  const [sleepQuality, setSleepQuality] = useState(0);
-  const [permission, requestPermission] = useCameraPermissions();
   const [cameraSide, setCameraSide] = useState(CameraType.back);
   const [showCamera, setShowCamera] = useState(false);
   const [imageFoodUri, setImageFoodUri] = useState(null);
   const [imageWeightUri, setImageWeightUri] = useState(null);
-  const cameraRef = useRef<Camera | null>(null);
   const [timer, setTimer] = useState("");
 
-  const uploadImage = async (reference: string) => {
-    const response = await fetch(
-      reference === "weight" ? imageWeightUri : imageFoodUri
-    );
-    const blob = await response.blob();
-    let refer = ref(storage, `${reference}/${new Date().getTime()}`);
-    return uploadBytes(refer, blob)
-      .then((snapshot) => {
-        return getDownloadURL(snapshot.ref);
-      })
-      .then((downloadUrl) => {
-        return downloadUrl;
-      });
-  };
-
-  const toggleCameraFacing = () => {
-    setCameraSide((current) =>
-      current === CameraType.front ? CameraType.back : CameraType.front
-    );
-  };
+  const storage = getStorage();
+  const marked = useRef(getMarkedDates());
+  const theme = useRef(getTheme());
+  const todayBtnTheme = useRef({
+    todayButtonTextColor: themeColor,
+  });
+  const cameraRef = useRef<Camera | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
 
   const waterTypeOptions = [
     { label: "Cups", value: "cups" },
     { label: "Millilitres", value: "millilitres" },
+    { label: "Liters", value: "liters" },
   ];
   const weightTypeOptions = [
     { label: "lbs", value: "lbs" },
     { label: "kg", value: "kg" },
   ];
 
+  const getData = async (collectionName: string) => {
+    const collectionData = query(
+      collection(db, collectionName),
+      where("user_id", "==", userId),
+      where("date", "==", currentDate)
+    );
+    return await getDocs(collectionData);
+  };
+
   useEffect(() => {
-    // const items = [];
+    // let items = [];
+
+    // Promise.all([getData("diet_tracking")]).then((doc) => {
+    //   doc.forEach((blah) => {
+    //     // blah.data() is never undefined for query blah snapshots
+    //     console.log(blah.id, " => ", blah.data());
+    //   });
+    // });
+
     // setITEMS(items);
-  }, []);
+  }, [currentDate]);
 
   useEffect(() => {
     setSleepDuration(calculateSleepDuration());
   }, [sleepDate, sleepTime, wakeupTime]);
+
+  const renderItem = useCallback(({ item }: any) => {
+    return <AgendaItem item={item} />;
+  }, []);
 
   const onDateChanged = (date: string) => {
     const dateChosen = new Date(date);
@@ -127,10 +138,36 @@ export default function TabTwoScreen() {
     setMealTime(dateChosenWithTime);
   };
 
+  const onMonthChange = (date: any) => {
+    // console.log("ExpandableCalendarScreen onMonthChange: ", date);
+  };
+
+  const clearFields = () => {
+    setSleepQuality(0);
+    setWater("");
+    setWeight("");
+    setImageFoodUri(null);
+    setImageWeightUri(null);
+    setVisible(false);
+  };
+
   const calculateSleepDuration = () => {
-    const currentHours = sleepTime.getUTCHours();
-    const currentMinutes = sleepTime.getUTCMinutes();
-    const currentSeconds = sleepTime.getUTCSeconds();
+    const timezoneOffsetMs = sleepTime.getTimezoneOffset() * 60 * 1000;
+    let sleepTimeUTC = sleepTime;
+    let wakeupTimeUTC = wakeupTime;
+
+    if (timezoneOffsetMs > 0) {
+      sleepTimeUTC = new Date(sleepTime.getTime() - timezoneOffsetMs);
+      wakeupTimeUTC = new Date(wakeupTime.getTime() - timezoneOffsetMs);
+    } else if (timezoneOffsetMs < 0) {
+      sleepTimeUTC = new Date(sleepTime.getTime() + timezoneOffsetMs);
+      wakeupTimeUTC = new Date(wakeupTime.getTime() + timezoneOffsetMs);
+    }
+
+    const currentHours = sleepTimeUTC.getUTCHours();
+    const currentMinutes = sleepTimeUTC.getUTCMinutes();
+    const currentSeconds = sleepTimeUTC.getUTCSeconds();
+
     const sleepDatePickTime = new Date(
       Date.UTC(
         sleepDate.getUTCFullYear(),
@@ -141,36 +178,12 @@ export default function TabTwoScreen() {
         currentSeconds
       )
     );
+
     const sleepTimeMs = sleepDatePickTime.getTime();
-    const wakeupTimeMs = wakeupTime.getTime();
+    const wakeupTimeMs = wakeupTimeUTC.getTime();
     const differenceMs = wakeupTimeMs - sleepTimeMs;
     const differenceMinutes = differenceMs / (1000 * 60);
     return Math.ceil(differenceMinutes);
-  };
-
-  const onMonthChange = (date: any) => {
-    // console.log("ExpandableCalendarScreen onMonthChange: ", date);
-  };
-
-  const renderItem = useCallback(({ item }: any) => {
-    return <AgendaItem item={item} />;
-  }, []);
-
-  const showForm = () => {
-    setVisible(true);
-  };
-
-  const clearFields = () => {
-    setSleepQuality(0);
-    setWater("");
-    setWaterType("");
-    setWeight("");
-    setWeightType("");
-    setVisible(false);
-  };
-
-  const handleCancel = () => {
-    clearFields();
   };
 
   const convertMinutesToHoursAndMinutes = (totalMinutes: number) => {
@@ -179,8 +192,28 @@ export default function TabTwoScreen() {
     return `${hours} hours and ${minutes} minutes`;
   };
 
+  const toggleCameraFacing = () => {
+    setCameraSide((current) =>
+      current === CameraType.front ? CameraType.back : CameraType.front
+    );
+  };
+
+  const uploadImage = async (reference: string) => {
+    const response = await fetch(
+      reference === "weight" ? imageWeightUri : imageFoodUri
+    );
+    const blob = await response.blob();
+    let refer = ref(storage, `${reference}/${new Date().getTime()}`);
+    return uploadBytes(refer, blob)
+      .then((snapshot) => {
+        return getDownloadURL(snapshot.ref);
+      })
+      .then((downloadUrl) => {
+        return downloadUrl;
+      });
+  };
+
   const handleSubmission = async () => {
-    const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
     if (!userId) {
       router.push({
         pathname: "/(signup)",
@@ -197,6 +230,10 @@ export default function TabTwoScreen() {
       };
       await addDoc(collection(db, "sleep_tracking"), userSleepData);
     } else if (formTab === "diet") {
+      if (!imageFoodUri) {
+        Alert.alert("Please add a picture of your meal.");
+        return;
+      }
       const userDietData = {
         user_id: userId,
         date: mealTime,
@@ -206,6 +243,7 @@ export default function TabTwoScreen() {
     } else if (formTab === "water") {
       const conversionRate: Record<string, number> = {
         cups: 250,
+        litres: 1000,
       };
       const intake_amount =
         waterType !== "millilitres"
@@ -233,30 +271,13 @@ export default function TabTwoScreen() {
         date: currentDate,
         weight: convertedWeight,
         measurement_unit: weightType.length === 0 ? "kg" : weightType,
-        picture: await uploadImage("weight"),
+        picture: imageWeightUri ? await uploadImage("weight") : imageWeightUri,
       };
       await addDoc(collection(db, "weight_tracking"), userWeightData);
     }
     setVisible(false);
     clearFields();
   };
-
-  if (!permission) {
-    // Camera permissions are still loading.
-    return <View />;
-  }
-
-  if (!permission.granted) {
-    // Camera permissions are not granted yet.
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="grant permission" />
-      </View>
-    );
-  }
 
   const takePhoto = async () => {
     if (formTab === "weight") {
@@ -292,8 +313,6 @@ export default function TabTwoScreen() {
         theme={todayBtnTheme.current}
         onDateChanged={(date) => onDateChanged(date)}
         onMonthChange={onMonthChange}
-        // disabledOpacity={0.6}
-        // todayBottomMargin={16}
       >
         <ExpandableCalendar
           testID={testIDs.expandableCalendar.CONTAINER}
@@ -307,23 +326,14 @@ export default function TabTwoScreen() {
           markedDates={marked.current}
           leftArrowImageSource={leftArrowIcon}
           rightArrowImageSource={rightArrowIcon}
-          // horizontal={false}
-          // hideArrows
-          // disableWeekScroll
-          // disableAllTouchEventsForDisabledDays
-          // animateScroll={false}
-          // closeOnDayPress={false}
         />
         <AgendaList
           sections={ITEMS}
           renderItem={renderItem}
           sectionStyle={styles.section}
-          // scrollToNextEvent={false}
-          // dayFormat={'yyyy-MM-d'}
         />
-        {/* Pop up */}
         <View>
-          <Pressable style={styles.button} onPress={showForm}>
+          <Pressable style={styles.button} onPress={() => setVisible(true)}>
             <Text style={styles.buttonText}>Add</Text>
           </Pressable>
           <Dialog.Container visible={visible}>
@@ -369,6 +379,7 @@ export default function TabTwoScreen() {
                     />
                     <Text>Sleep Quality: {sleepQuality}</Text>
                     <Slider
+                      value={sleepQuality}
                       minimumValue={1}
                       maximumValue={5}
                       step={1}
@@ -538,39 +549,49 @@ export default function TabTwoScreen() {
                 )}
               </View>
             </>
-            <Dialog.Button label="Cancel" onPress={handleCancel} />
+            <Dialog.Button label="Cancel" onPress={() => clearFields()} />
             <Dialog.Button label="Add" onPress={handleSubmission} />
           </Dialog.Container>
         </View>
       </CalendarProvider>
-      {showCamera && (
-        <View style={[styles.container, styles.cameraContainer]}>
-          <Camera
-            style={styles.camera}
-            type={cameraSide}
-            // ref={(ref: any)=> setNatCamera(ref)}
-            ref={cameraRef}
-          >
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.cameraButton}
-                onPress={toggleCameraFacing}
-              >
-                <Text style={styles.text}>Flip Camera</Text>
-                <Text style={styles.text}>{timer}</Text>
-              </TouchableOpacity>
-              <Button
-                onPress={() => {
-                  setShowCamera(false);
-                  setVisible(true);
-                }}
-                title="Cancel"
-              />
-              <Button onPress={takePhoto} title="Take Photo" />
-            </View>
-          </Camera>
-        </View>
-      )}
+      {showCamera &&
+        (!permission ? (
+          <View />
+        ) : !permission.granted ? (
+          <View style={styles.container}>
+            <Text style={styles.message}>
+              We need your permission to show the camera
+            </Text>
+            <Button onPress={requestPermission} title="grant permission" />
+          </View>
+        ) : (
+          <View style={[styles.container, styles.cameraContainer]}>
+            <Camera
+              style={styles.camera}
+              type={cameraSide}
+              // ref={(ref: any)=> setNatCamera(ref)}
+              ref={cameraRef}
+            >
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.cameraButton}
+                  onPress={toggleCameraFacing}
+                >
+                  <Text style={styles.text}>Flip Camera</Text>
+                  <Text style={styles.text}>{timer}</Text>
+                </TouchableOpacity>
+                <Button
+                  onPress={() => {
+                    setShowCamera(false);
+                    setVisible(true);
+                  }}
+                  title="Cancel"
+                />
+                <Button onPress={takePhoto} title="Take Photo" />
+              </View>
+            </Camera>
+          </View>
+        ))}
     </>
   );
 }
