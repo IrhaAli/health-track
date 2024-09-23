@@ -15,7 +15,6 @@ import {
   CalendarProvider,
 } from "react-native-calendars";
 import testIDs from "../_calendar_files/testIDs";
-import { getMarkedDates } from "../_calendar_files/agendaItems";
 import AgendaItem from "../_calendar_files/AgendaItem";
 import { getTheme, themeColor, lightThemeColor } from "../theme";
 import Dialog from "react-native-dialog";
@@ -67,7 +66,6 @@ export default function TabTwoScreen() {
   const [timer, setTimer] = useState("");
 
   const storage = getStorage();
-  const marked = useRef(getMarkedDates());
   const theme = useRef(getTheme());
   const todayBtnTheme = useRef({
     todayButtonTextColor: themeColor,
@@ -85,28 +83,6 @@ export default function TabTwoScreen() {
     { label: "kg", value: "kg" },
   ];
 
-  const getData = async (collectionName: string) => {
-    const collectionData = query(
-      collection(db, collectionName),
-      where("user_id", "==", userId),
-      where("date", "==", currentDate)
-    );
-    return await getDocs(collectionData);
-  };
-
-  useEffect(() => {
-    // let items = [];
-
-    // Promise.all([getData("diet_tracking")]).then((doc) => {
-    //   doc.forEach((blah) => {
-    //     // blah.data() is never undefined for query blah snapshots
-    //     console.log(blah.id, " => ", blah.data());
-    //   });
-    // });
-
-    // setITEMS(items);
-  }, [currentDate]);
-
   useEffect(() => {
     setSleepDuration(calculateSleepDuration());
   }, [sleepDate, sleepTime, wakeupTime]);
@@ -115,7 +91,87 @@ export default function TabTwoScreen() {
     return <AgendaItem item={item} />;
   }, []);
 
-  const onDateChanged = (date: string) => {
+  const getData = async (collectionName: string) => {
+    const startDate = new Date(currentDate.setHours(0, 0, 0, 0));
+    const endDate = new Date(currentDate.setHours(23, 59, 59, 999));
+    const whereDate =
+      collectionName === "sleep_tracking" ? "wakeup_time" : "date";
+    const collectionData = query(
+      collection(db, collectionName),
+      where("user_id", "==", userId),
+      where(whereDate, ">=", startDate),
+      where(whereDate, "<=", endDate)
+    );
+    const docSnap = await getDocs(collectionData);
+    const docData: any[] = [];
+    docSnap.forEach((item) => docData.push({ ...item.data() }));
+
+    return docData;
+  };
+
+  const addItems = (data: any, dataType: string) => {
+    let item: any = [];
+    if (dataType === "water") {
+      data.forEach((waterIntake: any) =>
+        item.push({
+          title: currentDate,
+          data: [
+            {
+              hour: `${waterIntake.intake_amount}`,
+              duration: `${waterIntake.measurement_unit}`,
+              title: "Water Intake",
+            },
+          ],
+        })
+      );
+    } else if (dataType === "diet") {
+      data.forEach((meal: any) => {
+        const time = new Date(meal.date.toDate());
+        item.push({
+          title: currentDate,
+          data: [
+            {
+              hour: `${time.getHours() % 12}:${time.getMinutes()} ${
+                time.getHours() < 12 ? "AM" : "PM"
+              }`,
+              title: "Meals",
+            },
+          ],
+        });
+      });
+    } else if (dataType === "weight") {
+      data.forEach((weightAmount: any) =>
+        item.push({
+          title: currentDate,
+          data: [
+            {
+              hour: `${weightAmount.weight}`,
+              duration: `${weightAmount.measurement_unit}`,
+              title: "Weight",
+            },
+          ],
+        })
+      );
+    } else if (dataType === "sleep") {
+      data.forEach((sleepInfo: any) => {
+        item.push({
+          title: currentDate,
+          data: [
+            {
+              hour: `${Math.floor(sleepInfo.sleep_duration / 60)} hrs ${
+                sleepInfo.sleep_duration % 60
+              } mins`,
+              duration: `${sleepInfo.sleep_quality}`,
+              title: "Sleep",
+            },
+          ],
+        });
+      });
+    }
+    return item;
+  };
+
+  const onDateChanged = async (date: string) => {
     const dateChosen = new Date(date);
     const todayDate = new Date();
     const currentHours = todayDate.getUTCHours();
@@ -136,6 +192,18 @@ export default function TabTwoScreen() {
     setSleepTime(dateChosenWithTime);
     setWakeupTime(dateChosenWithTime);
     setMealTime(dateChosenWithTime);
+
+    const dietData = await getData("diet_tracking");
+    const waterData = await getData("water_tracking");
+    const weightData = await getData("weight_tracking");
+    const sleepData = await getData("sleep_tracking");
+
+    setITEMS([
+      ...addItems(dietData, "diet"),
+      ...addItems(waterData, "water"),
+      ...addItems(weightData, "weight"),
+      ...addItems(sleepData, "sleep"),
+    ]);
   };
 
   const onMonthChange = (date: any) => {
@@ -307,6 +375,8 @@ export default function TabTwoScreen() {
 
   return (
     <>
+      {/* Lock all dates ahead of current day */}
+      {/* Stop scroll */}
       <CalendarProvider
         date={`${currentDate}`}
         showTodayButton
@@ -323,7 +393,6 @@ export default function TabTwoScreen() {
           headerStyle={styles.header} // for horizontal only
           theme={theme.current}
           firstDay={1}
-          markedDates={marked.current}
           leftArrowImageSource={leftArrowIcon}
           rightArrowImageSource={rightArrowIcon}
         />
