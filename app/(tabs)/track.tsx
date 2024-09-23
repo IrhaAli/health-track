@@ -48,6 +48,7 @@ export default function TabTwoScreen() {
     weight: [],
     diet: [],
     sleep: [],
+    update: { water: false, weight: false, diet: false, sleep: false },
   });
   const [visible, setVisible] = useState(false);
   const [formTab, setFormTab] = useState("sleep");
@@ -190,11 +191,19 @@ export default function TabTwoScreen() {
     const weightData = await getData("weight_tracking");
     const sleepData = await getData("sleep_tracking");
 
+    console.log(sleepData);
+
     setITEMS({
       diet: addItems(dietData, "diet"),
       water: addItems(waterData, "water"),
       weight: addItems(weightData, "weight"),
       sleep: addItems(sleepData, "sleep"),
+      update: {
+        diet: dietData.length !== 0,
+        water: waterData.length !== 0,
+        weight: weightData.length !== 0,
+        sleep: sleepData.length !== 0,
+      },
     });
 
     if (sleepData.length === 0) {
@@ -219,10 +228,6 @@ export default function TabTwoScreen() {
       setWakeupTime(dateChosenWithTime);
       setMealTime(dateChosenWithTime);
     }
-  };
-
-  const onMonthChange = (date: any) => {
-    // console.log("ExpandableCalendarScreen onMonthChange: ", date);
   };
 
   const clearFields = () => {
@@ -390,14 +395,11 @@ export default function TabTwoScreen() {
 
   return (
     <>
-      {/* Lock all dates ahead of current day */}
-      {/* Stop scroll */}
       <CalendarProvider
         date={`${currentDate}`}
         showTodayButton
         theme={todayBtnTheme.current}
         onDateChanged={(date) => onDateChanged(date)}
-        onMonthChange={onMonthChange}
       >
         <ExpandableCalendar
           testID={testIDs.expandableCalendar.CONTAINER}
@@ -410,6 +412,7 @@ export default function TabTwoScreen() {
           firstDay={1}
           leftArrowImageSource={leftArrowIcon}
           rightArrowImageSource={rightArrowIcon}
+          maxDate={`${new Date()}`}
         />
         <AgendaList
           sections={[
