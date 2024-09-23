@@ -43,7 +43,12 @@ const rightArrowIcon = require("../img/next.png");
 
 export default function TabTwoScreen() {
   const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
-  const [ITEMS, setITEMS] = useState([]);
+  const [ITEMS, setITEMS] = useState({
+    water: [],
+    weight: [],
+    diet: [],
+    sleep: [],
+  });
   const [visible, setVisible] = useState(false);
   const [formTab, setFormTab] = useState("sleep");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -112,7 +117,9 @@ export default function TabTwoScreen() {
   const addItems = (data: any, dataType: string) => {
     let item: any = [];
     if (dataType === "water") {
-      data.forEach((waterIntake: any) =>
+      data.forEach((waterIntake: any) => {
+        setWater(waterIntake.intake_amount);
+        setWaterType(waterIntake.measurement_unit);
         item.push({
           title: currentDate,
           data: [
@@ -122,8 +129,8 @@ export default function TabTwoScreen() {
               title: "Water Intake",
             },
           ],
-        })
-      );
+        });
+      });
     } else if (dataType === "diet") {
       data.forEach((meal: any) => {
         const time = new Date(meal.date.toDate());
@@ -140,7 +147,9 @@ export default function TabTwoScreen() {
         });
       });
     } else if (dataType === "weight") {
-      data.forEach((weightAmount: any) =>
+      data.forEach((weightAmount: any) => {
+        setWeight(weightAmount.weight);
+        setWeightType(weightAmount.measurement_unit);
         item.push({
           title: currentDate,
           data: [
@@ -150,10 +159,14 @@ export default function TabTwoScreen() {
               title: "Weight",
             },
           ],
-        })
-      );
+        });
+      });
     } else if (dataType === "sleep") {
       data.forEach((sleepInfo: any) => {
+        setSleepDate(new Date(sleepInfo.bed_time.toDate()));
+        setSleepTime(new Date(sleepInfo.bed_time.toDate()));
+        setWakeupTime(new Date(sleepInfo.wakeup_time.toDate()));
+        setSleepQuality(sleepInfo.sleep_quality);
         item.push({
           title: currentDate,
           data: [
@@ -172,38 +185,40 @@ export default function TabTwoScreen() {
   };
 
   const onDateChanged = async (date: string) => {
-    const dateChosen = new Date(date);
-    const todayDate = new Date();
-    const currentHours = todayDate.getUTCHours();
-    const currentMinutes = todayDate.getUTCMinutes();
-    const currentSeconds = todayDate.getUTCSeconds();
-    const dateChosenWithTime = new Date(
-      Date.UTC(
-        dateChosen.getUTCFullYear(),
-        dateChosen.getUTCMonth(),
-        dateChosen.getUTCDate(),
-        currentHours,
-        currentMinutes,
-        currentSeconds
-      )
-    );
-    setCurrentDate(dateChosenWithTime);
-    setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
-    setSleepTime(dateChosenWithTime);
-    setWakeupTime(dateChosenWithTime);
-    setMealTime(dateChosenWithTime);
-
     const dietData = await getData("diet_tracking");
     const waterData = await getData("water_tracking");
     const weightData = await getData("weight_tracking");
     const sleepData = await getData("sleep_tracking");
 
-    setITEMS([
-      ...addItems(dietData, "diet"),
-      ...addItems(waterData, "water"),
-      ...addItems(weightData, "weight"),
-      ...addItems(sleepData, "sleep"),
-    ]);
+    setITEMS({
+      diet: addItems(dietData, "diet"),
+      water: addItems(waterData, "water"),
+      weight: addItems(weightData, "weight"),
+      sleep: addItems(sleepData, "sleep"),
+    });
+
+    if (sleepData.length === 0) {
+      const dateChosen = new Date(date);
+      const todayDate = new Date();
+      const currentHours = todayDate.getUTCHours();
+      const currentMinutes = todayDate.getUTCMinutes();
+      const currentSeconds = todayDate.getUTCSeconds();
+      const dateChosenWithTime = new Date(
+        Date.UTC(
+          dateChosen.getUTCFullYear(),
+          dateChosen.getUTCMonth(),
+          dateChosen.getUTCDate(),
+          currentHours,
+          currentMinutes,
+          currentSeconds
+        )
+      );
+      setCurrentDate(dateChosenWithTime);
+      setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
+      setSleepTime(dateChosenWithTime);
+      setWakeupTime(dateChosenWithTime);
+      setMealTime(dateChosenWithTime);
+    }
   };
 
   const onMonthChange = (date: any) => {
@@ -397,13 +412,25 @@ export default function TabTwoScreen() {
           rightArrowImageSource={rightArrowIcon}
         />
         <AgendaList
-          sections={ITEMS}
+          sections={[
+            ...ITEMS.sleep,
+            ...ITEMS.water,
+            ...ITEMS.diet,
+            ...ITEMS.weight,
+          ]}
           renderItem={renderItem}
           sectionStyle={styles.section}
         />
         <View>
           <Pressable style={styles.button} onPress={() => setVisible(true)}>
-            <Text style={styles.buttonText}>Add</Text>
+            <Text style={styles.buttonText}>
+              {ITEMS.diet.length === 0 ||
+              ITEMS.water.length === 0 ||
+              ITEMS.sleep.length === 0 ||
+              ITEMS.weight.length === 0
+                ? "Add"
+                : "Edit"}
+            </Text>
           </Pressable>
           <Dialog.Container visible={visible}>
             <Dialog.Title>
@@ -619,7 +646,17 @@ export default function TabTwoScreen() {
               </View>
             </>
             <Dialog.Button label="Cancel" onPress={() => clearFields()} />
-            <Dialog.Button label="Add" onPress={handleSubmission} />
+            <Dialog.Button
+              label={
+                ITEMS.diet.length === 0 ||
+                ITEMS.water.length === 0 ||
+                ITEMS.sleep.length === 0 ||
+                ITEMS.weight.length === 0
+                  ? "Add"
+                  : "Edit"
+              }
+              onPress={handleSubmission}
+            />
           </Dialog.Container>
         </View>
       </CalendarProvider>
