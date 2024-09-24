@@ -52,6 +52,7 @@ export default function TabTwoScreen() {
   });
   const [visible, setVisible] = useState(false);
   const [formTab, setFormTab] = useState("sleep");
+  const [loadingData, setLoadingData] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sleepTime, setSleepTime] = useState(new Date());
   const [sleepDuration, setSleepDuration] = useState(0);
@@ -75,6 +76,7 @@ export default function TabTwoScreen() {
   const theme = useRef(getTheme());
   const todayBtnTheme = useRef({
     todayButtonTextColor: themeColor,
+    selectedDayBackgroundColor: "red",
   });
   const cameraRef = useRef<Camera | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -97,9 +99,9 @@ export default function TabTwoScreen() {
     return <AgendaItem item={item} />;
   }, []);
 
-  const getData = async (collectionName: string) => {
-    const startDate = new Date(currentDate.setHours(0, 0, 0, 0));
-    const endDate = new Date(currentDate.setHours(23, 59, 59, 999));
+  const getData = async (collectionName: string, date: string) => {
+    const startDate = new Date(new Date(date).setHours(0, 0, 0, 0));
+    const endDate = new Date(new Date(date).setHours(23, 59, 59, 999));
     const whereDate =
       collectionName === "sleep_tracking" ? "wakeup_time" : "date";
     const collectionData = query(
@@ -115,14 +117,14 @@ export default function TabTwoScreen() {
     return docData;
   };
 
-  const addItems = (data: any, dataType: string) => {
+  const addItems = (data: any, dataType: string, date: Date) => {
     let item: any = [];
     if (dataType === "water") {
       data.forEach((waterIntake: any) => {
         setWater(waterIntake.intake_amount);
         setWaterType(waterIntake.measurement_unit);
         item.push({
-          title: currentDate,
+          title: date,
           data: [
             {
               hour: `${waterIntake.intake_amount}`,
@@ -136,7 +138,7 @@ export default function TabTwoScreen() {
       data.forEach((meal: any) => {
         const time = new Date(meal.date.toDate());
         item.push({
-          title: currentDate,
+          title: date,
           data: [
             {
               hour: `${time.getHours() % 12}:${time.getMinutes()} ${
@@ -152,7 +154,7 @@ export default function TabTwoScreen() {
         setWeight(weightAmount.weight);
         setWeightType(weightAmount.measurement_unit);
         item.push({
-          title: currentDate,
+          title: date,
           data: [
             {
               hour: `${weightAmount.weight}`,
@@ -169,7 +171,7 @@ export default function TabTwoScreen() {
         setWakeupTime(new Date(sleepInfo.wakeup_time.toDate()));
         setSleepQuality(sleepInfo.sleep_quality);
         item.push({
-          title: currentDate,
+          title: date,
           data: [
             {
               hour: `${Math.floor(sleepInfo.sleep_duration / 60)} hrs ${
@@ -185,28 +187,16 @@ export default function TabTwoScreen() {
     return item;
   };
 
-  const onDateChanged = async (date: string) => {
-    const dietData = await getData("diet_tracking");
-    const waterData = await getData("water_tracking");
-    const weightData = await getData("weight_tracking");
-    const sleepData = await getData("sleep_tracking");
+  const onDateChanged = useCallback(
+    async (date: string) => {
+      // if (
+      //   currentDate.setHours(0, 0, 0, 0) === new Date(date).setHours(0, 0, 0, 0)
+      // ) {
+      //   console.log("IT WORKED!!!!");
+      //   // return;
+      // }
 
-    console.log(sleepData);
-
-    setITEMS({
-      diet: addItems(dietData, "diet"),
-      water: addItems(waterData, "water"),
-      weight: addItems(weightData, "weight"),
-      sleep: addItems(sleepData, "sleep"),
-      update: {
-        diet: dietData.length !== 0,
-        water: waterData.length !== 0,
-        weight: weightData.length !== 0,
-        sleep: sleepData.length !== 0,
-      },
-    });
-
-    if (sleepData.length === 0) {
+      setLoadingData(true);
       const dateChosen = new Date(date);
       const todayDate = new Date();
       const currentHours = todayDate.getUTCHours();
@@ -222,13 +212,44 @@ export default function TabTwoScreen() {
           currentSeconds
         )
       );
-      setCurrentDate(dateChosenWithTime);
-      setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
-      setSleepTime(dateChosenWithTime);
-      setWakeupTime(dateChosenWithTime);
       setMealTime(dateChosenWithTime);
-    }
-  };
+      setCurrentDate(dateChosenWithTime);
+
+      const dietData = await getData("diet_tracking", date);
+      const waterData = await getData("water_tracking", date);
+      const weightData = await getData("weight_tracking", date);
+      const sleepData = await getData("sleep_tracking", date);
+
+      if (
+        dietData.length > 0 ||
+        waterData.length > 0 ||
+        weightData.length > 0 ||
+        sleepData.length > 0
+      ) {
+        setITEMS({
+          diet: addItems(dietData, "diet", new Date(date)),
+          water: addItems(waterData, "water", new Date(date)),
+          weight: addItems(weightData, "weight", new Date(date)),
+          sleep: addItems(sleepData, "sleep", new Date(date)),
+          update: {
+            diet: dietData.length !== 0,
+            water: waterData.length !== 0,
+            weight: weightData.length !== 0,
+            sleep: sleepData.length !== 0,
+          },
+        });
+      }
+      console.log("+++++++++++++", currentDate);
+
+      if (sleepData.length === 0) {
+        setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
+        setSleepTime(dateChosenWithTime);
+        setWakeupTime(dateChosenWithTime);
+      }
+      setLoadingData(false);
+    },
+    [currentDate]
+  );
 
   const clearFields = () => {
     setSleepQuality(0);
@@ -397,12 +418,13 @@ export default function TabTwoScreen() {
     <>
       <CalendarProvider
         date={`${currentDate}`}
-        showTodayButton
+        showTodayButton={false}
         theme={todayBtnTheme.current}
-        onDateChanged={(date) => onDateChanged(date)}
+        onDateChanged={onDateChanged}
       >
         <ExpandableCalendar
           testID={testIDs.expandableCalendar.CONTAINER}
+          disabledByDefault={loadingData}
           disablePan
           hideKnob
           initialPosition={ExpandableCalendar.positions.OPEN}
@@ -412,7 +434,19 @@ export default function TabTwoScreen() {
           firstDay={1}
           leftArrowImageSource={leftArrowIcon}
           rightArrowImageSource={rightArrowIcon}
-          maxDate={`${new Date()}`}
+          maxDate={`${new Date(new Date().setDate(new Date().getDate() - 1))}`}
+          markedDates={{
+            [`${currentDate.getFullYear()}-${String(
+              currentDate.getMonth() + 1
+            ).padStart(2, "0")}-${String(currentDate.getDate()).padStart(
+              2,
+              "0"
+            )}`]: {
+              selected: true,
+              selectedColor: "yellow",
+              selectedTextColor: "black",
+            },
+          }}
         />
         <AgendaList
           sections={[
@@ -423,6 +457,7 @@ export default function TabTwoScreen() {
           ]}
           renderItem={renderItem}
           sectionStyle={styles.section}
+          scrollToNextEvent={false}
         />
         <View>
           <Pressable style={styles.button} onPress={() => setVisible(true)}>
@@ -675,12 +710,7 @@ export default function TabTwoScreen() {
           </View>
         ) : (
           <View style={[styles.container, styles.cameraContainer]}>
-            <Camera
-              style={styles.camera}
-              type={cameraSide}
-              // ref={(ref: any)=> setNatCamera(ref)}
-              ref={cameraRef}
-            >
+            <Camera style={styles.camera} type={cameraSide} ref={cameraRef}>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.cameraButton}
