@@ -27,7 +27,6 @@ import { Camera, CameraType } from "expo-camera/legacy";
 import { getAuth } from "firebase/auth";
 import { router } from "expo-router";
 import {
-  doc,
   setDoc,
   addDoc,
   collection,
@@ -132,6 +131,7 @@ export default function TabTwoScreen() {
               title: "Water Intake",
             },
           ],
+          // id: waterIntake.id,
         });
       });
     } else if (dataType === "diet") {
@@ -147,6 +147,7 @@ export default function TabTwoScreen() {
               title: "Meals",
             },
           ],
+          // id: meal.id,
         });
       });
     } else if (dataType === "weight") {
@@ -162,6 +163,7 @@ export default function TabTwoScreen() {
               title: "Weight",
             },
           ],
+          // id: weightAmount.id,
         });
       });
     } else if (dataType === "sleep") {
@@ -181,75 +183,98 @@ export default function TabTwoScreen() {
               title: "Sleep",
             },
           ],
+          // id: sleepInfo.id,
         });
       });
     }
     return item;
   };
 
-  const onDateChanged = useCallback(
-    async (date: string) => {
-      // if (
-      //   currentDate.setHours(0, 0, 0, 0) === new Date(date).setHours(0, 0, 0, 0)
-      // ) {
-      //   console.log("IT WORKED!!!!");
-      //   // return;
-      // }
+  const dateChosenWithTime = (date: string) => {
+    const dateChosen = new Date(date);
+    const todayDate = new Date();
+    const currentHours = todayDate.getUTCHours();
+    const currentMinutes = todayDate.getUTCMinutes();
+    const currentSeconds = todayDate.getUTCSeconds();
+    return new Date(
+      Date.UTC(
+        dateChosen.getUTCFullYear(),
+        dateChosen.getUTCMonth(),
+        dateChosen.getUTCDate(),
+        currentHours,
+        currentMinutes,
+        currentSeconds
+      )
+    );
+  };
 
-      setLoadingData(true);
+  const updateDataOnNewDate = async () => {
+    setLoadingData(true);
+    const date = `${currentDate}`;
+    const dateWithTime = dateChosenWithTime(date);
+    setITEMS({
+      water: [],
+      weight: [],
+      diet: [],
+      sleep: [],
+      update: { water: false, weight: false, diet: false, sleep: false },
+    });
+    setMealTime(dateWithTime);
+    const dietData = await getData("diet_tracking", date);
+    const waterData = await getData("water_tracking", date);
+    const weightData = await getData("weight_tracking", date);
+    const sleepData = await getData("sleep_tracking", date);
+
+    if (
+      dietData.length > 0 ||
+      waterData.length > 0 ||
+      weightData.length > 0 ||
+      sleepData.length > 0
+    ) {
+      setITEMS({
+        diet: addItems(dietData, "diet", new Date(date)),
+        water: addItems(waterData, "water", new Date(date)),
+        weight: addItems(weightData, "weight", new Date(date)),
+        sleep: addItems(sleepData, "sleep", new Date(date)),
+        update: {
+          diet: dietData.length !== 0,
+          water: waterData.length !== 0,
+          weight: weightData.length !== 0,
+          sleep: sleepData.length !== 0,
+        },
+      });
+    }
+
+    if (sleepData.length === 0) {
       const dateChosen = new Date(date);
-      const todayDate = new Date();
-      const currentHours = todayDate.getUTCHours();
-      const currentMinutes = todayDate.getUTCMinutes();
-      const currentSeconds = todayDate.getUTCSeconds();
-      const dateChosenWithTime = new Date(
-        Date.UTC(
-          dateChosen.getUTCFullYear(),
-          dateChosen.getUTCMonth(),
-          dateChosen.getUTCDate(),
-          currentHours,
-          currentMinutes,
-          currentSeconds
-        )
-      );
-      setMealTime(dateChosenWithTime);
-      setCurrentDate(dateChosenWithTime);
+      setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
+      setSleepTime(dateWithTime);
+      setWakeupTime(dateWithTime);
+    }
+    setLoadingData(false);
+    // console.log(dietData);
+    // console.log(waterData);
+    // console.log(weightData);
+    // console.log(sleepData);
+    // console.log(date);
+  };
 
-      const dietData = await getData("diet_tracking", date);
-      const waterData = await getData("water_tracking", date);
-      const weightData = await getData("weight_tracking", date);
-      const sleepData = await getData("sleep_tracking", date);
+  useEffect(() => {
+    console.log("useEffect", currentDate);
+    updateDataOnNewDate();
+  }, [currentDate]);
 
-      if (
-        dietData.length > 0 ||
-        waterData.length > 0 ||
-        weightData.length > 0 ||
-        sleepData.length > 0
-      ) {
-        setITEMS({
-          diet: addItems(dietData, "diet", new Date(date)),
-          water: addItems(waterData, "water", new Date(date)),
-          weight: addItems(weightData, "weight", new Date(date)),
-          sleep: addItems(sleepData, "sleep", new Date(date)),
-          update: {
-            diet: dietData.length !== 0,
-            water: waterData.length !== 0,
-            weight: weightData.length !== 0,
-            sleep: sleepData.length !== 0,
-          },
-        });
+  const onDateChanged = 
+    async (date: string, previousDate: string) => {
+      console.log("blahhhhh")
+      if (date === previousDate) {
+        console.log("SAME DATE YOU IDIOT");
+        return;
       }
-      console.log("+++++++++++++", currentDate);
 
-      if (sleepData.length === 0) {
-        setSleepDate(new Date(dateChosen.setDate(dateChosen.getDate() - 1)));
-        setSleepTime(dateChosenWithTime);
-        setWakeupTime(dateChosenWithTime);
-      }
-      setLoadingData(false);
-    },
-    [currentDate]
-  );
+      const dateWithTime = dateChosenWithTime(date);
+      setCurrentDate(dateWithTime);
+    }
 
   const clearFields = () => {
     setSleepQuality(0);
@@ -417,10 +442,22 @@ export default function TabTwoScreen() {
   return (
     <>
       <CalendarProvider
-        date={`${currentDate}`}
+        date={`${currentDate.getFullYear()}-${String(
+          currentDate.getMonth() + 1
+        ).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`}
         showTodayButton={false}
         theme={todayBtnTheme.current}
-        onDateChanged={onDateChanged}
+        onDateChanged={(date) =>
+          onDateChanged(
+            date,
+            `${currentDate.getFullYear()}-${String(
+              currentDate.getMonth() + 1
+            ).padStart(2, "0")}-${String(currentDate.getDate()).padStart(
+              2,
+              "0"
+            )}`
+          )
+        }
       >
         <ExpandableCalendar
           testID={testIDs.expandableCalendar.CONTAINER}
