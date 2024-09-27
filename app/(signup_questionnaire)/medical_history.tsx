@@ -17,6 +17,8 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import MedicalHistory from "@/components/user_info/MedicalHistory";
+
 interface Item {
   user_id: string;
   condition: string;
@@ -28,50 +30,9 @@ interface Item {
 }
 interface MedicalCondition extends Array<Item> {}
 
-export default function MedicalHistory() {
-  const uid = "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
-  // const { uid } = useLocalSearchParams();
-  const emptyCondition = {
-    user_id: uid,
-    condition: "",
-    condition_label: "",
-    diagnosis_date: new Date(),
-    treatment_status: "",
-    treatment_status_label: "",
-    allergies: "",
-  };
+export default function MedicalHistoryPanel() {
+  const { uid } = useLocalSearchParams() || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition>([]);
-  const [currentMedicalCondition, setCurrentMedicalCondition] =
-    useState<Item>(emptyCondition);
-  const conditionOptions = [
-    {
-      label: "Heart Condition",
-      value: "heart_condition",
-    },
-  ];
-  const treatmentStatusOptions = [
-    {
-      label: "Taking Medication",
-      value: "taking_medication",
-    },
-  ];
-  const [isConditionFocus, setIsConditionFocus] = useState(false);
-  const [isTreatmentStatusFocus, setIsTreatmentStatusFocus] = useState(false);
-
-  const addMedicalHistory = () => {
-    if (currentMedicalCondition.condition.length === 0) return;
-    setMedicalHistory((prev) => [
-      ...prev,
-      { ...currentMedicalCondition, user_id: uid },
-    ]);
-    setCurrentMedicalCondition(emptyCondition);
-  };
-
-  const removeMedicalHistory = (index: number) => {
-    setMedicalHistory((prev) =>
-      prev.length === 1 ? [] : prev.filter((item, i) => i !== index)
-    );
-  };
 
   const onSubmit = () => {
     medicalHistory.forEach(async (item) => {
@@ -89,169 +50,13 @@ export default function MedicalHistory() {
     });
   };
 
-  const onSkip = () => {
-    router.push({
-      pathname: "/(signup_questionnaire)/stress_level",
-      params: { uid },
-    });
-  };
-
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/home-image.png")}
-          style={styles.appLogo}
-        />
-      }
-    >
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>Medical History</Text>
-        <View style={styles.inputView}>
-          <>
-            {/* Added conditions */}
-            {medicalHistory.map((item, index) => {
-              return (
-                <View key={index}>
-                  <Pressable
-                    style={styles.button}
-                    onPress={() => removeMedicalHistory(index)}
-                  >
-                    <Text style={styles.buttonText}>Remove Record</Text>
-                  </Pressable>
-                  <Text>Condition # {index + 1}</Text>
-                  <Text>
-                    Condition: {medicalHistory[index].condition_label}
-                  </Text>
-                  <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
-                  <Text>Treatment Status: {item.treatment_status_label}</Text>
-                  <Text>Allergies {item.allergies}</Text>
-                </View>
-              );
-            })}
-            {/* Add a new condition form */}
-            <>
-              <Text>Condition</Text>
-              <Dropdown
-                style={[
-                  styles.dropdown,
-                  isConditionFocus && { borderColor: "blue" },
-                ]}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                iconStyle={styles.iconStyle}
-                data={conditionOptions}
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                placeholder={!isConditionFocus ? "Select a Condition" : "..."}
-                value={currentMedicalCondition.condition}
-                onFocus={() => setIsConditionFocus(true)}
-                onBlur={() => setIsConditionFocus(false)}
-                onChange={(item: any) => {
-                  setCurrentMedicalCondition((prev) => ({
-                    ...prev,
-                    condition: item.value,
-                    condition_label: item.label,
-                  }));
-                  setIsConditionFocus(false);
-                }}
-                renderLeftIcon={() => (
-                  <AntDesign
-                    style={styles.icon}
-                    color={isConditionFocus ? "blue" : "black"}
-                    name="Safety"
-                    size={20}
-                  />
-                )}
-              />
-              <Text>Diagnosis Date</Text>
-              <DateTimePicker
-                mode="date"
-                value={currentMedicalCondition.diagnosis_date}
-                onChange={(event: any, value: Date | undefined) =>
-                  setCurrentMedicalCondition((prev) => ({
-                    ...prev,
-                    diagnosis_date: value || new Date(),
-                  }))
-                }
-              />
-              <Text>Treatment Status</Text>
-              <Dropdown
-                style={[
-                  styles.dropdown,
-                  isTreatmentStatusFocus && { borderColor: "blue" },
-                ]}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                iconStyle={styles.iconStyle}
-                data={treatmentStatusOptions}
-                maxHeight={300}
-                labelField="label"
-                valueField="value"
-                placeholder={
-                  !isTreatmentStatusFocus ? "Treatment Status" : "..."
-                }
-                value={currentMedicalCondition.treatment_status}
-                onFocus={() => setIsTreatmentStatusFocus(true)}
-                onBlur={() => setIsTreatmentStatusFocus(false)}
-                onChange={(item: any) => {
-                  setCurrentMedicalCondition((prev) => ({
-                    ...prev,
-                    treatment_status: item.value,
-                    treatment_status_label: item.label,
-                  }));
-                  setIsTreatmentStatusFocus(false);
-                }}
-                renderLeftIcon={() => (
-                  <AntDesign
-                    style={styles.icon}
-                    color={isConditionFocus ? "blue" : "black"}
-                    name="Safety"
-                    size={20}
-                  />
-                )}
-              />
-              <Text>Allergies</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Any allergies..."
-                value={currentMedicalCondition.allergies}
-                onChangeText={(item: string) => {
-                  setCurrentMedicalCondition((prev) => ({
-                    ...prev,
-                    allergies: item,
-                  }));
-                }}
-                autoCorrect={false}
-                autoCapitalize="none"
-              />
-
-              <Pressable
-                style={
-                  currentMedicalCondition.condition.length === 0
-                    ? styles.button_disabled
-                    : styles.button
-                }
-                onPress={addMedicalHistory}
-                disabled={currentMedicalCondition.condition.length === 0}
-              >
-                <Text style={styles.buttonText}>Add</Text>
-              </Pressable>
-            </>
-          </>
-        </View>
-        <View style={styles.buttonView}>
-          <Pressable style={styles.button} onPress={onSubmit}>
-            <Text style={styles.buttonText}>NEXT</Text>
-          </Pressable>
-          <Pressable onPress={onSkip}>
-            <Text>Skip</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    </ParallaxScrollView>
+    <MedicalHistory
+      uid={uid}
+      medicalHistory={medicalHistory}
+      setMedicalHistory={setMedicalHistory}
+      onSubmit={onSubmit}
+    />
   );
 }
 
