@@ -14,26 +14,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 export default function UserDetails({
-  gender,
-  setGender,
-  bodyType,
-  setBodyType,
-  activityType,
-  setActivityType,
-  dob,
-  setDOB,
-  fullName,
-  setFullName,
-  height,
-  setHeight,
-  weight,
-  setWeight,
-  wakeupTime,
-  setWakeupTime,
-  sleepTime,
-  setSleepTime,
-  healthGoal,
-  setHealthGoal,
+  userDetails,
+  setUserDetails,
   onSubmit,
 }: any) {
   const [measurementType, setMeasurementType] = useState("cm");
@@ -83,6 +65,10 @@ export default function UserDetails({
     { label: "General Fitness", value: "general-fitness" },
   ];
 
+  const updateUserDetails = (value: any, key: string) => {
+    setUserDetails((prev: any) => ({ ...prev, [key]: value }));
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -99,17 +85,17 @@ export default function UserDetails({
           <TextInput
             style={styles.input}
             placeholder="Full Name"
-            value={fullName}
-            onChangeText={setFullName}
+            value={userDetails.fullName}
+            onChangeText={(value) => updateUserDetails(value, "fullName")}
             autoCorrect={false}
             autoCapitalize="none"
           />
           <Text>Date of Birth</Text>
           <DateTimePicker
             mode="date"
-            value={dob}
+            value={userDetails.dob}
             onChange={(event: any, value: Date | undefined) =>
-              setDOB(value || new Date())
+              updateUserDetails(value, "dob")
             }
           />
           <Dropdown
@@ -122,11 +108,11 @@ export default function UserDetails({
             labelField="label"
             valueField="value"
             placeholder={!isGenderFocus ? "Select Gender" : "..."}
-            value={gender}
+            value={userDetails.gender}
             onFocus={() => setIsGenderFocus(true)}
             onBlur={() => setIsGenderFocus(false)}
             onChange={(item: any) => {
-              setGender(item.value);
+              updateUserDetails(item.value, "gender");
               setIsGenderFocus(false);
             }}
             renderLeftIcon={() => (
@@ -151,11 +137,11 @@ export default function UserDetails({
             labelField="label"
             valueField="value"
             placeholder={!isBodyTypeFocus ? "Select Body Type" : "..."}
-            value={bodyType}
+            value={userDetails.bodyType}
             onFocus={() => setIsBodyTypeFocus(true)}
             onBlur={() => setIsBodyTypeFocus(false)}
             onChange={(item: any) => {
-              setBodyType(item.value);
+              updateUserDetails(item.value, "bodyType");
               setIsBodyTypeFocus(false);
             }}
             renderLeftIcon={() => (
@@ -180,11 +166,11 @@ export default function UserDetails({
             labelField="label"
             valueField="value"
             placeholder={!isActivityFocus ? "Select Activity Type" : "..."}
-            value={activityType}
+            value={userDetails.activityType}
             onFocus={() => setIsActivityFocus(true)}
             onBlur={() => setIsActivityFocus(false)}
             onChange={(item: any) => {
-              setActivityType(item.value);
+              updateUserDetails(item.value, "activityType");
               setIsActivityFocus(false);
             }}
             renderLeftIcon={() => (
@@ -200,8 +186,8 @@ export default function UserDetails({
             <TextInput
               style={styles.input}
               placeholder="Height in cm"
-              value={height}
-              onChangeText={setHeight}
+              value={userDetails.height}
+              onChangeText={(value) => updateUserDetails(value, "height")}
               autoCorrect={false}
               autoCapitalize="none"
             />
@@ -260,8 +246,8 @@ export default function UserDetails({
           <TextInput
             style={styles.input}
             placeholder="Add weight here..."
-            value={weight}
-            onChangeText={setWeight}
+            value={userDetails.weight}
+            onChangeText={(value) => updateUserDetails(value, "weight")}
             autoCorrect={false}
             autoCapitalize="none"
           />
@@ -297,17 +283,17 @@ export default function UserDetails({
           <Text>Wakeup Time</Text>
           <DateTimePicker
             mode="time"
-            value={wakeupTime}
+            value={userDetails.wakeupTime}
             onChange={(event: any, value: Date | undefined) =>
-              setWakeupTime(value || new Date())
+              updateUserDetails(value, "wakeupTime")
             }
           />
           <Text>Sleep Time</Text>
           <DateTimePicker
             mode="time"
-            value={sleepTime}
+            value={userDetails.sleepTime}
             onChange={(event: any, value: Date | undefined) =>
-              setSleepTime(value || new Date())
+              updateUserDetails(value, "sleepTime")
             }
           />
           <Text>Health Goal</Text>
@@ -324,11 +310,11 @@ export default function UserDetails({
             labelField="label"
             valueField="value"
             placeholder={!isHealthGoalTypeFocus ? "Select Health Goal" : "..."}
-            value={healthGoal}
+            value={userDetails.healthGoal}
             onFocus={() => setIsHealthGoalTypeFocus(true)}
             onBlur={() => setIsHealthGoalTypeFocus(false)}
             onChange={(item: any) => {
-              setHealthGoal(item.value);
+              updateUserDetails(item.value, "healthGoal");
               setIsHealthGoalTypeFocus(false);
             }}
             renderLeftIcon={() => (

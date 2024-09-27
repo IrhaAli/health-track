@@ -6,28 +6,30 @@ import { db } from "../../firebaseConfig";
 import UserDetails from "@/components/user_info/UserDetails";
 
 export default function UserDetailsPanel() {
-  const [gender, setGender] = useState(null);
-  const [bodyType, setBodyType] = useState(null);
-  const [activityType, setActivityType] = useState(null);
-  const [dob, setDOB] = useState(new Date());
   const { email, uid, auth_type } = useLocalSearchParams();
-  const [fullName, setFullName] = useState("");
   const language = "en";
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [wakeupTime, setWakeupTime] = useState(new Date());
-  const [sleepTime, setSleepTime] = useState(new Date());
-  const [healthGoal, setHealthGoal] = useState("");
+  const [userDetails, setUserDetails] = useState({
+    gender: null,
+    bodyType: null,
+    activityType: null,
+    dob: new Date(),
+    fullName: "",
+    height: "",
+    weight: "",
+    wakeupTime: new Date(),
+    sleepTime: new Date(),
+    healthGoal: "",
+  });
 
   const onSubmit = async () => {
-    if (fullName.length === 0) {
+    if (userDetails.fullName.length === 0) {
       Alert.alert("Please add your name");
     } else {
       // const token = (await Notifications.getExpoPushTokenAsync()).data;
       const user = {
         user_id: uid,
         email: email,
-        full_name: fullName,
+        full_name: userDetails.fullName,
         auth_type: auth_type || "EMAIL_PASSWORD",
         language,
         // fcm_token: "",
@@ -36,20 +38,20 @@ export default function UserDetailsPanel() {
         created_at: new Date(),
         updated_at: new Date(),
       };
-      const userDetails = {
+      const userDetailsToAdd = {
         user_id: uid,
-        gender,
-        dob,
-        height,
-        weight,
-        body_type: bodyType,
-        activity: activityType,
-        health_goal: healthGoal,
-        sleep_time: sleepTime,
-        wakeup_time: wakeupTime,
+        gender: userDetails.gender,
+        dob: userDetails.dob,
+        height: userDetails.height,
+        weight: userDetails.weight,
+        body_type: userDetails.bodyType,
+        activity: userDetails.activityType,
+        health_goal: userDetails.healthGoal,
+        sleep_time: userDetails.sleepTime,
+        wakeup_time: userDetails.wakeupTime,
       };
       await addDoc(collection(db, "users"), user);
-      await addDoc(collection(db, "user_details"), userDetails);
+      await addDoc(collection(db, "user_details"), userDetailsToAdd);
       router.push({
         pathname: "/(signup_questionnaire)/dietary_preferences",
         params: { uid },
@@ -59,26 +61,8 @@ export default function UserDetailsPanel() {
 
   return (
     <UserDetails
-      gender={gender}
-      setGender={setGender}
-      bodyType={bodyType}
-      setBodyType={setBodyType}
-      activityType={activityType}
-      setActivityType={setActivityType}
-      dob={dob}
-      setDOB={setDOB}
-      fullName={fullName}
-      setFullName={setFullName}
-      height={height}
-      setHeight={setHeight}
-      weight={weight}
-      setWeight={setWeight}
-      wakeupTime={wakeupTime}
-      setWakeupTime={setWakeupTime}
-      sleepTime={sleepTime}
-      setSleepTime={setSleepTime}
-      healthGoal={healthGoal}
-      setHealthGoal={setHealthGoal}
+      userDetails={UserDetails}
+      setUserDetails={setUserDetails}
       onSubmit={onSubmit}
     />
   );
