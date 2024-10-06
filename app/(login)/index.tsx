@@ -40,6 +40,20 @@ const LoginForm = () => {
     }
   };
 
+  const onTestUser = () => {
+    const auth = getAuth();
+      signInWithEmailAndPassword(auth, 'test@test.com', 'test1234')
+        .then((userCredential) => {
+          const user = userCredential.user;
+          router.push("/(tabs)");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          Alert.alert(errorMessage);
+        });
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Health App</Text>
@@ -69,6 +83,11 @@ const LoginForm = () => {
       </View>
       <Text>Don't have an account? </Text>
       <Link href="/(signup)">Sign Up</Link>
+      <View style={styles.buttonView}>
+        <Pressable style={styles.button} onPress={onTestUser}>
+          <Text style={styles.buttonText}>TEST USER</Text>
+        </Pressable>
+      </View>
       {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
       <View style={styles.socialIcons}>
         <SocialIcon button type="facebook" />

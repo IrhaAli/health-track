@@ -7,16 +7,20 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Button, Alert } from "react-native";
+import { Button, Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
 import { SocialIcon } from "@rneui/base";
 import "../../firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -63,6 +67,8 @@ const SignupForm = () => {
           autoCorrect={false}
           autoCapitalize="none"
         />
+      </View>
+      <View style={styles.inputView}>
         <TextInput
           style={styles.input}
           placeholder="PASSWORD"
@@ -70,8 +76,13 @@ const SignupForm = () => {
           onChangeText={setPassword}
           autoCorrect={false}
           autoCapitalize="none"
-          secureTextEntry={true}
+          secureTextEntry={isPasswordVisible}
         />
+        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordVisible(!isPasswordVisible)} >
+          <Icon name={isPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.inputView}>
         <TextInput
           style={styles.input}
           placeholder="CONFIRM PASSWORD"
@@ -79,8 +90,11 @@ const SignupForm = () => {
           onChangeText={setConfirmPassword}
           autoCorrect={false}
           autoCapitalize="none"
-          secureTextEntry={true}
+          secureTextEntry={isConfirmPasswordVisible}
         />
+        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setConfirmPasswordVisible(!isConfirmPasswordVisible)} >
+            <Icon name={isConfirmPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        </TouchableOpacity>
       </View>
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
@@ -196,6 +210,11 @@ const styles = StyleSheet.create({
   signup: {
     color: "red",
     fontSize: 13,
+  },
+  passwordEyeIcon: {
+    position: 'absolute',
+    right: 60,
+    top: 15
   },
 });
 
