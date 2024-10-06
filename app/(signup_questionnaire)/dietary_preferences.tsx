@@ -1,15 +1,5 @@
 import React, { useState } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Alert,
-  Image,
-  Switch,
-} from "react-native";
+import { StyleSheet, Image, View, Pressable, Text } from "react-native";
 import { Link, useLocalSearchParams, router } from "expo-router";
 import { doc, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
@@ -74,8 +64,13 @@ export default function DietaryPreferencesPanel() {
       <DietaryPreferences
         dietaryPreferences={dietaryPreferences}
         setDietaryPreferences={setDietaryPreferences}
-        onSubmit={onSubmit}
       />
+      <View style={styles.buttonView}>
+        <Pressable style={styles.button} onPress={onSubmit}>
+          <Text style={styles.buttonText}>NEXT</Text>
+        </Pressable>
+        <Link href={"/(signup_questionnaire)/medical_history"}>Skip</Link>
+      </View>
     </ParallaxScrollView>
   );
 }
@@ -84,5 +79,23 @@ const styles = StyleSheet.create({
   appLogo: {
     height: 250,
     width: 400,
+  },
+  button: {
+    backgroundColor: "red",
+    height: 45,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  buttonView: {
+    width: "100%",
+    paddingHorizontal: 50,
   },
 });

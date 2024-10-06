@@ -28,7 +28,6 @@ export default function MedicalHistory({
   uid,
   medicalHistory,
   setMedicalHistory,
-  onSubmit,
 }: any) {
   const emptyCondition = {
     user_id: uid,
@@ -71,13 +70,6 @@ export default function MedicalHistory({
         ? []
         : prev.filter((item: any, i: number) => i !== index)
     );
-  };
-
-  const onSkip = () => {
-    router.push({
-      pathname: "/(signup_questionnaire)/stress_level",
-      params: { uid },
-    });
   };
 
   return (
@@ -212,14 +204,6 @@ export default function MedicalHistory({
             </Pressable>
           </>
         </>
-      </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>NEXT</Text>
-        </Pressable>
-        <Pressable onPress={onSkip}>
-          <Text>Skip</Text>
-        </Pressable>
       </View>
     </SafeAreaView>
   );

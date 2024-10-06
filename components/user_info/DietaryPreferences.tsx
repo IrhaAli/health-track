@@ -14,7 +14,6 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 export default function DietaryPreferences({
   dietaryPreferences,
   setDietaryPreferences,
-  onSubmit,
 }: any) {
   const toggleSwitch = (toggleType: string) =>
     setDietaryPreferences((prev: any) => ({
@@ -200,12 +199,6 @@ export default function DietaryPreferences({
           onValueChange={() => toggleSwitch("is_salt_free")}
           value={dietaryPreferences.is_salt_free}
         />
-      </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>NEXT</Text>
-        </Pressable>
-        <Link href={"/(signup_questionnaire)/medical_history"}>Skip</Link>
       </View>
     </SafeAreaView>
   );

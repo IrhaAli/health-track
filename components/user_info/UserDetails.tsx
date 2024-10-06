@@ -16,7 +16,6 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 export default function UserDetails({
   userDetails,
   setUserDetails,
-  onSubmit,
 }: any) {
   const [measurementType, setMeasurementType] = useState("cm");
   const [weightType, setWeightType] = useState("");
@@ -311,11 +310,6 @@ export default function UserDetails({
             />
           )}
         />
-      </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>NEXT</Text>
-        </Pressable>
       </View>
     </SafeAreaView>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
-import { Image, StyleSheet } from "react-native";
+import { Image, Pressable, StyleSheet, View, Text } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
@@ -37,6 +37,13 @@ export default function MedicalHistoryPanel() {
     });
   };
 
+  const onSkip = () => {
+    router.push({
+      pathname: "/(signup_questionnaire)/stress_level",
+      params: { uid },
+    });
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -51,8 +58,15 @@ export default function MedicalHistoryPanel() {
         uid={uid}
         medicalHistory={medicalHistory}
         setMedicalHistory={setMedicalHistory}
-        onSubmit={onSubmit}
       />
+      <View style={styles.buttonView}>
+        <Pressable style={styles.button} onPress={onSubmit}>
+          <Text style={styles.buttonText}>NEXT</Text>
+        </Pressable>
+        <Pressable onPress={onSkip}>
+          <Text>Skip</Text>
+        </Pressable>
+      </View>
     </ParallaxScrollView>
   );
 }
@@ -61,5 +75,23 @@ const styles = StyleSheet.create({
   appLogo: {
     height: 250,
     width: 400,
+  },
+  button: {
+    backgroundColor: "red",
+    height: 45,
+    borderColor: "gray",
+    borderWidth: 1,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  buttonView: {
+    width: "100%",
+    paddingHorizontal: 50,
   },
 });

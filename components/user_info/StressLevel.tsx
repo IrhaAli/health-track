@@ -7,7 +7,6 @@ export default function StressLevel({
   setStressLevel,
   notes,
   setNotes,
-  onSubmit,
 }: any) {
   return (
     <>
@@ -32,14 +31,6 @@ export default function StressLevel({
           autoCorrect={false}
           autoCapitalize="none"
         />
-      </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>SUBMIT</Text>
-        </Pressable>
-        <Pressable onPress={onSubmit}>
-          <Text>Skip</Text>
-        </Pressable>
       </View>
     </>
   );
@@ -78,24 +69,6 @@ const styles = StyleSheet.create({
     borderColor: "red",
     borderWidth: 1,
     borderRadius: 7,
-  },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
   },
   icons: {
     width: 40,
