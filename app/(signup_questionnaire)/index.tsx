@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Image, StyleSheet } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import UserDetails from "@/components/user_info/UserDetails";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 export default function UserDetailsPanel() {
   const { email, uid, auth_type } = useLocalSearchParams();
@@ -60,10 +61,27 @@ export default function UserDetailsPanel() {
   };
 
   return (
-    <UserDetails
-      userDetails={UserDetails}
-      setUserDetails={setUserDetails}
-      onSubmit={onSubmit}
-    />
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerImage={
+        <Image
+          source={require("@/assets/images/home-image.png")}
+          style={styles.appLogo}
+        />
+      }
+    >
+      <UserDetails
+        userDetails={UserDetails}
+        setUserDetails={setUserDetails}
+        onSubmit={onSubmit}
+      />
+    </ParallaxScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  appLogo: {
+    height: 250,
+    width: 400,
+  },
+});

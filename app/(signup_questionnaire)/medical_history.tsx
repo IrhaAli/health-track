@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
+import { Image, StyleSheet } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 interface Item {
   user_id: string;
@@ -36,11 +38,28 @@ export default function MedicalHistoryPanel() {
   };
 
   return (
-    <MedicalHistory
-      uid={uid}
-      medicalHistory={medicalHistory}
-      setMedicalHistory={setMedicalHistory}
-      onSubmit={onSubmit}
-    />
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerImage={
+        <Image
+          source={require("@/assets/images/home-image.png")}
+          style={styles.appLogo}
+        />
+      }
+    >
+      <MedicalHistory
+        uid={uid}
+        medicalHistory={medicalHistory}
+        setMedicalHistory={setMedicalHistory}
+        onSubmit={onSubmit}
+      />
+    </ParallaxScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  appLogo: {
+    height: 250,
+    width: 400,
+  },
+});
