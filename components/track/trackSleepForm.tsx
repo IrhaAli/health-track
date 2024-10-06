@@ -133,6 +133,7 @@ export default function TrackSleepForm({ currentDate }: TrackSleepFormProps) {
 
 const styles = StyleSheet.create({
     trackSleepForm:  {
+        paddingVertical: 30,
         backgroundColor: 'white'
     },
     lastNightSleepHeading: {

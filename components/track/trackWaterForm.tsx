@@ -63,8 +63,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', 
         alignItems: 'center', 
         justifyContent: 'center', 
-        paddingTop: 30, 
-        paddingBottom: 30
+        paddingVertical: 30
     },
     input: {
         height: 50,
