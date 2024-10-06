@@ -48,7 +48,7 @@ export default function DietaryPreferencesPanel() {
       is_spice_free: false,
       is_sugar_free: false,
       is_salt_free: false,
-    }); 
+    });
 
   const onSubmit = async () => {
     await addDoc(collection(db, "dietary_preferences"), {
@@ -62,10 +62,27 @@ export default function DietaryPreferencesPanel() {
   };
 
   return (
-    <DietaryPreferences
-      dietaryPreferences={dietaryPreferences}
-      setDietaryPreferences={setDietaryPreferences}
-      onSubmit={onSubmit}
-    />
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerImage={
+        <Image
+          source={require("@/assets/images/home-image.png")}
+          style={styles.appLogo}
+        />
+      }
+    >
+      <DietaryPreferences
+        dietaryPreferences={dietaryPreferences}
+        setDietaryPreferences={setDietaryPreferences}
+        onSubmit={onSubmit}
+      />
+    </ParallaxScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  appLogo: {
+    height: 250,
+    width: 400,
+  },
+});
