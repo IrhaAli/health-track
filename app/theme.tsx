@@ -1,10 +1,18 @@
-import {Platform} from 'react-native';
+import { Platform } from 'react-native';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
+
 
 export const themeColor = '#00AAAF';
 export const lightThemeColor = '#f2f7f7';
 
 export function getTheme() {
   const disabledColor = 'grey';
+  const [fontsLoaded] = useFonts({ 'HelveticaNeue': require('../assets/fonts/HelveticaNeueMedium.otf'), });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
 
   return {
     // arrows
