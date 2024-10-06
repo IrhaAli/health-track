@@ -102,7 +102,7 @@ const SignupForm = () => {
         </Pressable>
       </View>
       <Text>Aleady have an account? </Text>
-      <Link href="/(login)">Sign In</Link>
+      <Link href="/(login)"><Text style={styles.signInButton}>Sign In</Text></Link>
       {/* <Text style={styles.optionsText}>OR SIGNUP LOGIN WITH</Text>
       <View style={styles.socialIcons}>
         <SocialIcon button type="facebook" />
@@ -216,6 +216,12 @@ const styles = StyleSheet.create({
     right: 60,
     top: 15
   },
+  signInButton: {
+    fontSize: 22,
+    color: 'blue',
+    textDecorationLine: "underline",
+    fontWeight: "700"
+  }
 });
 
 export default SignupForm;
