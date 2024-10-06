@@ -18,8 +18,8 @@ const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [isPasswordHidden, setPasswordHidden] = useState(true);
+  const [isConfirmPasswordHidden, setConfirmPasswordHidden] = useState(true);
 
 
   const onSubmit = () => {
@@ -76,10 +76,10 @@ const SignupForm = () => {
           onChangeText={setPassword}
           autoCorrect={false}
           autoCapitalize="none"
-          secureTextEntry={isPasswordVisible}
+          secureTextEntry={isPasswordHidden}
         />
-        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordVisible(!isPasswordVisible)} >
-          <Icon name={isPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)} >
+          <Icon name={isPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
         </TouchableOpacity>
       </View>
       <View style={styles.inputView}>
@@ -90,10 +90,10 @@ const SignupForm = () => {
           onChangeText={setConfirmPassword}
           autoCorrect={false}
           autoCapitalize="none"
-          secureTextEntry={isConfirmPasswordVisible}
+          secureTextEntry={isConfirmPasswordHidden}
         />
-        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setConfirmPasswordVisible(!isConfirmPasswordVisible)} >
-            <Icon name={isConfirmPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setConfirmPasswordHidden(!isConfirmPasswordHidden)} >
+            <Icon name={isConfirmPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
         </TouchableOpacity>
       </View>
       <View style={styles.buttonView}>

@@ -7,15 +7,17 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Button, Alert } from "react-native";
+import { Button, Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
 import { SocialIcon } from "@rneui/base";
 import "../../firebaseConfig";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordHidden, setPasswordHidden] = useState(true);
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -66,6 +68,8 @@ const LoginForm = () => {
           autoCorrect={false}
           autoCapitalize="none"
         />
+      </View>
+      <View style={styles.inputView}>
         <TextInput
           style={styles.input}
           placeholder="PASSWORD"
@@ -73,8 +77,11 @@ const LoginForm = () => {
           onChangeText={setPassword}
           autoCorrect={false}
           autoCapitalize="none"
-          secureTextEntry={true}
+          secureTextEntry={isPasswordHidden}
         />
+        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)} >
+          <Icon name={isPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
+        </TouchableOpacity>
       </View>
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
@@ -195,6 +202,11 @@ const styles = StyleSheet.create({
   signup: {
     color: "red",
     fontSize: 13,
+  },
+  passwordEyeIcon: {
+    position: 'absolute',
+    right: 60,
+    top: 15
   },
 });
 
