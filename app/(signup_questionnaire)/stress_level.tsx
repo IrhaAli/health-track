@@ -7,14 +7,16 @@ import { Pressable, View, Text, StyleSheet } from "react-native";
 
 export default function StressLevelPanel() {
   const { uid } = useLocalSearchParams();
-  const [stressLevel, setStressLevel] = useState(0);
-  const [notes, setNotes] = useState("");
+  const [stressLevel, setStressLevel] = useState({
+    stressLevel: 0,
+    notes: "",
+  });
 
   const onSubmit = async () => {
     await addDoc(collection(db, "stress_level"), {
-      user_id: uid || "vP24LQvbWTOvGtH3Mh68F2pdKBd2",
-      stress_level: stressLevel,
-      notes,
+      user_id: uid,
+      stress_level: stressLevel.stressLevel,
+      notes: stressLevel.notes,
     });
     router.push({
       pathname: "/(tabs)",
@@ -27,8 +29,6 @@ export default function StressLevelPanel() {
       <StressLevel
         stressLevel={stressLevel}
         setStressLevel={setStressLevel}
-        notes={notes}
-        setNotes={setNotes}
       />
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>

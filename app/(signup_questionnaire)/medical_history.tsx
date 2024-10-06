@@ -18,7 +18,7 @@ interface Item {
 interface MedicalCondition extends Array<Item> {}
 
 export default function MedicalHistoryPanel() {
-  const { uid } = useLocalSearchParams() || "vP24LQvbWTOvGtH3Mh68F2pdKBd2";
+  const { uid } = useLocalSearchParams();
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition>([]);
 
   const onSubmit = () => {
