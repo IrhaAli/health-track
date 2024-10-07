@@ -6,6 +6,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 
 interface TrackSleepFormProps {
     currentDate: string;
+    userId: string
 }
 
 enum WaterTypeEnum {
@@ -14,10 +15,10 @@ enum WaterTypeEnum {
     GALLONS = "gallons"
 };
 
-export default function TrackWaterForm({ currentDate }: TrackSleepFormProps) {
-    const [water, setWater] = useState("");
-    const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
-    const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
+export default function TrackWaterForm ({ currentDate, userId }: TrackSleepFormProps) {
+    const [ water, setWater ] = useState("");
+    const [ isWaterTypeFocus, setIsWaterTypeFocus ] = useState(false);
+    const [ waterType, setWaterType ] = useState(WaterTypeEnum.MILLILITRES);
     
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
 
