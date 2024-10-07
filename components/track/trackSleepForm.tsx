@@ -4,7 +4,7 @@ import { StyleSheet, Text, Platform, Pressable, View } from "react-native";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
-import {db} from "../../firebaseConfig";
+import { db } from "../../firebaseConfig";
 
 interface TrackSleepFormProps {
     currentDate: string;
@@ -90,11 +90,11 @@ export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackS
         if (date) { setWakeupTime(date); }
     }
 
-    const onSubmit = async() => {
+    const onSubmit = async () => {
         if (!userId) { router.push({ pathname: "/(signup)" }); }
-  
+
         await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
-      
+
         // Ressetting Fields.
         setSleepDateTime(new Date());
         setWakeupTime(new Date());

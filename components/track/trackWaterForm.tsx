@@ -30,26 +30,26 @@ export default function TrackWaterForm({ currentDate, userId, onCancel }: TrackW
     const calculateIntakeAmount = (): number => {
         const conversionRate: Record<string, number> = { cups: 250, litres: 1000 };
         const waterAmount = parseFloat(water);
-    
+
         if (waterType !== "millilitres") {
             const rate = waterType.length === 0 ? 1 : conversionRate[waterType];
             return waterAmount * rate;
         }
-        
+
         return waterAmount;
     }
 
-    const onSubmit = async() => { 
-        if (!userId) { router.push({ pathname: "/(signup)" }); } 
+    const onSubmit = async () => {
+        if (!userId) { router.push({ pathname: "/(signup)" }); }
 
-        await addDoc(collection(db, "water_tracking"), {user_id: userId, date: currentDate, calculateIntakeAmount, waterType});
-    
+        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: currentDate, calculateIntakeAmount, waterType });
+
         // Resetting Fields.
         setWater("");
         setIsWaterTypeFocus(false);
         setWaterType(WaterTypeEnum.MILLILITRES);
         // Resetting Fields.
-        
+
         onCancel();
     }
 
