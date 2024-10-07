@@ -5,9 +5,10 @@ import Slider from "@react-native-community/slider";
 
 interface TrackSleepFormProps {
     currentDate: string;
+    userId: string
 }
 
-export default function TrackSleepForm({ currentDate }: TrackSleepFormProps) {
+export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormProps) {
     const [sleepDateTime, setSleepDateTime] = useState(new Date());
     const [wakeupTime, setWakeupTime] = useState(new Date());
     const [sleepQuality, setSleepQuality] = useState(0);
