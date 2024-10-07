@@ -2,22 +2,26 @@ import React, { useEffect, useState } from "react";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { StyleSheet, Text, Platform, Pressable, View } from "react-native";
 import Slider from "@react-native-community/slider";
+import { router } from "expo-router";
+import { addDoc, collection } from "firebase/firestore";
+import {db} from "../../firebaseConfig";
 
 interface TrackSleepFormProps {
     currentDate: string;
-    userId: string
+    userId: string;
+    onCancel: () => void;
 }
 
-export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormProps) {
-    const [sleepDateTime, setSleepDateTime] = useState(new Date());
-    const [wakeupTime, setWakeupTime] = useState(new Date());
+export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackSleepFormProps) {
+    const [sleepDateTime, setSleepDateTime] = useState(new Date(currentDate));
+    const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
     const [sleepDuration, setSleepDuration] = useState(0);
     const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
     const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
     const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
 
-    const convertMinutesToHoursAndMinutes = (totalMinutes: number): string => 
+    const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
 
     const calculateSleepDuration = () => {
@@ -86,54 +90,84 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
         if (date) { setWakeupTime(date); }
     }
 
+    const onSubmit = async() => {
+        if (!userId) { router.push({ pathname: "/(signup)" }); }
+  
+        await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
+      
+        // Ressetting Fields.
+        setSleepDateTime(new Date());
+        setWakeupTime(new Date());
+        setSleepQuality(0);
+        setSleepDuration(0);
+        setShowSleepDateSelector(false);
+        setShowSleepTimeSelector(false);
+        setShowWakeupTimeSelector(false);
+        // Ressetting Fields.
+
+        onCancel();
+    }
+
     return (
-        <View style={styles.trackSleepForm}>
-            <View>
-                <Text style={styles.lastNightSleepHeading}>Last Night's Sleep</Text>
-                {Platform.OS == "android" ?
-                    <View style={styles.sleepTimeDateView}>
-                        <Pressable onPress={() => { setShowSleepDateSelector(true); }}>
-                            <Text style={styles.sleepDateText}>{` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}</Text>
-                        </Pressable>
-                        {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />}
-                        <Pressable onPress={() => { setShowSleepTimeSelector(true); }} >
-                            <Text style={styles.sleepTimeText}> {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
-                        </Pressable>
-                        {showSleepTimeSelector && <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />}
-                    </View> :
-                    <View>
-                        <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />
-                        <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />
-                    </View>}
+        <View>
 
+            <View style={styles.trackSleepForm}>
+                <View>
+                    <Text style={styles.lastNightSleepHeading}>Last Night's Sleep</Text>
+                    {Platform.OS == "android" ?
+                        <View style={styles.sleepTimeDateView}>
+                            <Pressable onPress={() => { setShowSleepDateSelector(true); }}>
+                                <Text style={styles.sleepDateText}>{` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}</Text>
+                            </Pressable>
+                            {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />}
+                            <Pressable onPress={() => { setShowSleepTimeSelector(true); }} >
+                                <Text style={styles.sleepTimeText}> {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
+                            </Pressable>
+                            {showSleepTimeSelector && <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />}
+                        </View> :
+                        <View>
+                            <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />
+                            <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />
+                        </View>}
+
+                </View>
+
+                <View>
+                    <Text>Wakeup Time</Text>
+                    {Platform.OS == "android" ?
+                        <View>
+                            <Pressable onPress={() => { setShowWakeupTimeSelector(true); }} >
+                                <Text style={styles.wakeupTimeText}> {` ${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
+                            </Pressable>
+                            {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
+                        </View> :
+                        <View>
+                            <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />
+                        </View>
+                    }
+                </View>
+
+                <View>
+                    <Text>Sleep Quality: {sleepQuality}</Text>
+                    <Slider value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} />
+                </View>
+                <Text>{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
             </View>
 
-            <View>
-                <Text>Wakeup Time</Text>
-                {Platform.OS == "android" ?
-                    <View>
-                        <Pressable onPress={() => { setShowWakeupTimeSelector(true); }} >
-                            <Text style={styles.wakeupTimeText}> {` ${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
-                        </Pressable>
-                        {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
-                    </View> :
-                    <View>
-                        <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />
-                    </View>
-                }
+            <View style={styles.formSubmission}>
+                <Pressable onPress={onCancel}>
+                    <Text style={styles.cancelButton}>Cancel</Text>
+                </Pressable>
+                <Pressable onPress={onSubmit}>
+                    <Text style={styles.submitButton}>Submit</Text>
+                </Pressable>
             </View>
-
-            <View>
-                <Text>Sleep Quality: {sleepQuality}</Text>
-                <Slider value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} />
-            </View>
-            <Text>{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    trackSleepForm:  {
+    trackSleepForm: {
         paddingVertical: 30,
         backgroundColor: 'white'
     },
@@ -154,5 +188,27 @@ const styles = StyleSheet.create({
     wakeupTimeText: {
         marginBottom: 10,
         color: 'blue'
+    },
+    formSubmission: {
+        flexDirection: 'row',
+        backgroundColor: 'white',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingVertical: 10
+    },
+    cancelButton: {
+        color: 'blue',
+        textTransform: 'uppercase',
+        fontSize: 16
+    },
+    submitButton: {
+        color: 'white',
+        backgroundColor: 'red',
+        paddingVertical: 7,
+        paddingHorizontal: 10,
+        borderRadius: 3,
+        marginLeft: 15,
+        fontWeight: '700',
+        textTransform: 'uppercase'
     }
 })
