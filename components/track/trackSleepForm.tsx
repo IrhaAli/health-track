@@ -13,7 +13,7 @@ interface TrackSleepFormProps {
 }
 
 export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackSleepFormProps) {
-    const [sleepDateTime, setSleepDateTime] = useState(new Date(currentDate));
+    const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
     const [sleepDuration, setSleepDuration] = useState(0);
