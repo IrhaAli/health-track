@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Button, Text, Pressable } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import Dialog from "react-native-dialog";
 import TrackForms from "./trackForms";
 

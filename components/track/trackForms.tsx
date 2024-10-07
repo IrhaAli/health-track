@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View, Text } from "react-native";
+import React from "react";
+import { Pressable, View, Text } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -9,14 +9,11 @@ import TrackWaterForm from "./trackWaterForm";
 interface TrackFormsProps {
     currentDate: string;
     userId: string;
-    onCancel?: () => void;
-    onSubmit?: (intake_amount: number, measurement_unit: string) => void;
-    visible?: boolean;
     formTab: string;
     hideDialog: () => void;
 }
 
-export default function TrackForms({ currentDate, userId, onCancel, onSubmit, visible, formTab, hideDialog }: TrackFormsProps) {
+export default function TrackForms({ currentDate, userId, formTab, hideDialog }: TrackFormsProps) {
     return (
         <View>
 
