@@ -9,10 +9,10 @@ import { db } from "../../firebaseConfig";
 interface TrackSleepFormProps {
     currentDate: string;
     userId: string;
-    onCancel: () => void;
+    setDialogStatus: (status: boolean) => void;
 }
 
-export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackSleepFormProps) {
+export default function TrackSleepForm({ currentDate, userId, setDialogStatus }: TrackSleepFormProps) {
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
@@ -105,7 +105,7 @@ export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackS
         setShowWakeupTimeSelector(false);
         // Ressetting Fields.
 
-        onCancel();
+        setDialogStatus(false);
     }
 
     return (
@@ -155,7 +155,7 @@ export default function TrackSleepForm({ currentDate, userId, onCancel }: TrackS
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={onCancel}>
+                <Pressable onPress={() => setDialogStatus(false)}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
                 <Pressable onPress={onSubmit}>

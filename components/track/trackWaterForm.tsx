@@ -10,7 +10,7 @@ import { db } from "../../firebaseConfig";
 interface TrackWaterFormProps {
     currentDate: string;
     userId: string;
-    onCancel: () => void;
+    setDialogStatus: (status: boolean) => void;
 }
 
 enum WaterTypeEnum {
@@ -19,7 +19,7 @@ enum WaterTypeEnum {
     CUPS = "cups"
 };
 
-export default function TrackWaterForm({ currentDate, userId, onCancel }: TrackWaterFormProps) {
+export default function TrackWaterForm({ currentDate, userId, setDialogStatus }: TrackWaterFormProps) {
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
     const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
@@ -50,7 +50,7 @@ export default function TrackWaterForm({ currentDate, userId, onCancel }: TrackW
         setWaterType(WaterTypeEnum.MILLILITRES);
         // Resetting Fields.
 
-        onCancel();
+        setDialogStatus(false);
     }
 
     return (
@@ -89,7 +89,7 @@ export default function TrackWaterForm({ currentDate, userId, onCancel }: TrackW
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={onCancel}>
+                <Pressable onPress={() => setDialogStatus(false)}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
                 <Pressable onPress={onSubmit}>
