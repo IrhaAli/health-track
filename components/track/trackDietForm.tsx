@@ -10,14 +10,11 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 
-interface TrackFormsProps {
-    currentDate: string;
-    userId: string;
-}
-
-export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) {
+export default function TrackDietForm() {
     const dispatch = useDispatch();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const userId = useSelector((state: RootState) => state.user.userId);
     const storage = getStorage();
     const [mealTime, setMealTime] = useState(new Date(currentDate));
     const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);

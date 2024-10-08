@@ -5,16 +5,14 @@ import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
+import { RootState } from "@/store/store";
 
-interface TrackSleepFormProps {
-    currentDate: string;
-    userId: string;
-}
-
-export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormProps) {
+export default function TrackSleepForm() {
     const dispatch = useDispatch();
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const userId = useSelector((state: RootState) => state.user.userId);
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);

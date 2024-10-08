@@ -7,15 +7,11 @@ import { RootState } from "@/store/store";
 import { setShowDialog } from "@/store/trackDialogSlice";
 import { setImageURI } from "@/store/cameraSlice";
 
-interface TrackDialogProps {
-    currentDate: string;
-    userId: string;
-}
-
-export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
+export default function TrackDialog() {
     const [formTab, setFormTab] = useState("sleep");
     const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
     const dispatch = useDispatch();
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
 
     return (
         <View>
@@ -32,7 +28,7 @@ export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
                     <Pressable style={styles.tabButton} onPress={() => { setFormTab("weight"); dispatch(setImageURI('')); }}><Text style={styles.tabButtonText}>Weight</Text></Pressable>
                 </View>
                 <View style={styles.formTabsBody}>
-                    <TrackForms currentDate={currentDate} userId={userId} formTab={formTab}></TrackForms>
+                    <TrackForms formTab={formTab}></TrackForms>
                 </View>
             </Dialog.Container>
         </View>

@@ -12,18 +12,15 @@ import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
-interface TrackFormsProps {
-    currentDate: string;
-    userId: string;
-}
-
 enum WeightTypeEnum {
     LBS = 'lbs',
     KG = 'kg'
 };
 
-export default function TrackWeightForm({ currentDate, userId }: TrackFormsProps) {
+export default function TrackWeightForm() {
     const dispatch = useDispatch();
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const userId = useSelector((state: RootState) => state.user.userId);
     const storage = getStorage();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const [loading, setLoading] = useState(false);

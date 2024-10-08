@@ -6,13 +6,9 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { addDoc, collection } from "firebase/firestore";
 import { router } from "expo-router";
 import { db } from "../../firebaseConfig";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
-
-interface TrackWaterFormProps {
-    currentDate: string;
-    userId: string;
-}
+import { RootState } from "@/store/store";
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -20,8 +16,10 @@ enum WaterTypeEnum {
     CUPS = "cups"
 };
 
-export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormProps) {
+export default function TrackWaterForm() {
     const dispatch = useDispatch();
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const userId = useSelector((state: RootState) => state.user.userId);
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
     const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);

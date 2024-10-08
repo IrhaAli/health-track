@@ -6,26 +6,16 @@ import TrackDietForm from "./trackDietForm";
 import TrackWeightForm from "./trackWeightForm";
 
 interface TrackFormsProps {
-    currentDate: string;
-    userId: string;
     formTab: string;
 }
 
-export default function TrackForms({ currentDate, userId, formTab }: TrackFormsProps) {
+export default function TrackForms({ formTab }: TrackFormsProps) {
     return (
         <View>
-            {formTab === "sleep" && (
-                <TrackSleepForm currentDate={currentDate} userId={userId}></TrackSleepForm>
-            )}
-            {formTab === "diet" && (
-                <TrackDietForm currentDate={currentDate} userId={userId}></TrackDietForm>
-            )}
-            {formTab === "water" && (
-                <TrackWaterForm currentDate={currentDate} userId={userId}></TrackWaterForm>
-            )}
-            {formTab === "weight" && (
-                <TrackWeightForm currentDate={currentDate} userId={userId}></TrackWeightForm>
-            )}
+            {formTab === "sleep" && ( <TrackSleepForm></TrackSleepForm> )}
+            {formTab === "diet" && ( <TrackDietForm></TrackDietForm> )}
+            {formTab === "water" && ( <TrackWaterForm></TrackWaterForm> )}
+            {formTab === "weight" && ( <TrackWeightForm></TrackWeightForm> )}
         </View>
     )
 }
