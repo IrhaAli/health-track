@@ -5,6 +5,7 @@ import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setShowDialog } from "@/store/trackDialogSlice";
+import { setImageURI } from "@/store/cameraSlice";
 
 interface TrackDialogProps {
     currentDate: string;
@@ -26,9 +27,9 @@ export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
                 <Dialog.Title style={styles.dialogTitle}>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's ${formTab} Data`}</Dialog.Title>
                 <View style={styles.formTabs}>
                     <Pressable style={styles.tabButton} onPress={() => setFormTab("sleep")}><Text style={styles.tabButtonText}>Sleep</Text></Pressable>
-                    <Pressable style={styles.tabButton} onPress={() => setFormTab("diet")}><Text style={styles.tabButtonText}>Diet</Text></Pressable>
+                    <Pressable style={styles.tabButton} onPress={() => { setFormTab("diet"); dispatch(setImageURI('')); }}><Text style={styles.tabButtonText}>Diet</Text></Pressable>
                     <Pressable style={styles.tabButton} onPress={() => setFormTab("water")}><Text style={styles.tabButtonText}>Water</Text></Pressable>
-                    <Pressable style={styles.tabButton} onPress={() => setFormTab("weight")}><Text style={styles.tabButtonText}>Weight</Text></Pressable>
+                    <Pressable style={styles.tabButton} onPress={() => { setFormTab("weight"); dispatch(setImageURI('')); }}><Text style={styles.tabButtonText}>Weight</Text></Pressable>
                 </View>
                 <View style={styles.formTabsBody}>
                     <TrackForms currentDate={currentDate} userId={userId} formTab={formTab}></TrackForms>
