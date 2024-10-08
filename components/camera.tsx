@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, PixelRatio, Dimensions } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, Dimensions, SafeAreaView } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,7 +31,7 @@ export default function AppCamera() {
     };
 
     return (
-        <>
+        <SafeAreaView>
             {showCamera && (!permission ? (
                 <View />
             ) : !permission.granted ? (
@@ -61,7 +61,7 @@ export default function AppCamera() {
                     </Camera>
                 </>
             ))}
-        </>
+        </SafeAreaView>
     )
 }
 
