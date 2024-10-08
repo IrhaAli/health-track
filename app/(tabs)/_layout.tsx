@@ -10,9 +10,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const userId = getAuth().currentUser?.uid;
 
-  if (!userId) {
-    router.push("/(signup)");
-  }
+  if (!userId) { router.push("/(signup)"); }
 
   return (
     <>
