@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, Text, Platform, Pressable, View } from "react-native";
+import { StyleSheet, Text, Platform, Pressable, View, ActivityIndicator } from "react-native";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
@@ -14,6 +14,7 @@ interface TrackSleepFormProps {
 }
 
 export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormProps) {
+    const dispatch = useDispatch();
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
@@ -21,7 +22,7 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
     const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
     const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
     const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
-    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
@@ -94,7 +95,7 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
 
     const onSubmit = async () => {
         if (!userId) { router.push({ pathname: "/(signup)" }); }
-
+        setLoading(true);
         await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
 
         // Ressetting Fields.
@@ -105,6 +106,7 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
         setShowSleepDateSelector(false);
         setShowSleepTimeSelector(false);
         setShowWakeupTimeSelector(false);
+        setLoading(false);
         // Ressetting Fields.
 
         dispatch(setHideDialog());
@@ -118,11 +120,11 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
                     <Text style={styles.lastNightSleepHeading}>Last Night's Sleep</Text>
                     {Platform.OS == "android" ?
                         <View style={styles.sleepTimeDateView}>
-                            <Pressable onPress={() => { setShowSleepDateSelector(true); }}>
+                            <Pressable onPress={() => { setShowSleepDateSelector(true); }} disabled={loading}>
                                 <Text style={styles.sleepDateText}>{` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}</Text>
                             </Pressable>
                             {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />}
-                            <Pressable onPress={() => { setShowSleepTimeSelector(true); }} >
+                            <Pressable onPress={() => { setShowSleepTimeSelector(true); }} disabled={loading}>
                                 <Text style={styles.sleepTimeText}> {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
                             </Pressable>
                             {showSleepTimeSelector && <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />}
@@ -138,7 +140,7 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
                     <Text>Wakeup Time</Text>
                     {Platform.OS == "android" ?
                         <View>
-                            <Pressable onPress={() => { setShowWakeupTimeSelector(true); }} >
+                            <Pressable onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading}>
                                 <Text style={styles.wakeupTimeText}> {` ${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
                             </Pressable>
                             {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
@@ -151,17 +153,18 @@ export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormPr
 
                 <View>
                     <Text>Sleep Quality: {sleepQuality}</Text>
-                    <Slider value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} />
+                    <Slider value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} disabled={loading}/>
                 </View>
                 <Text>{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => dispatch(setHideDialog())}>
+                <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
-                <Pressable onPress={onSubmit}>
-                    <Text style={styles.submitButton}>Submit</Text>
+                <Pressable onPress={onSubmit} style={styles.submitButton} disabled={loading}>
+                    <Text style={styles.submitButtonText}>{loading ? 'Loading...' : 'Submit'}</Text>
+                    {loading && <ActivityIndicator color={'white'} />}
                 </Pressable>
             </View>
         </View>
@@ -204,13 +207,19 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     submitButton: {
-        color: 'white',
+        flexDirection: 'row',
         backgroundColor: 'red',
         paddingVertical: 7,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
         borderRadius: 3,
         marginLeft: 15,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    submitButtonText: {
+        color: 'white',
         fontWeight: '700',
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
+        marginRight: 5
     }
 })
