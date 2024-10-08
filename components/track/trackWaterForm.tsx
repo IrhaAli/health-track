@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View, Text } from "react-native";
+import { Pressable, StyleSheet, View, Text, ActivityIndicator } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -21,10 +21,11 @@ enum WaterTypeEnum {
 };
 
 export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormProps) {
+    const dispatch = useDispatch();
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
     const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
-    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
 
@@ -44,12 +45,14 @@ export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormPr
     const onSubmit = async () => {
         if (!userId) { router.push({ pathname: "/(signup)" }); }
 
-        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: currentDate, calculateIntakeAmount, waterType });
+        setLoading(true);
+        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: currentDate, intake_amount: calculateIntakeAmount(), waterType });
 
         // Resetting Fields.
         setWater("");
         setIsWaterTypeFocus(false);
         setWaterType(WaterTypeEnum.MILLILITRES);
+        setLoading(false);
         // Resetting Fields.
 
         dispatch(setHideDialog())
@@ -67,6 +70,7 @@ export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormPr
                     autoCapitalize="none"
                     keyboardType="numeric"
                     maxLength={4}
+                    editable={!loading}
                 ></Dialog.Input>
                 <Dropdown style={[styles.dropdown, isWaterTypeFocus && { borderColor: "blue" }, styles.flexItem]}
                     placeholderStyle={styles.placeholderStyle}
@@ -87,15 +91,17 @@ export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormPr
                     renderLeftIcon={() => (
                         <AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} />
                     )}
+                    disable={loading}
                 />
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => dispatch(setHideDialog())}>
+                <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
-                <Pressable onPress={onSubmit}>
-                    <Text style={styles.submitButton}>Submit</Text>
+                <Pressable onPress={onSubmit} style={styles.submitButton} disabled={loading}>
+                    <Text style={styles.submitButtonText}>{loading ? 'Loading...' : 'Submit'}</Text>
+                    {loading && <ActivityIndicator color={'white'} />}
                 </Pressable>
             </View>
         </View>
@@ -156,13 +162,19 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     submitButton: {
-        color: 'white',
+        flexDirection: 'row',
         backgroundColor: 'red',
         paddingVertical: 7,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
         borderRadius: 3,
         marginLeft: 15,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    submitButtonText: {
+        color: 'white',
         fontWeight: '700',
-        textTransform: 'uppercase'
+        textTransform: 'uppercase',
+        marginRight: 5
     }
 })
