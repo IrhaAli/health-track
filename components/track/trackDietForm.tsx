@@ -28,13 +28,13 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
         if (date) { setMealTime(date); }
     }
 
-    const uploadImage = async (reference: string) => {
-        if (!imageURI) { throw new Error(`Invalid URI for reference: ${reference}`); }
+    const uploadImage = async () => {
+        if (!imageURI) { throw new Error(`Invalid URI for Diet`); }
 
         const response = await fetch(imageURI);
 
         const blob = await response.blob();
-        let refer = ref(storage, `${reference}/${new Date().getTime()}`);
+        let refer = ref(storage, `diet/${new Date().getTime()}`);
         return uploadBytes(refer, blob)
             .then((snapshot) => { return getDownloadURL(snapshot.ref); })
             .then((downloadUrl) => { return downloadUrl; });
@@ -45,7 +45,7 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
 
         if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
         setLoading(true);
-        await addDoc(collection(db, "diet_tracking"), { user_id: userId, date: mealTime, meal_picture: await uploadImage("diet") });
+        await addDoc(collection(db, "diet_tracking"), { user_id: userId, date: mealTime, meal_picture: await uploadImage() });
 
         // Ressetting Fields.
         setMealTime(new Date(currentDate));
@@ -55,7 +55,7 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
         setLoading(false);
         // Ressetting Fields.
 
-        dispatch(setHideDialog())
+        dispatch(setHideDialog());
     }
 
     return (
