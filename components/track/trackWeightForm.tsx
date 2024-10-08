@@ -1,11 +1,8 @@
 import React from "react";
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, StyleSheet } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import TrackSleepForm from "./trackSleepForm";
-import TrackWaterForm from "./trackWaterForm";
-import TrackDietForm from "./trackDietForm";
 import { useDispatch } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { setHideCamera } from "@/store/cameraSlice";
@@ -87,3 +84,10 @@ export default function TrackWeightForm({ currentDate, userId }: TrackFormsProps
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    trackDietForm: {
+        paddingVertical: 30,
+        backgroundColor: 'white'
+    },
+})

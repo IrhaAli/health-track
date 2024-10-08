@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, View, Text } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";

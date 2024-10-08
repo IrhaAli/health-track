@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { StyleSheet, View, Text, Pressable } from "react-native";
 import Dialog from "react-native-dialog";
 import TrackForms from "./trackForms";
-import AppCamera from "../camera";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setShowDialog } from "@/store/trackDialogSlice";
