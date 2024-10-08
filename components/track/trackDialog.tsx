@@ -3,6 +3,9 @@ import { StyleSheet, View, Text, Pressable } from "react-native";
 import Dialog from "react-native-dialog";
 import TrackForms from "./trackForms";
 import AppCamera from "../camera";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { setShowDialog } from "@/store/trackDialogSlice";
 
 interface TrackDialogProps {
     currentDate: string;
@@ -11,13 +14,12 @@ interface TrackDialogProps {
 
 export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
     const [formTab, setFormTab] = useState("sleep");
-    const [dialogStatus, setDialogStatus] = useState(false);
+    const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
+    const dispatch = useDispatch();
 
     return (
         <View>
-            <AppCamera setDialogStatus={(status) => setDialogStatus(status)}></AppCamera>
-            
-            <Pressable style={styles.button} onPress={() => setDialogStatus(true)}>
+            <Pressable style={styles.button} onPress={() => dispatch(setShowDialog())}>
                 <Text style={styles.buttonText}>Add</Text>
             </Pressable>
 
@@ -30,7 +32,7 @@ export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
                     <Pressable style={styles.tabButton} onPress={() => setFormTab("weight")}><Text style={styles.tabButtonText}>Weight</Text></Pressable>
                 </View>
                 <View style={styles.formTabsBody}>
-                    <TrackForms currentDate={currentDate} userId={userId} formTab={formTab} setDialogStatus={(status: boolean) => setDialogStatus(status)}></TrackForms>
+                    <TrackForms currentDate={currentDate} userId={userId} formTab={formTab}></TrackForms>
                 </View>
             </Dialog.Container>
         </View>
