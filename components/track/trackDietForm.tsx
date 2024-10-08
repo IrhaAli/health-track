@@ -4,14 +4,14 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 import { router } from "expo-router";
 import { useDispatch } from "react-redux";
 import { setHideCamera, setShowCamera } from "@/store/cameraSlice";
+import { setHideDialog } from "@/store/trackDialogSlice";
 
 interface TrackFormsProps {
     currentDate: string;
     userId: string;
-    setDialogStatus: (status: boolean) => void;
 }
 
-export default function TrackDietForm({ currentDate, userId, setDialogStatus }: TrackFormsProps) {
+export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) {
     const [mealTime, setMealTime] = useState(new Date(currentDate));
     const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
     const [imageUri, setImageUri] = useState(null);
@@ -34,7 +34,7 @@ export default function TrackDietForm({ currentDate, userId, setDialogStatus }: 
         setImageUri(null);
         // Ressetting Fields.
 
-        setDialogStatus(false);
+        dispatch(setHideDialog())
     }
 
     return (
@@ -44,7 +44,7 @@ export default function TrackDietForm({ currentDate, userId, setDialogStatus }: 
                     onPress={() => {
                         if (!imageUri) {
                             dispatch(setShowCamera());
-                            setDialogStatus(false); 
+                            dispatch(setHideDialog()) 
                         }
                         else { setImageUri(null); }
                     }}
@@ -79,7 +79,7 @@ export default function TrackDietForm({ currentDate, userId, setDialogStatus }: 
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => setDialogStatus(false)}>
+                <Pressable onPress={() => dispatch(setHideDialog())}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
                 <Pressable onPress={onSubmit}>
