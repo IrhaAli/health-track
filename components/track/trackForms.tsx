@@ -9,23 +9,22 @@ interface TrackFormsProps {
     currentDate: string;
     userId: string;
     formTab: string;
-    setDialogStatus: (status: boolean) => void;
 }
 
-export default function TrackForms({ currentDate, userId, formTab, setDialogStatus }: TrackFormsProps) {
+export default function TrackForms({ currentDate, userId, formTab }: TrackFormsProps) {
     return (
         <View>
             {formTab === "sleep" && (
-                <TrackSleepForm currentDate={currentDate} userId={userId} setDialogStatus={() => setDialogStatus(false)}></TrackSleepForm>
+                <TrackSleepForm currentDate={currentDate} userId={userId}></TrackSleepForm>
             )}
             {formTab === "diet" && (
-                <TrackDietForm currentDate={currentDate} userId={userId} setDialogStatus={() => setDialogStatus(false)}></TrackDietForm>
+                <TrackDietForm currentDate={currentDate} userId={userId}></TrackDietForm>
             )}
             {formTab === "water" && (
-                <TrackWaterForm currentDate={currentDate} userId={userId} setDialogStatus={() => setDialogStatus(false)}></TrackWaterForm>
+                <TrackWaterForm currentDate={currentDate} userId={userId}></TrackWaterForm>
             )}
             {formTab === "weight" && (
-                <TrackWeightForm currentDate={currentDate} userId={userId} setDialogStatus={() => setDialogStatus(false)}></TrackWeightForm>
+                <TrackWeightForm currentDate={currentDate} userId={userId}></TrackWeightForm>
             )}
         </View>
     )
