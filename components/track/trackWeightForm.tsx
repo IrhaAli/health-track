@@ -6,14 +6,19 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import TrackSleepForm from "./trackSleepForm";
 import TrackWaterForm from "./trackWaterForm";
 import TrackDietForm from "./trackDietForm";
+import { useDispatch } from "react-redux";
+import { setHideDialog } from "@/store/trackDialogSlice";
+import { setHideCamera } from "@/store/cameraSlice";
 
 interface TrackFormsProps {
     currentDate: string;
     userId: string;
-    setDialogStatus: (status: boolean) => void;
 }
 
-export default function TrackWeightForm({ currentDate, userId, setDialogStatus }: TrackFormsProps) {
+export default function TrackWeightForm({ currentDate, userId }: TrackFormsProps) {
+
+    const dispatch = useDispatch();
+
     return (
         <View>
             <Dialog.Input
@@ -54,8 +59,8 @@ export default function TrackWeightForm({ currentDate, userId, setDialogStatus }
                 <Pressable
                     style={styles.button}
                     onPress={() => {
-                        setShowCamera(true);
-                        setDialogStatus(false);
+                        dispatch(setHideDialog());
+                        dispatch(setHideCamera());
                     }}
                 >
                     <Text style={styles.buttonText}>Add Picture</Text>
