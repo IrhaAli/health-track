@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ExpandableCalendar, AgendaList, CalendarProvider, Calendar } from "react-native-calendars";
 import AgendaItem from "../../app/_calendar_files/AgendaItem";
 import { themeColor, lightThemeColor } from "../../app/theme";
@@ -8,7 +8,6 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentDate } from "@/store/trackSlice";
-import { current } from "@reduxjs/toolkit";
 import { RootState } from "@/store/store";
 
 // Local Components Start.
@@ -200,82 +199,33 @@ export default function TrackComponent() {
 
     console.log('component rendering');
 
-    const onDateChanged = (date: string) => {
-        console.log('date', date);
-        // if (date === previousDate) {
-        //     console.log("SAME DATE YOU IDIOT");
-        //     return;
-        // }
+    function formatDateToYYYYMMDD(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
-        // updateDataOnNewDate();
-        dispatch(setCurrentDate(date));
+    function subtractOneDay(date: string): Date {
+        const newDate = new Date(date);
+        newDate.setDate(newDate.getDate() - 1);
+        return newDate;
     }
 
     return (
-        console.log('component rendered in return'),
-
         <>
             <Calendar
-                // Initially visible month. Default = now
-                initialDate={'2012-03-01'}
-                // Minimum date that can be selected, dates before minDate will be grayed out. Default = undefined
-                minDate={'2012-05-10'}
-                // Maximum date that can be selected, dates after maxDate will be grayed out. Default = undefined
-                maxDate={'2012-05-30'}
-                // Handler which gets executed on day press. Default = undefined
-                onDayPress={(day: any) => {
-                    console.log('selected day', day);
-                }}
-                // Handler which gets executed on day long press. Default = undefined
-                onDayLongPress={(day: any) => {
-                    console.log('selected day', day);
-                }}
-                // Month format in calendar title. Formatting values: http://arshaw.com/xdate/#Formatting
-                monthFormat={'yyyy MM'}
-                // Handler which gets executed when visible month changes in calendar. Default = undefined
-                onMonthChange={(month: any) => {
-                    console.log('month changed', month);
-                }}
-                // Hide month navigation arrows. Default = false
-                hideArrows={true}
-                // Replace default arrows with custom ones (direction can be 'left' or 'right')
-                //   renderArrow={(direction: any) => <Arrow />}
-                // Do not show days of other months in month page. Default = false
+                initialDate={currentDate}
+                minDate={`${new Date(currentDate).getFullYear()}-01-01`}
+                maxDate={formatDateToYYYYMMDD(subtractOneDay(`${new Date()}`))}
+                onDayPress={(day: any) => { dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
                 hideExtraDays={true}
-                // If hideArrows = false and hideExtraDays = false do not switch month when tapping on greyed out
-                // day from another month that is visible in calendar page. Default = false
-                disableMonthChange={true}
-                // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday
                 firstDay={1}
-                // Hide day names. Default = false
-                hideDayNames={true}
-                // Show week numbers to the left. Default = false
-                showWeekNumbers={true}
-                // Handler which gets executed when press arrow icon left. It receive a callback can go back month
-                onPressArrowLeft={(subtractMonth: any) => subtractMonth()}
-                // Handler which gets executed when press arrow icon right. It receive a callback can go next month
-                onPressArrowRight={(addMonth: any) => addMonth()}
-                // Disable left arrow. Default = false
-                disableArrowLeft={true}
-                // Disable right arrow. Default = false
-                disableArrowRight={true}
-                // Disable all touch events for disabled days. can be override with disableTouchEvent in markedDates
-                disableAllTouchEventsForDisabledDays={true}
-                // Replace default month and year title with custom one. the function receive a date as parameter
-                renderHeader={(date: any) => {
-                    /*Return JSX*/
-                    console.log('date', date)
-                    return <Text>{date.getMonth()} - {date.getFullYear()}</Text>
-                }}
-                // Enable the option to swipe between months. Default = false
-                enableSwipeMonths={true}
-
+                renderHeader={(date: any) => { return <Text style={styles.calendarMonthYear}>{new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}</Text> }}
                 style={{
-                    marginTop: 100,
+                    marginTop: 45,
                     borderWidth: 1,
-                    borderColor: 'gray',
-                    height: 350,
-                    paddingTop: 100
+                    borderColor: 'gray'
                 }}
                 theme={{
                     backgroundColor: '#ffffff',
@@ -289,7 +239,7 @@ export default function TrackComponent() {
                     textDisabledColor: '#d9e1e8',
                     dotColor: '#00adf5',
                     selectedDotColor: '#ffffff',
-                    arrowColor: 'orange',
+                    arrowColor: 'blue',
                     disabledArrowColor: '#d9e1e8',
                     monthTextColor: 'blue',
                     indicatorColor: 'blue',
@@ -297,14 +247,13 @@ export default function TrackComponent() {
                     textMonthFontFamily: 'monospace',
                     textDayHeaderFontFamily: 'monospace',
                     textDayFontWeight: '300',
-                    textMonthFontWeight: 'bold',
+                    textMonthFontWeight: '700',
                     textDayHeaderFontWeight: '300',
                     textDayFontSize: 16,
                     textMonthFontSize: 16,
                     textDayHeaderFontSize: 16,
                     'stylesheet.calendar.header': {
                         week: {
-                            color: 'black',
                             marginTop: 5,
                             flexDirection: 'row',
                             justifyContent: 'space-between'
@@ -317,14 +266,14 @@ export default function TrackComponent() {
                         }
                     }
                 }}
+                markedDates={{
+                    [currentDate]: {
+                        selected: true,
+                        selectedColor: "red",
+                        selectedTextColor: "white",
+                    },
+                }}
             />
-
-            {/* <CalendarProvider date={currentDate} 
-                showTodayButton={false} 
-                theme={todayBtnTheme.current} 
-                onDateChanged={onDateChanged}
-            >
-                <TrackExpandableCalendar currentDate={currentDate}/> */}
             {/* <AgendaList
                     sections={[
                         ...ITEMS.sleep,
@@ -336,20 +285,23 @@ export default function TrackComponent() {
                     sectionStyle={styles.section}
                     scrollToNextEvent={false}
                 /> */}
-            {/* </CalendarProvider> */}
         </>
     );
 }
 
 const styles = StyleSheet.create({
     calendar: {
-        marginTop: 200
+        // marginTop: 0
         // paddingLeft: 20,
         // paddingRight: 20,
     },
+    calendarMonthYear: {
+        fontWeight: '500',
+        fontSize: 18
+    },
     header: {
         backgroundColor: "lightgrey",
-        marginTop: 50,
+        // marginTop: 50,
     },
     section: {
         backgroundColor: lightThemeColor,
