@@ -1,15 +1,7 @@
 import React, { useRef, useState } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View, ActivityIndicator } from "react-native";
 import { Button, Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
-import { SocialIcon } from "@rneui/base";
 import "../../firebaseConfig";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,6 +10,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordHidden, setPasswordHidden] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -28,32 +21,41 @@ const LoginForm = () => {
     } else if (password.length === 0) {
       Alert.alert("Password field is empty.");
     } else {
+      setLoading(true);
       const auth = getAuth();
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
           router.push("/(tabs)");
+          setLoading(false);
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
           Alert.alert(errorMessage);
+          setLoading(false);
         });
     }
   };
 
   const onTestUser = () => {
+    setEmail('test@test.com');
+    setPassword('test1234');
+    setLoading(true);
+    
     const auth = getAuth();
-      signInWithEmailAndPassword(auth, 'test@test.com', 'test1234')
-        .then((userCredential) => {
-          const user = userCredential.user;
-          router.push("/(tabs)");
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          Alert.alert(errorMessage);
-        });
+    signInWithEmailAndPassword(auth, 'test@test.com', 'test1234')
+      .then((userCredential) => {
+        const user = userCredential.user;
+        router.push("/(tabs)");
+        setLoading(false);
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        Alert.alert(errorMessage);
+        setLoading(false);
+      });
   }
 
   return (
@@ -67,6 +69,7 @@ const LoginForm = () => {
           onChangeText={setEmail}
           autoCorrect={false}
           autoCapitalize="none"
+          editable={!loading}
         />
       </View>
       <View style={styles.inputView}>
@@ -78,6 +81,7 @@ const LoginForm = () => {
           autoCorrect={false}
           autoCapitalize="none"
           secureTextEntry={isPasswordHidden}
+          editable={!loading}
         />
         <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)} >
           <Icon name={isPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
@@ -85,14 +89,16 @@ const LoginForm = () => {
       </View>
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>SIGN IN</Text>
+          <Text style={styles.buttonText}>{loading ? 'LOADING...' : 'SIGN IN'}</Text>
+          {loading && <ActivityIndicator color={'#fff'}/>}
         </Pressable>
       </View>
       <Text>Don't have an account? </Text>
       <Link href="/(signup)">Sign Up</Link>
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onTestUser}>
-          <Text style={styles.buttonText}>TEST USER</Text>
+          <Text style={styles.buttonText}>{loading ? 'LOADING...' : 'TEST USER'}</Text>
+          {loading && <ActivityIndicator color={'#fff'}/>}
         </Pressable>
       </View>
       {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
@@ -167,11 +173,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: 'row'
   },
   buttonText: {
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+    marginRight: 10
   },
   buttonView: {
     width: "100%",
