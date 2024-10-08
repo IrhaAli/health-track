@@ -1,14 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface CounterState {
+interface TrackDialogState {
     showDialog: boolean;
 }
 
-const initialState: CounterState = {
+const initialState: TrackDialogState = {
     showDialog: false
 };
 
-const counterSlice = createSlice({
+const trackDialogSlice = createSlice({
     name: 'trackDialog',
     initialState,
     reducers: {
@@ -21,5 +21,5 @@ const counterSlice = createSlice({
     },
 });
 
-export const { setShowDialog, setHideDialog } = counterSlice.actions;
-export default counterSlice.reducer;
+export const { setShowDialog, setHideDialog } = trackDialogSlice.actions;
+export default trackDialogSlice.reducer;
