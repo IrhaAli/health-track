@@ -1,11 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import cameraReducer from './cameraSlice';
 import trackDialogReducer from "./trackDialogSlice";
+import userReducer from "./userSlice";
+import trackReducer from "./trackSlice";
 
 const store = configureStore({
   reducer: {
     camera: cameraReducer,
-    trackDialog: trackDialogReducer
+    trackDialog: trackDialogReducer,
+    user: userReducer,
+    track: trackReducer
   },
 });
 
