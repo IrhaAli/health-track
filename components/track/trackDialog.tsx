@@ -10,15 +10,15 @@ interface TrackDialogProps {
 
 export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
     const [formTab, setFormTab] = useState("sleep");
-    const [visible, setVisible] = useState(false);
+    const [dialogStatus, setDialogStatus] = useState(false);
 
     return (
         <View>
-            <Pressable style={styles.button} onPress={() => setVisible(true)}>
+            <Pressable style={styles.button} onPress={() => setDialogStatus(true)}>
                 <Text style={styles.buttonText}>Add</Text>
             </Pressable>
 
-            <Dialog.Container visible={visible}>
+            <Dialog.Container visible={dialogStatus}>
                 <Dialog.Title style={styles.dialogTitle}>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's ${formTab} Data`}</Dialog.Title>
                 <View style={styles.formTabs}>
                     <Pressable style={styles.tabButton} onPress={() => setFormTab("sleep")}><Text style={styles.tabButtonText}>Sleep</Text></Pressable>
@@ -27,7 +27,7 @@ export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
                     <Pressable style={styles.tabButton} onPress={() => setFormTab("weight")}><Text style={styles.tabButtonText}>Weight</Text></Pressable>
                 </View>
                 <View style={styles.formTabsBody}>
-                    <TrackForms currentDate={currentDate} userId={userId} formTab={formTab} hideDialog={() => setVisible(false)}></TrackForms>
+                    <TrackForms currentDate={currentDate} userId={userId} formTab={formTab} setDialogStatus={(status: boolean) => setDialogStatus(status)}></TrackForms>
                 </View>
             </Dialog.Container>
         </View>
