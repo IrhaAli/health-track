@@ -311,18 +311,6 @@ export default function TrackComponent() {
     return Math.ceil(differenceMinutes);
   };
 
-  const convertMinutesToHoursAndMinutes = (totalMinutes: number) => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${hours} hours and ${minutes} minutes`;
-  };
-
-  const toggleCameraFacing = () => {
-    setCameraSide((current) =>
-      current === CameraType.front ? CameraType.back : CameraType.front
-    );
-  };
-
   const uploadImage = async (reference: string) => {
     const imageUri = reference === "weight" ? imageWeightUri : imageFoodUri;
 
@@ -411,32 +399,6 @@ export default function TrackComponent() {
     }
     setVisible(false);
     clearFields();
-  };
-
-  const takePhoto = async () => {
-    if (formTab === "weight") {
-      let countdown = 5;
-      let photoCountdown = setInterval(async () => {
-        setTimer(`${countdown}`);
-        countdown--;
-        if (countdown <= 0) {
-          const data: any = await cameraRef?.current?.takePictureAsync(
-            undefined
-          );
-          setImageWeightUri(data.uri);
-          setTimer("");
-          clearInterval(photoCountdown);
-          setShowCamera(false);
-          setVisible(true);
-        }
-      }, 1000);
-    } else {
-      const data: any = await cameraRef?.current?.takePictureAsync(undefined);
-      setImageFoodUri(data.uri);
-      setTimer("");
-      setShowCamera(false);
-      setVisible(true);
-    }
   };
 
   return (
