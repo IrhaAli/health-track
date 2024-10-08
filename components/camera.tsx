@@ -31,37 +31,37 @@ export default function AppCamera() {
     };
 
     return (
-        <View>
+        <>
             {showCamera && (!permission ? (
-                    <View />
-                ) : !permission.granted ? (
+                <View />
+            ) : !permission.granted ? (
+                <View>
                     <View>
-                        <View>
-                            <Text style={styles.message}>We need your permission to show the camera</Text>
-                            <Button onPress={requestPermission} title="grant permission" />
-                        </View>
+                        <Text style={styles.message}>We need your permission to show the camera</Text>
+                        <Button onPress={requestPermission} title="grant permission" />
                     </View>
-                ) : (
-                    <View>
-                            <Camera style={[{height: height, width: width}]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
-                                <View style={styles.buttonContainer}>
-                                    <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
-                                        <Text style={styles.text}>Flip Camera</Text>
-                                        <Text style={styles.text}>{timer}</Text>
-                                    </TouchableOpacity>
+                </View>
+            ) : (
+                <>
+                    <Camera style={[{ height: '100%', width: '100%' }]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
+                                <Text style={styles.text}>Flip Camera</Text>
+                                <Text style={styles.text}>{timer}</Text>
+                            </TouchableOpacity>
 
-                                    <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setShowDialog()) }}>
-                                        <Text>CANCEL</Text>
-                                    </Pressable>
+                            <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setShowDialog()) }}>
+                                <Text>CANCEL</Text>
+                            </Pressable>
 
-                                    <Pressable onPress={takePhoto}>
-                                        <Text>TAKE PHOTO</Text>
-                                    </Pressable>
-                                </View>
-                            </Camera>
+                            <Pressable onPress={takePhoto}>
+                                <Text>TAKE PHOTO</Text>
+                            </Pressable>
                         </View>
-                ))}
-        </View>
+                    </Camera>
+                </>
+            ))}
+        </>
     )
 }
 
