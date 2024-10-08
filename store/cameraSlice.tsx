@@ -6,7 +6,7 @@ interface CounterState {
 }
 
 const initialState: CounterState = {
-    showCamera: true,
+    showCamera: false,
     imageURI: null
 };
 
@@ -19,9 +19,12 @@ const counterSlice = createSlice({
         },
         setHideCamera: (state) => {
             state.showCamera = false;
+        },
+        setImageURI: (state, action: PayloadAction<string>) => {
+            state.imageURI = action.payload;
         }
     },
 });
 
-export const { setShowCamera, setHideCamera } = counterSlice.actions;
+export const { setShowCamera, setHideCamera, setImageURI } = counterSlice.actions;
 export default counterSlice.reducer;
