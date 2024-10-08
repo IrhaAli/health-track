@@ -5,14 +5,15 @@ import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { useDispatch } from "react-redux";
+import { setHideDialog } from "@/store/trackDialogSlice";
 
 interface TrackSleepFormProps {
     currentDate: string;
     userId: string;
-    setDialogStatus: (status: boolean) => void;
 }
 
-export default function TrackSleepForm({ currentDate, userId, setDialogStatus }: TrackSleepFormProps) {
+export default function TrackSleepForm({ currentDate, userId }: TrackSleepFormProps) {
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
@@ -20,6 +21,7 @@ export default function TrackSleepForm({ currentDate, userId, setDialogStatus }:
     const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
     const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
     const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
+    const dispatch = useDispatch();
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
@@ -105,7 +107,7 @@ export default function TrackSleepForm({ currentDate, userId, setDialogStatus }:
         setShowWakeupTimeSelector(false);
         // Ressetting Fields.
 
-        setDialogStatus(false);
+        dispatch(setHideDialog());
     }
 
     return (
@@ -155,7 +157,7 @@ export default function TrackSleepForm({ currentDate, userId, setDialogStatus }:
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => setDialogStatus(false)}>
+                <Pressable onPress={() => dispatch(setHideDialog())}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
                 <Pressable onPress={onSubmit}>
