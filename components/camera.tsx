@@ -1,16 +1,13 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, PixelRatio } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setHideCamera } from "@/store/cameraSlice";
+import { setShowDialog } from "@/store/trackDialogSlice";
 
-interface AppCameraProps {
-    setDialogStatus: (status: boolean) => void;
-}
-
-export default function AppCamera({ setDialogStatus }: AppCameraProps) {
+export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
     const [imageUri, setImageUri] = useState(null);
     const [permission, requestPermission] = useCameraPermissions();
@@ -18,6 +15,8 @@ export default function AppCamera({ setDialogStatus }: AppCameraProps) {
     const [timer, setTimer] = useState("");
     const [cameraSide, setCameraSide] = useState(CameraType.back);
     const dispatch = useDispatch();
+    const devicePixelRatio = PixelRatio.get();
+    console.log('devicePixelRatio', devicePixelRatio);
 
     const toggleCameraFacing = () => {
         setCameraSide((current) =>
@@ -25,44 +24,44 @@ export default function AppCamera({ setDialogStatus }: AppCameraProps) {
         );
     };
 
-    console.log('showCamera', showCamera);
-
     const takePhoto = async () => {
         const data: any = await cameraRef?.current?.takePictureAsync(undefined);
         setImageUri(data.uri);
         setTimer("");
         dispatch(setHideCamera());
-        setDialogStatus(true);
+        dispatch(setShowDialog())
     };
 
     return (
         <View>
-            {showCamera &&
-                (!permission ? (
+            {showCamera && (!permission ? (
                     <View />
                 ) : !permission.granted ? (
                     <View style={styles.container}>
-                        <View style={styles.cameraContainer}>
+                        <View style={styles.camera}>
                             <Text style={styles.message}>We need your permission to show the camera</Text>
                             <Button onPress={requestPermission} title="grant permission" />
                         </View>
                     </View>
                 ) : (
                     <View style={styles.container}>
-                        <View style={styles.cameraContainer}>
-                            <Camera style={styles.camera} type={cameraSide} ref={cameraRef}>
+                            <Camera style={styles.camera} type={cameraSide} ref={cameraRef} ratio={'1:1'}>
                                 <View style={styles.buttonContainer}>
                                     <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
                                         <Text style={styles.text}>Flip Camera</Text>
                                         <Text style={styles.text}>{timer}</Text>
                                     </TouchableOpacity>
 
-                                    <Button onPress={() => { dispatch(setHideCamera()); setDialogStatus(true); }} title="Cancel" />
-                                    <Button onPress={takePhoto} title="Take Photo" />
+                                    <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setShowDialog()) }}>
+                                        <Text>CANCEL</Text>
+                                    </Pressable>
+
+                                    <Pressable onPress={takePhoto}>
+                                        <Text>TAKE PHOTO</Text>
+                                    </Pressable>
                                 </View>
                             </Camera>
                         </View>
-                    </View>
                 ))}
         </View>
     )
@@ -75,28 +74,24 @@ const styles = StyleSheet.create({
         color: "white",
     },
     container: {
-    },
-    cameraContainer: {
-        position: "absolute",
-        // height: '100%',
-        // width: '100%',
-        // top: '-500%',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        // top: 0,
-        // flexDirection: 'row', 
-        // alignContent: 'center', 
-        // justifyContent: 'center'
+        flex: 1
     },
     camera: {
         // flex: 1,
+        // position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: 772,
     },
     buttonContainer: {
         flex: 1,
         flexDirection: "row",
         backgroundColor: "transparent",
-        margin: 64,
+        // alignItems: 'flex-end',
+        justifyContent: 'flex-start'
     },
     message: {
         textAlign: "center",
