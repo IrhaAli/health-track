@@ -43,7 +43,7 @@ export default function AppCamera() {
                 </View>
             ) : (
                 <>
-                    <Camera style={[{ height: '100%', width: '100%' }]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
+                    <Camera style={[{ height: '70%' }]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
                                 <Text style={styles.text}>Flip Camera</Text>
