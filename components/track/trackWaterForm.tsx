@@ -107,7 +107,7 @@ export default function TrackWaterForm() {
 
 const styles = StyleSheet.create({
     trackWaterForm: {
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingVertical: 10

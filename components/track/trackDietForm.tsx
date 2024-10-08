@@ -104,7 +104,7 @@ export default function TrackDietForm() {
 const styles = StyleSheet.create({
     trackDietForm: {
         paddingVertical: 30,
-        backgroundColor: 'white'
+        // backgroundColor: 'white'
     },
     buttonContainer: {
         flexDirection: 'column',
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingVertical: 10

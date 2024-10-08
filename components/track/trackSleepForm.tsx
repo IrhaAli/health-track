@@ -172,7 +172,7 @@ export default function TrackSleepForm() {
 const styles = StyleSheet.create({
     trackSleepForm: {
         paddingVertical: 30,
-        backgroundColor: 'white'
+        // backgroundColor: 'white'
     },
     lastNightSleepHeading: {
         fontWeight: '700',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingVertical: 10

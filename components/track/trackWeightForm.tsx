@@ -132,7 +132,7 @@ export default function TrackWeightForm() {
 const styles = StyleSheet.create({
     trackWeightForm: {
         paddingVertical: 30,
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         justifyContent: 'center', 
         alignContent: 'center',
         alignItems: 'center'
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingVertical: 10
