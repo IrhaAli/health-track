@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, View, Text, Pressable } from "react-native";
 import Dialog from "react-native-dialog";
 import TrackForms from "./trackForms";
+import AppCamera from "../camera";
 
 interface TrackDialogProps {
     currentDate: string;
@@ -14,6 +15,8 @@ export default function TrackDialog({ currentDate, userId }: TrackDialogProps) {
 
     return (
         <View>
+            <AppCamera setDialogStatus={(status) => setDialogStatus(status)}></AppCamera>
+            
             <Pressable style={styles.button} onPress={() => setDialogStatus(true)}>
                 <Text style={styles.buttonText}>Add</Text>
             </Pressable>
