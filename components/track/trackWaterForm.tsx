@@ -6,11 +6,12 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { addDoc, collection } from "firebase/firestore";
 import { router } from "expo-router";
 import { db } from "../../firebaseConfig";
+import { useDispatch } from "react-redux";
+import { setHideDialog } from "@/store/trackDialogSlice";
 
 interface TrackWaterFormProps {
     currentDate: string;
     userId: string;
-    setDialogStatus: (status: boolean) => void;
 }
 
 enum WaterTypeEnum {
@@ -19,10 +20,11 @@ enum WaterTypeEnum {
     CUPS = "cups"
 };
 
-export default function TrackWaterForm({ currentDate, userId, setDialogStatus }: TrackWaterFormProps) {
+export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormProps) {
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
     const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
+    const dispatch = useDispatch();
 
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
 
@@ -50,7 +52,7 @@ export default function TrackWaterForm({ currentDate, userId, setDialogStatus }:
         setWaterType(WaterTypeEnum.MILLILITRES);
         // Resetting Fields.
 
-        setDialogStatus(false);
+        dispatch(setHideDialog())
     }
 
     return (
@@ -89,7 +91,7 @@ export default function TrackWaterForm({ currentDate, userId, setDialogStatus }:
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => setDialogStatus(false)}>
+                <Pressable onPress={() => dispatch(setHideDialog())}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
                 <Pressable onPress={onSubmit}>
