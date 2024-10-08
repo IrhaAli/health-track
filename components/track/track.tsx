@@ -20,6 +20,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // Local Components Start.
 import TrackSleepForm from "./trackSleepForm";
 import TrackWaterForm from "./trackWaterForm";
+import TrackDialog from "./trackDialog";
 // Local Components End.
 
 
@@ -48,10 +49,8 @@ export default function TrackComponent() {
   const [mealTime, setMealTime] = useState(new Date());
   const [water, setWater] = useState("");
   const [waterType, setWaterType] = useState("millilitres");
-  const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
   const [weightType, setWeightType] = useState("kg");
   const [weight, setWeight] = useState("");
-  const [isWeightTypeFocus, setIsWeightTypeFocus] = useState(false);
   const [cameraSide, setCameraSide] = useState(CameraType.back);
   const [showCamera, setShowCamera] = useState(false);
   const [imageFoodUri, setImageFoodUri] = useState(null);
@@ -81,6 +80,10 @@ export default function TrackComponent() {
   useEffect(() => {
     setSleepDuration(calculateSleepDuration());
   }, [sleepDate, sleepTime, wakeupTime]);
+
+  useEffect(() => {
+    console.log('visible', visible);
+  }, [visible]);
 
   const renderItem = useCallback(({ item }: any) => {
     return <AgendaItem item={item} />;
@@ -357,7 +360,8 @@ export default function TrackComponent() {
         sleep_duration: sleepDuration,
       };
       await addDoc(collection(db, "sleep_tracking"), userSleepData);
-    } else if (formTab === "diet") {
+    } 
+    else if (formTab === "diet") {
       if (!imageFoodUri) {
         Alert.alert("Please add a picture of your meal.");
         return;
@@ -368,7 +372,8 @@ export default function TrackComponent() {
         meal_picture: await uploadImage("diet"),
       };
       await addDoc(collection(db, "diet_tracking"), userDietData);
-    } else if (formTab === "water") {
+    } 
+    else if (formTab === "water") {
       const conversionRate: Record<string, number> = {
         cups: 250,
         litres: 1000,
@@ -385,7 +390,8 @@ export default function TrackComponent() {
         measurement_unit: waterType.length === 0 ? "millilitres" : waterType,
       };
       await addDoc(collection(db, "water_tracking"), userWaterData);
-    } else if (formTab === "weight") {
+    } 
+    else if (formTab === "weight") {
       const conversionRate: Record<string, number> = {
         lbs: 0.453592,
       };
@@ -474,271 +480,28 @@ export default function TrackComponent() {
           sectionStyle={styles.section}
           scrollToNextEvent={false}
         />
-        <View>
-          <Pressable style={styles.button} onPress={() => setVisible(true)}>
-            <Text style={styles.buttonText}>
-              {ITEMS.diet.length === 0 ||
-              ITEMS.water.length === 0 ||
-              ITEMS.sleep.length === 0 ||
-              ITEMS.weight.length === 0
-                ? "Add"
-                : "Edit"}
-            </Text>
-          </Pressable>
-          
-          <Dialog.Container visible={visible}>
-            <Dialog.Title>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's Data`}</Dialog.Title>
-            <>
-              <View style={styles.formTabs}>
-                <Button onPress={() => setFormTab("sleep")} title="Sleep" />
-                <Button onPress={() => setFormTab("diet")} title="Diet" />
-                <Button onPress={() => setFormTab("water")} title="Water" />
-                <Button onPress={() => setFormTab("weight")} title="Weight" />
-              </View>
-              <View style={styles.formTabsBody}>
-                {formTab === "sleep" && (
-                  // <>
-                  //   <Text>Last Night's Sleep</Text>
-                  //   <DateTimePicker
-                  //     mode="date"
-                  //     value={sleepDate}
-                  //     onChange={(event: any, value: Date | undefined) =>
-                  //       setSleepDate(value || new Date(currentDate))
-                  //     }
-                  //   />
-                  //   <DateTimePicker
-                  //     mode="time"
-                  //     value={sleepTime}
-                  //     onChange={(event: any, value: Date | undefined) =>
-                  //       setSleepTime(value || new Date(currentDate))
-                  //     }
-                  //   />
-                  //   <Text>Wakeup Time</Text>
-                  //   <DateTimePicker
-                  //     mode="time"
-                  //     value={wakeupTime}
-                  //     onChange={(event: any, value: Date | undefined) =>
-                  //       setWakeupTime(value || new Date(currentDate))
-                  //     }
-                  //   />
-                  //   <Text>Sleep Quality: {sleepQuality}</Text>
-                  //   <Slider
-                  //     value={sleepQuality}
-                  //     minimumValue={1}
-                  //     maximumValue={5}
-                  //     step={1}
-                  //     onValueChange={(value: number) => setSleepQuality(value)}
-                  //   />
-                  //   <Text>
-                  //     Total Sleeping Hours:{" "}
-                  //     {convertMinutesToHoursAndMinutes(sleepDuration)}
-                  //   </Text>
-                  // </>
-                  <TrackSleepForm currentDate={currentDate}></TrackSleepForm>
-                )}
-                {formTab === "diet" && (
-                  <>
-                    {!imageFoodUri ? (
-                      <Pressable
-                        style={styles.button}
-                        onPress={() => {
-                          setShowCamera(true);
-                          setVisible(false);
-                        }}
-                      >
-                        <Text style={styles.buttonText}>Add Picture</Text>
-                      </Pressable>
-                    ) : (
-                      <>
-                        <Image
-                          source={{
-                            uri: imageFoodUri,
-                          }}
-                          width={100}
-                          height={200}
-                          resizeMode="contain"
-                        />
-                        <Pressable
-                          onPress={() => {
-                            setImageFoodUri(null);
-                          }}
-                        >
-                          <Text style={styles.buttonText}>X</Text>
-                        </Pressable>
-                      </>
-                    )}
-                    <Text>Time of Meal</Text>
-                    <DateTimePicker
-                      mode="time"
-                      value={mealTime}
-                      onChange={(event: any, value: Date | undefined) =>
-                        setMealTime(value || new Date(currentDate))
-                      }
-                    />
-                  </>
-                )}
-                {formTab === "water" && (
-                  // <>
-                  //   <Dialog.Input
-                  //     style={styles.input}
-                  //     placeholder="Add water here..."
-                  //     value={water}
-                  //     onChangeText={setWater}
-                  //     autoCorrect={false}
-                  //     autoCapitalize="none"
-                  //   ></Dialog.Input>
-                  //   <Dropdown
-                  //     style={[
-                  //       styles.dropdown,
-                  //       isWaterTypeFocus && { borderColor: "blue" },
-                  //     ]}
-                  //     placeholderStyle={styles.placeholderStyle}
-                  //     selectedTextStyle={styles.selectedTextStyle}
-                  //     iconStyle={styles.iconStyle}
-                  //     data={waterTypeOptions}
-                  //     maxHeight={300}
-                  //     labelField="label"
-                  //     valueField="value"
-                  //     placeholder={
-                  //       !isWaterTypeFocus ? "Select Water Unit" : "..."
-                  //     }
-                  //     value={waterType}
-                  //     onFocus={() => setIsWaterTypeFocus(true)}
-                  //     onBlur={() => setIsWaterTypeFocus(false)}
-                  //     onChange={(item: any) => {
-                  //       setWaterType(item.value);
-                  //       setIsWaterTypeFocus(false);
-                  //     }}
-                  //     renderLeftIcon={() => (
-                  //       <AntDesign
-                  //         style={styles.icon}
-                  //         color={isWaterTypeFocus ? "blue" : "black"}
-                  //         name="Safety"
-                  //         size={20}
-                  //       />
-                  //     )}
-                  //   />
-                  // </>
-                  <TrackWaterForm currentDate={currentDate}></TrackWaterForm>
-                )}
-                {formTab === "weight" && (
-                  <>
-                    <Dialog.Input
-                      style={styles.input}
-                      placeholder="Add weight here..."
-                      value={weight}
-                      onChangeText={setWeight}
-                      autoCorrect={false}
-                      autoCapitalize="none"
-                    />
-                    <Dropdown
-                      style={[
-                        styles.dropdown,
-                        isWeightTypeFocus && { borderColor: "blue" },
-                      ]}
-                      placeholderStyle={styles.placeholderStyle}
-                      selectedTextStyle={styles.selectedTextStyle}
-                      iconStyle={styles.iconStyle}
-                      data={weightTypeOptions}
-                      maxHeight={300}
-                      labelField="label"
-                      valueField="value"
-                      placeholder={
-                        !isWeightTypeFocus ? "Select Weight Unit" : "..."
-                      }
-                      value={weightType}
-                      onFocus={() => setIsWeightTypeFocus(true)}
-                      onBlur={() => setIsWeightTypeFocus(false)}
-                      onChange={(item: any) => {
-                        setWeightType(item.value);
-                        setIsWeightTypeFocus(false);
-                      }}
-                      renderLeftIcon={() => (
-                        <AntDesign
-                          style={styles.icon}
-                          color={isWeightTypeFocus ? "blue" : "black"}
-                          name="Safety"
-                          size={20}
-                        />
-                      )}
-                    />
-                    {!imageWeightUri ? (
-                      <Pressable
-                        style={styles.button}
-                        onPress={() => {
-                          setShowCamera(true);
-                          setVisible(false);
-                        }}
-                      >
-                        <Text style={styles.buttonText}>Add Picture</Text>
-                      </Pressable>
-                    ) : (
-                      <>
-                        <Image
-                          source={{
-                            uri: imageWeightUri,
-                          }}
-                          width={100}
-                          height={200}
-                          resizeMode="contain"
-                        />
-                        <Pressable
-                          onPress={() => {
-                            setImageWeightUri(null);
-                          }}
-                        >
-                          <Text style={styles.buttonText}>X</Text>
-                        </Pressable>
-                      </>
-                    )}
-                  </>
-                )}
-              </View>
-            </>
-            <Dialog.Button label="Cancel" onPress={() => clearFields()} />
-            <Dialog.Button
-              label={
-                ITEMS.diet.length === 0 ||
-                ITEMS.water.length === 0 ||
-                ITEMS.sleep.length === 0 ||
-                ITEMS.weight.length === 0
-                  ? "Add"
-                  : "Edit"
-              }
-              onPress={handleSubmission}
-            />
-          </Dialog.Container>
-        </View>
       </CalendarProvider>
+      
+      <TrackDialog currentDate={currentDate} userId={userId}></TrackDialog>
       
       {showCamera &&
         (!permission ? (
           <View />
         ) : !permission.granted ? (
           <View style={styles.container}>
-            <Text style={styles.message}>
-              We need your permission to show the camera
-            </Text>
+            <Text style={styles.message}>We need your permission to show the camera</Text>
             <Button onPress={requestPermission} title="grant permission" />
           </View>
         ) : (
           <View style={[styles.container, styles.cameraContainer]}>
             <Camera style={styles.camera} type={cameraSide} ref={cameraRef}>
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.cameraButton}
-                  onPress={toggleCameraFacing}
-                >
+                <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
                   <Text style={styles.text}>Flip Camera</Text>
                   <Text style={styles.text}>{timer}</Text>
                 </TouchableOpacity>
-                <Button
-                  onPress={() => {
-                    setShowCamera(false);
-                    setVisible(true);
-                  }}
-                  title="Cancel"
-                />
+
+                <Button onPress={() => { setShowCamera(false); setVisible(true); }} title="Cancel" />
                 <Button onPress={takePhoto} title="Take Photo" />
               </View>
             </Camera>
