@@ -8,6 +8,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
+import { Divider } from 'react-native-paper';
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch();
@@ -156,6 +157,7 @@ export default function TrackSleepForm() {
                 <Text>{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
             </View>
 
+            <Divider />
             <View style={styles.formSubmission}>
                 <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>

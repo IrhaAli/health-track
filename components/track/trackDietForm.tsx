@@ -9,6 +9,7 @@ import { RootState } from "@/store/store";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { Divider} from 'react-native-paper';
 
 export default function TrackDietForm() {
     const dispatch = useDispatch();
@@ -88,6 +89,7 @@ export default function TrackDietForm() {
                 </View>
             </View>
 
+            <Divider />
             <View style={styles.formSubmission}>
                 <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>

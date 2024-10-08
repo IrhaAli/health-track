@@ -9,6 +9,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
+import { Divider } from 'react-native-paper';
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -92,6 +93,7 @@ export default function TrackWaterForm() {
                 />
             </View>
 
+            <Divider />
             <View style={styles.formSubmission}>
                 <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>

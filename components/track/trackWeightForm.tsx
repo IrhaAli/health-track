@@ -11,6 +11,7 @@ import { RootState } from "@/store/store";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { Divider } from 'react-native-paper';
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -116,6 +117,7 @@ export default function TrackWeightForm() {
                 )}
             </View>
 
+            <Divider />
             <View style={styles.formSubmission}>
                 <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>
