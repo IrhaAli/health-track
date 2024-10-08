@@ -1,22 +1,20 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, PixelRatio } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, PixelRatio, Dimensions } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setHideCamera } from "@/store/cameraSlice";
+import { setHideCamera, setImageURI } from "@/store/cameraSlice";
 import { setShowDialog } from "@/store/trackDialogSlice";
 
 export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
-    const [imageUri, setImageUri] = useState(null);
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<Camera | null>(null);
     const [timer, setTimer] = useState("");
     const [cameraSide, setCameraSide] = useState(CameraType.back);
     const dispatch = useDispatch();
-    const devicePixelRatio = PixelRatio.get();
-    console.log('devicePixelRatio', devicePixelRatio);
+    const { width, height } = Dimensions.get('window');
 
     const toggleCameraFacing = () => {
         setCameraSide((current) =>
@@ -26,7 +24,7 @@ export default function AppCamera() {
 
     const takePhoto = async () => {
         const data: any = await cameraRef?.current?.takePictureAsync(undefined);
-        setImageUri(data.uri);
+        dispatch(setImageURI(data.uri));
         setTimer("");
         dispatch(setHideCamera());
         dispatch(setShowDialog())
@@ -37,15 +35,15 @@ export default function AppCamera() {
             {showCamera && (!permission ? (
                     <View />
                 ) : !permission.granted ? (
-                    <View style={styles.container}>
-                        <View style={styles.camera}>
+                    <View>
+                        <View>
                             <Text style={styles.message}>We need your permission to show the camera</Text>
                             <Button onPress={requestPermission} title="grant permission" />
                         </View>
                     </View>
                 ) : (
-                    <View style={styles.container}>
-                            <Camera style={styles.camera} type={cameraSide} ref={cameraRef} ratio={'1:1'}>
+                    <View>
+                            <Camera style={[{height: height, width: width}]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
                                 <View style={styles.buttonContainer}>
                                     <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
                                         <Text style={styles.text}>Flip Camera</Text>
@@ -73,25 +71,12 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "white",
     },
-    container: {
-        flex: 1
-    },
-    camera: {
-        // flex: 1,
-        // position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        height: 772,
-    },
     buttonContainer: {
         flex: 1,
         flexDirection: "row",
         backgroundColor: "transparent",
-        // alignItems: 'flex-end',
-        justifyContent: 'flex-start'
+        alignItems: 'flex-end',
+        justifyContent: 'center'
     },
     message: {
         textAlign: "center",
