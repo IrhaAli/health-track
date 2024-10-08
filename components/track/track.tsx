@@ -16,9 +16,9 @@ export default function TrackComponent() {
   return (
     console.log('component rendered in return main'),
 
-    <View>
+    <>
       <TrackCalendar></TrackCalendar>
       <TrackDialog></TrackDialog>
-    </View>
+    </>
   );
 }
