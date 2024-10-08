@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { setShowDialog } from "@/store/trackDialogSlice";
 import { setImageURI } from "@/store/cameraSlice";
+import AppCamera from "../camera";
 
 export default function TrackDialog() {
     const [formTab, setFormTab] = useState("sleep");
@@ -14,7 +15,7 @@ export default function TrackDialog() {
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
 
     return (
-        <View>
+        <>
             <Pressable style={styles.button} onPress={() => dispatch(setShowDialog())}>
                 <Text style={styles.buttonText}>Add</Text>
             </Pressable>
@@ -31,7 +32,9 @@ export default function TrackDialog() {
                     <TrackForms formTab={formTab}></TrackForms>
                 </View>
             </Dialog.Container>
-        </View>
+
+            <AppCamera></AppCamera>
+        </>
     );
 }
 
