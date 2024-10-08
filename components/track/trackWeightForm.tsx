@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
         alignContent: 'center'      
     },
     input: {
-        paddingHorizontal: 22,
+        paddingHorizontal: 100,
         borderColor: "gray",
         borderWidth: 0.5,
         borderRadius: 3,

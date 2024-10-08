@@ -63,16 +63,17 @@ export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormPr
             <View style={styles.trackWaterForm}>
                 <Dialog.Input
                     style={[styles.input]}
-                    placeholder="Add water here..."
+                    placeholder="Add Water"
                     value={water}
                     onChangeText={setWater}
                     autoCorrect={false}
                     autoCapitalize="none"
                     keyboardType="numeric"
                     maxLength={4}
+                    underlineColorAndroid={'transparent'}
                     editable={!loading}
                 ></Dialog.Input>
-                <Dropdown style={[styles.dropdown, isWaterTypeFocus && { borderColor: "blue" }, styles.flexItem]}
+                <Dropdown style={[styles.dropdown, isWaterTypeFocus && { borderColor: "blue" }]}
                     placeholderStyle={styles.placeholderStyle}
                     selectedTextStyle={styles.selectedTextStyle}
                     iconStyle={styles.iconStyle}
@@ -88,9 +89,7 @@ export default function TrackWaterForm({ currentDate, userId }: TrackWaterFormPr
                         setWaterType(item.value as WaterTypeEnum);
                         setIsWaterTypeFocus(false);
                     }}
-                    renderLeftIcon={() => (
-                        <AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} />
-                    )}
+                    renderRightIcon={() => ( <AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} /> )}
                     disable={loading}
                 />
             </View>
@@ -117,24 +116,45 @@ const styles = StyleSheet.create({
         paddingVertical: 30
     },
     input: {
-        height: 50,
-        paddingHorizontal: 20,
+        paddingHorizontal: 30,
         borderColor: "gray",
         borderWidth: 0.5,
         borderRadius: 3,
         fontSize: 16,
-        marginTop: 20,
-        color: 'black'
+        color: 'black',
+        marginTop: 0,
+        marginLeft: 0,
+        marginRight: 0,
+        marginBottom: 0,
+        borderTopLeftRadius: 3,
+        borderBottomLeftRadius: 3,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        borderTopWidth: 0.5,
+        borderRightWidth: 0,
+        borderBottomWidth: 0.5,
+        borderLeftWidth: 0.5,
     },
     icon: {
         marginRight: 5,
     },
     dropdown: {
-        height: 50,
+        flex: 0.75,
         borderColor: "gray",
-        borderWidth: 0.5,
-        borderRadius: 7,
         paddingHorizontal: 8,
+        paddingVertical: 9.2,
+        marginTop: -20,
+        marginLeft: -11,
+        marginRight: 0,
+        marginBottom: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 3,
+        borderBottomRightRadius: 3,
+        borderTopWidth: 0.5,
+        borderRightWidth: 0.5,
+        borderBottomWidth: 0.5,
+        borderLeftWidth: 0
     },
     placeholderStyle: {
         fontSize: 16,
@@ -145,9 +165,6 @@ const styles = StyleSheet.create({
     iconStyle: {
         width: 20,
         height: 20,
-    },
-    flexItem: {
-        flex: 1
     },
     formSubmission: {
         flexDirection: 'row',
