@@ -16,6 +16,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 export default function UserDetails({
   userDetails,
   setUserDetails,
+  needFullName,
 }: any) {
   const [measurementType, setMeasurementType] = useState("cm");
   const [weightType, setWeightType] = useState("");
@@ -72,14 +73,16 @@ export default function UserDetails({
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Background Information</Text>
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="Full Name"
-          value={userDetails.fullName}
-          onChangeText={(value) => updateUserDetails(value, "fullName")}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
+        {needFullName && (
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={userDetails.fullName}
+            onChangeText={(value) => updateUserDetails(value, "fullName")}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+        )}
         <Text>Date of Birth</Text>
         <DateTimePicker
           mode="date"

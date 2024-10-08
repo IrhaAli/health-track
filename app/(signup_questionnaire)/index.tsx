@@ -73,7 +73,7 @@ export default function UserDetailsPanel() {
       <UserDetails
         userDetails={UserDetails}
         setUserDetails={setUserDetails}
-        onSubmit={onSubmit}
+        needFullName={true}
       />
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
