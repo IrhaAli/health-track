@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
-import Dialog from "react-native-dialog";
+import { StyleSheet } from "react-native";
 import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import { setShowDialog } from "@/store/trackDialogSlice";
-import { setImageURI } from "@/store/cameraSlice";
+import { setHideDialog, setShowDialog } from "@/store/trackDialogSlice";
 import AppCamera from "../camera";
 import { SegmentedButtons } from 'react-native-paper';
-import { Avatar, Button, Card, Text } from 'react-native-paper';
+import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
 
 export default function TrackDialog() {
     const [formTab, setFormTab] = useState("sleep");
@@ -20,30 +18,26 @@ export default function TrackDialog() {
         <>
             <Button mode="contained" uppercase onPress={() => dispatch(setShowDialog())}>Add</Button>
 
-            <Dialog.Container visible={dialogStatus}>
-                <Dialog.Title style={styles.dialogTitle}>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's ${formTab} Data`}</Dialog.Title>
-                <View style={styles.formTabs}>
-                    <SegmentedButtons
-                        value={formTab}
-                        onValueChange={setFormTab}
-                        buttons={[
-                            { value: 'sleep', label: 'Sleep', icon: 'camera' },
-                            { value: 'diet', label: 'Diet' },
-                            { value: 'water', label: 'Water' },
-                            { value: 'weight', label: 'Weight' },
-                        ]}
-                    />
-
-                    {/* <Pressable style={styles.tabButton} onPress={() => setFormTab("sleep")}><Text style={styles.tabButtonText}>Sleep</Text></Pressable>
-                    <Pressable style={styles.tabButton} onPress={() => { setFormTab("diet"); dispatch(setImageURI('')); }}><Text style={styles.tabButtonText}>Diet</Text></Pressable>
-                    <Pressable style={styles.tabButton} onPress={() => setFormTab("water")}><Text style={styles.tabButtonText}>Water</Text></Pressable>
-                    <Pressable style={styles.tabButton} onPress={() => { setFormTab("weight"); dispatch(setImageURI('')); }}><Text style={styles.tabButtonText}>Weight</Text></Pressable> */}
-                </View>
-                <View style={styles.formTabsBody}>
-                    <TrackForms formTab={formTab}></TrackForms>
-                </View>
-            </Dialog.Container>
-
+            <Portal>
+                <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setHideDialog())}>
+                    <Dialog.Title>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{textTransform: 'capitalize'}]}>{formTab}</Text>{` Data`}</Dialog.Title>
+                    <Dialog.Content>
+                        <SegmentedButtons
+                            value={formTab}
+                            onValueChange={setFormTab}
+                            buttons={[
+                                { value: 'sleep', label: 'Sleep', icon: 'moon-waning-crescent' },
+                                { value: 'diet', label: 'Diet', icon: 'food' },
+                                { value: 'water', label: 'Water', icon: 'glass-pint-outline' },
+                                { value: 'weight', label: 'Weight', icon: 'weight' },
+                            ]}
+                        />
+                        <Divider style={[{marginVertical: 10}]}/>
+                        <TrackForms formTab={formTab}></TrackForms>
+                    </Dialog.Content>
+                </Dialog>
+            </Portal>
+            
             <AppCamera></AppCamera>
         </>
     );
