@@ -1,16 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface CounterState {
+interface CameraState {
     showCamera: boolean;
     imageURI: any;
 }
 
-const initialState: CounterState = {
+const initialState: CameraState = {
     showCamera: false,
     imageURI: null
 };
 
-const counterSlice = createSlice({
+const cameraSlice = createSlice({
     name: 'camera',
     initialState,
     reducers: {
@@ -26,5 +26,5 @@ const counterSlice = createSlice({
     },
 });
 
-export const { setShowCamera, setHideCamera, setImageURI } = counterSlice.actions;
-export default counterSlice.reducer;
+export const { setShowCamera, setHideCamera, setImageURI } = cameraSlice.actions;
+export default cameraSlice.reducer;
