@@ -442,7 +442,7 @@ export default function TrackComponent() {
   return (
     console.log('component rendered in return'),
     <>
-      <CalendarProvider
+            <CalendarProvider
         date={currentDate}
         showTodayButton={false}
         theme={todayBtnTheme.current}
@@ -483,30 +483,7 @@ export default function TrackComponent() {
       </CalendarProvider>
       
       <TrackDialog currentDate={currentDate} userId={userId}></TrackDialog>
-      
-      {showCamera &&
-        (!permission ? (
-          <View />
-        ) : !permission.granted ? (
-          <View style={styles.container}>
-            <Text style={styles.message}>We need your permission to show the camera</Text>
-            <Button onPress={requestPermission} title="grant permission" />
-          </View>
-        ) : (
-          <View style={[styles.container, styles.cameraContainer]}>
-            <Camera style={styles.camera} type={cameraSide} ref={cameraRef}>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
-                  <Text style={styles.text}>Flip Camera</Text>
-                  <Text style={styles.text}>{timer}</Text>
-                </TouchableOpacity>
 
-                <Button onPress={() => { setShowCamera(false); setVisible(true); }} title="Cancel" />
-                <Button onPress={takePhoto} title="Take Photo" />
-              </View>
-            </Camera>
-          </View>
-        ))}
     </>
   );
 }
