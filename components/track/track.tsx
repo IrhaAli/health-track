@@ -8,10 +8,8 @@ import TrackCalendar from "./trackCalendar";
 // Local Components End.
 
 export default function TrackComponent() {
-  console.log('A1 rendered');
+  console.log('A1 rendered main parent');
   const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
-
-  console.log('component rendering parent');
 
   return (
     console.log('component rendered in return main'),
