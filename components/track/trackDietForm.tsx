@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { Pressable, View, Text, StyleSheet, Platform, Image } from "react-native";
+import { Pressable, View, Text, StyleSheet, Platform, Image, Alert, ActivityIndicator } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideCamera, setShowCamera, setImageURI } from "@/store/cameraSlice";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 
 interface TrackFormsProps {
     currentDate: string;
@@ -13,27 +16,43 @@ interface TrackFormsProps {
 }
 
 export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) {
-    const [mealTime, setMealTime] = useState(new Date(currentDate));
-    const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
     const dispatch = useDispatch();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
-
+    const storage = getStorage();
+    const [mealTime, setMealTime] = useState(new Date(currentDate));
+    const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
         if (date) { setMealTime(date); }
     }
 
+    const uploadImage = async (reference: string) => {
+        if (!imageURI) { throw new Error(`Invalid URI for reference: ${reference}`); }
+
+        const response = await fetch(imageURI);
+
+        const blob = await response.blob();
+        let refer = ref(storage, `${reference}/${new Date().getTime()}`);
+        return uploadBytes(refer, blob)
+            .then((snapshot) => { return getDownloadURL(snapshot.ref); })
+            .then((downloadUrl) => { return downloadUrl; });
+    };
+
     const onSubmit = async () => {
         if (!userId) { router.push({ pathname: "/(signup)" }); }
 
-        // await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
+        if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
+        setLoading(true);
+        await addDoc(collection(db, "diet_tracking"), { user_id: userId, date: mealTime, meal_picture: await uploadImage("diet") });
 
         // Ressetting Fields.
         setMealTime(new Date(currentDate));
         setShowMealTimeSelector(false);
         dispatch(setHideCamera());
         dispatch(setImageURI(''));
+        setLoading(false);
         // Ressetting Fields.
 
         dispatch(setHideDialog())
@@ -44,21 +63,23 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
             <View style={styles.buttonContainer}>
 
                 {(!imageURI || imageURI == '') ? (
-                    <Pressable style={styles.imageButton} onPress={() => { dispatch(setShowCamera()); dispatch(setHideDialog()) }}>
+                    <Pressable style={styles.imageButton} onPress={() => { dispatch(setShowCamera()); dispatch(setHideDialog()) }} disabled={loading}>
                         <Text style={styles.buttonText}>Add Meal Picture</Text>
                     </Pressable>
                 ) : (
-                    <Pressable style={styles.imageButton} onPress={() => { dispatch(setImageURI('')); }} >
+                    <View>
+                        <Pressable style={styles.imageButton} onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>
+                            <Text style={styles.imageButtonText}>X</Text>
+                        </Pressable>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
-                        <Text style={styles.imageButtonText}>X</Text>
-                    </Pressable>
+                    </View>
                 )}
 
                 <View style={styles.mealTimeView}>
                     <Text>Time of Meal</Text>
                     {Platform.OS == "android" ?
                         <View>
-                            <Pressable onPress={() => { setShowMealTimeSelector(true); }} >
+                            <Pressable onPress={() => { setShowMealTimeSelector(true); }} disabled={loading}>
                                 <Text style={styles.mealTimeText}> {` ${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
                             </Pressable>
                             {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
@@ -71,11 +92,12 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
             </View>
 
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => dispatch(setHideDialog())}>
+                <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
                     <Text style={styles.cancelButton}>Cancel</Text>
                 </Pressable>
-                <Pressable onPress={onSubmit}>
-                    <Text style={styles.submitButton}>Submit</Text>
+                <Pressable onPress={onSubmit} style={styles.submitButton} disabled={loading}>
+                    <Text style={styles.submitButtonText}>{loading ? 'Loading...' : 'Submit'}</Text>
+                    {loading && <ActivityIndicator color={'white'}/>}
                 </Pressable>
             </View>
         </View>
@@ -141,13 +163,19 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     submitButton: {
-        color: 'white',
+        flexDirection: 'row',
         backgroundColor: 'red',
         paddingVertical: 7,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
         borderRadius: 3,
         marginLeft: 15,
+        alignItems: 'center', 
+        justifyContent: 'center'
+    },
+    submitButtonText: {
+        color: 'white',
         fontWeight: '700',
-        textTransform: 'uppercase'
+        textTransform: 'uppercase', 
+        marginRight: 5
     }
 })
