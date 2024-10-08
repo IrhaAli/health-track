@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Pressable, View, Text, StyleSheet, Platform, Image } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { useDispatch } from "react-redux";
-import { setHideCamera, setShowCamera } from "@/store/cameraSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setHideCamera, setShowCamera, setImageURI } from "@/store/cameraSlice";
 import { setHideDialog } from "@/store/trackDialogSlice";
+import { RootState } from "@/store/store";
 
 interface TrackFormsProps {
     currentDate: string;
@@ -14,8 +15,9 @@ interface TrackFormsProps {
 export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) {
     const [mealTime, setMealTime] = useState(new Date(currentDate));
     const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
-    const [imageUri, setImageUri] = useState(null);
     const dispatch = useDispatch();
+    const imageURI = useSelector((state: RootState) => state.camera.imageURI);
+
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
@@ -31,7 +33,7 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
         setMealTime(new Date(currentDate));
         setShowMealTimeSelector(false);
         dispatch(setHideCamera());
-        setImageUri(null);
+        dispatch(setImageURI(''));
         // Ressetting Fields.
 
         dispatch(setHideDialog())
@@ -39,43 +41,33 @@ export default function TrackDietForm({ currentDate, userId }: TrackFormsProps) 
 
     return (
         <View style={styles.trackDietForm}>
-            <View>
-                <Pressable style={styles.button}
-                    onPress={() => {
-                        if (!imageUri) {
-                            dispatch(setShowCamera());
-                            dispatch(setHideDialog()) 
-                        }
-                        else { setImageUri(null); }
-                    }}
-                >
-                    {!imageUri ? (
-                        <Text style={styles.buttonText}>Add Meal Picture</Text>
-                    ) : (
-                        <>
-                            <Image
-                                source={{ uri: imageUri }}
-                                width={100}
-                                height={200}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.buttonText}>X</Text>
-                        </>
-                    )}
-                </Pressable>
+            <View style={styles.buttonContainer}>
 
-                <Text>Time of Meal</Text>
-                {Platform.OS == "android" ?
-                    <View>
-                        <Pressable onPress={() => { setShowMealTimeSelector(true); }} >
-                            <Text style={styles.mealTimeText}> {` ${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
-                        </Pressable>
-                        {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
-                    </View> :
-                    <View>
-                        <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />
-                    </View>
-                }
+                {(!imageURI || imageURI == '') ? (
+                    <Pressable style={styles.imageButton} onPress={() => { dispatch(setShowCamera()); dispatch(setHideDialog()) }}>
+                        <Text style={styles.buttonText}>Add Meal Picture</Text>
+                    </Pressable>
+                ) : (
+                    <Pressable style={styles.imageButton} onPress={() => { dispatch(setImageURI('')); }} >
+                        <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
+                        <Text style={styles.imageButtonText}>X</Text>
+                    </Pressable>
+                )}
+
+                <View style={styles.mealTimeView}>
+                    <Text>Time of Meal</Text>
+                    {Platform.OS == "android" ?
+                        <View>
+                            <Pressable onPress={() => { setShowMealTimeSelector(true); }} >
+                                <Text style={styles.mealTimeText}> {` ${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
+                            </Pressable>
+                            {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
+                        </View> :
+                        <View>
+                            <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />
+                        </View>
+                    }
+                </View>
             </View>
 
             <View style={styles.formSubmission}>
@@ -95,10 +87,19 @@ const styles = StyleSheet.create({
         paddingVertical: 30,
         backgroundColor: 'white'
     },
+    buttonContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
     buttonText: {
         color: "white",
         fontSize: 18,
-        fontWeight: "bold",
+        fontWeight: "700",
+        backgroundColor: 'red',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderRadius: 3
     },
     mealTimeText: {
         marginBottom: 10,
@@ -112,6 +113,20 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: "center",
         justifyContent: "center",
+    },
+    imageButton: {
+        color: 'white',
+        flexDirection: 'row',
+        paddingBottom: 10
+    },
+    imageButtonText: {
+        color: 'black',
+        fontWeight: '700',
+        fontSize: 18,
+        marginLeft: -2
+    },
+    mealTimeView: {
+        flexDirection: 'row'
     },
     formSubmission: {
         flexDirection: 'row',
