@@ -9,7 +9,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
-import { Divider } from 'react-native-paper';
+import { Divider, Button } from 'react-native-paper';
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -95,13 +95,8 @@ export default function TrackWaterForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
-                    <Text style={styles.cancelButton}>Cancel</Text>
-                </Pressable>
-                <Pressable onPress={onSubmit} style={styles.submitButton} disabled={loading}>
-                    <Text style={styles.submitButtonText}>{loading ? 'Loading...' : 'Submit'}</Text>
-                    {loading && <ActivityIndicator color={'white'} />}
-                </Pressable>
+                <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading}>{loading ? ( <>Loading... <ActivityIndicator color="white" /></>) : ('Submit')}</Button>
             </View>
         </View>
     );
@@ -113,10 +108,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
+        paddingTop: 10,
     },
     input: {
-        paddingHorizontal: 30,
+        paddingBottom: 0,
+        paddingTop: 0,
+        paddingRight: 100,
+        paddingLeft: 20,
         borderColor: "gray",
         borderWidth: 0.5,
         borderRadius: 3,
@@ -134,6 +132,7 @@ const styles = StyleSheet.create({
         borderRightWidth: 0,
         borderBottomWidth: 0.5,
         borderLeftWidth: 0.5,
+        width: '100%'
     },
     icon: {
         marginRight: 5,
@@ -154,7 +153,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 0.5,
         borderRightWidth: 0.5,
         borderBottomWidth: 0.5,
-        borderLeftWidth: 0
+        borderLeftWidth: 0,
     },
     placeholderStyle: {
         fontSize: 16,
