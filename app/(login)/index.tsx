@@ -1,16 +1,19 @@
-import React, { useRef, useState } from "react";
-import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View, ActivityIndicator } from "react-native";
-import { Button, Alert, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { SafeAreaView, StyleSheet, View } from "react-native";
+import { Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
 import "../../firebaseConfig";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { Button, TextInput, Text } from "react-native-paper";
+import { useDispatch } from "react-redux";
+import { setUser, setUserId } from "@/store/userSlice";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordHidden, setPasswordHidden] = useState(true);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -25,7 +28,9 @@ const LoginForm = () => {
       const auth = getAuth();
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-          const user = userCredential.user;
+          const user: any = userCredential.user;
+          dispatch(setUser(JSON.stringify(user)));
+          dispatch(setUserId(user.uid));
           router.push("/(tabs)");
           setLoading(false);
         })
@@ -42,11 +47,13 @@ const LoginForm = () => {
     setEmail('test@test.com');
     setPassword('test1234');
     setLoading(true);
-    
+
     const auth = getAuth();
     signInWithEmailAndPassword(auth, 'test@test.com', 'test1234')
       .then((userCredential) => {
-        const user = userCredential.user;
+        const user: any = userCredential.user;
+        dispatch(setUser(JSON.stringify(user)));
+        dispatch(setUserId(user.uid));
         router.push("/(tabs)");
         setLoading(false);
       })
@@ -61,51 +68,24 @@ const LoginForm = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Health App</Text>
+
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="EMAIL"
-          value={email}
-          onChangeText={setEmail}
-          autoCorrect={false}
-          autoCapitalize="none"
-          editable={!loading}
-        />
+        <TextInput label="Email" value={email} onChangeText={setEmail} autoCorrect={false} placeholder="name@email.com" editable={!loading} autoCapitalize="none" />
       </View>
+
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="PASSWORD"
-          value={password}
-          onChangeText={setPassword}
-          autoCorrect={false}
-          autoCapitalize="none"
-          secureTextEntry={isPasswordHidden}
-          editable={!loading}
-        />
-        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)} >
-          <Icon name={isPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
-        </TouchableOpacity>
+        <TextInput label="Password" placeholder="Password" value={password} onChangeText={setPassword} autoCorrect={false} autoCapitalize="none" secureTextEntry={isPasswordHidden} editable={!loading} />
+        <Button mode="text" icon={isPasswordHidden ? 'eye-off' : 'eye'} style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)}><></></Button>
       </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>{loading ? 'LOADING...' : 'SIGN IN'}</Text>
-          {loading && <ActivityIndicator color={'#fff'}/>}
-        </Pressable>
+
+      <Button loading={loading} mode="contained" disabled={loading} onPress={onSubmit}>SIGN IN</Button>
+
+      <View style={styles.signUpText}>
+        <Text variant="titleMedium">Don't have an account?</Text>
+        <Button mode="text"><Link href="/(signup)">Sign Up</Link></Button>
       </View>
-      <Text>Don't have an account? </Text>
-      <Link href="/(signup)">Sign Up</Link>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onTestUser}>
-          <Text style={styles.buttonText}>{loading ? 'LOADING...' : 'TEST USER'}</Text>
-          {loading && <ActivityIndicator color={'#fff'}/>}
-        </Pressable>
-      </View>
-      {/* <Text style={styles.optionsText}>OR LOGIN WITH</Text>
-      <View style={styles.socialIcons}>
-        <SocialIcon button type="facebook" />
-        <SocialIcon button type="google" />
-      </View> */}
+
+      <Button mode="contained" loading={loading} disabled={loading} onPress={onTestUser}>Test User</Button>
     </SafeAreaView>
   );
 };
@@ -129,7 +109,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     textAlign: "center",
     paddingVertical: 40,
-    color: "red",
+    color: "tomato",
   },
   inputView: {
     gap: 15,
@@ -213,9 +193,15 @@ const styles = StyleSheet.create({
   },
   passwordEyeIcon: {
     position: 'absolute',
-    right: 60,
-    top: 15
+    right: 50,
+    top: 10
   },
+  signUpText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10
+  }
 });
 
 export default LoginForm;
