@@ -103,15 +103,9 @@ export default function TrackWeightForm() {
                     />
                 </View>
 
-                {!imageURI ? (
-                    <Pressable style={styles.button} onPress={() => { dispatch(setHideDialog()); dispatch(setShowCamera()); }} disabled={loading}>
-                        <Text style={styles.buttonText}>Add Weight Picture</Text>
-                    </Pressable>
-                ) : (
+                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setHideDialog()); dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
                     <>
-                        <Pressable onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>
-                            <Text style={styles.imageButtonText}>X</Text>
-                        </Pressable>
+                        <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
                     </>
                 )}
@@ -120,7 +114,7 @@ export default function TrackWeightForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading}>{loading ? ( <>Loading... <ActivityIndicator color="white" /></>) : ('Submit')}</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
             </View>
         </View>
     )
@@ -141,7 +135,8 @@ const styles = StyleSheet.create({
         alignContent: 'center'      
     },
     input: {
-        paddingHorizontal: 100,
+        paddingLeft: 20,
+        paddingRight: 130,
         borderColor: "gray",
         borderWidth: 0.5,
         borderRadius: 3,
