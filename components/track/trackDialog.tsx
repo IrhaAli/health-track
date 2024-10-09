@@ -32,7 +32,7 @@ export default function TrackDialog() {
                                 { value: 'weight', label: 'Weight', icon: 'weight' },
                             ]}
                         />
-                        <Divider style={[{marginVertical: 10}]}/>
+                        <Divider style={[{marginTop: 10}]}/>
                         <TrackForms formTab={formTab}></TrackForms>
                     </Dialog.Content>
                 </Dialog>
