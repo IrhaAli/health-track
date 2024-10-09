@@ -16,7 +16,7 @@ export default function TrackDialog() {
 
     return (
         <>
-            <Button mode="contained" uppercase onPress={() => dispatch(setShowDialog())}>Add</Button>
+            <Button mode="contained" icon="book-plus" style={[{alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5}]} uppercase onPress={() => dispatch(setShowDialog())}>Add Track</Button>
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setHideDialog())}>
