@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, Text, Platform, Pressable, View, ActivityIndicator } from "react-native";
+import { StyleSheet, Platform, Pressable, View, ActivityIndicator } from "react-native";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
@@ -8,7 +8,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
-import { Divider } from 'react-native-paper';
+import { Divider, Text, Button } from 'react-native-paper';
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch();
@@ -116,16 +116,19 @@ export default function TrackSleepForm() {
 
             <View style={styles.trackSleepForm}>
                 <View>
-                    <Text style={styles.lastNightSleepHeading}>Last Night's Sleep</Text>
+                    <Text variant="titleLarge">Last Night's Sleep</Text>
                     {Platform.OS == "android" ?
                         <View style={styles.sleepTimeDateView}>
-                            <Pressable onPress={() => { setShowSleepDateSelector(true); }} disabled={loading}>
-                                <Text style={styles.sleepDateText}>{` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}</Text>
-                            </Pressable>
+                            <Button icon="calendar" mode="text" onPress={() => { setShowSleepDateSelector(true); }} disabled={loading} textColor="blue">
+
+                                {` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}
+                            </Button>
                             {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />}
-                            <Pressable onPress={() => { setShowSleepTimeSelector(true); }} disabled={loading}>
-                                <Text style={styles.sleepTimeText}> {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
-                            </Pressable>
+
+                            <Button icon="clock" mode="text" onPress={() => { setShowSleepTimeSelector(true); }} disabled={loading} textColor="blue">
+                                {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+                            </Button>
+
                             {showSleepTimeSelector && <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />}
                         </View> :
                         <View>
@@ -136,12 +139,12 @@ export default function TrackSleepForm() {
                 </View>
 
                 <View>
-                    <Text>Wakeup Time</Text>
+                    <Text variant="titleLarge">Wakeup Time</Text>
                     {Platform.OS == "android" ?
                         <View>
-                            <Pressable onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading}>
-                                <Text style={styles.wakeupTimeText}> {` ${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}</Text>
-                            </Pressable>
+                            <Button icon="clock" mode="text" onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading} textColor="blue" style={[{alignSelf: 'flex-start'}]}>
+                                {`${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+                            </Button>
                             {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
                         </View> :
                         <View>
@@ -151,10 +154,10 @@ export default function TrackSleepForm() {
                 </View>
 
                 <View>
-                    <Text>Sleep Quality: {sleepQuality}</Text>
-                    <Slider value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} disabled={loading}/>
+                    <Text variant="titleLarge">Sleep Quality: {sleepQuality}</Text>
+                    <Slider style={styles.slider} value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} disabled={loading} thumbTintColor="tomato" minimumTrackTintColor="blue" />
                 </View>
-                <Text>{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
+                <Text variant="titleMedium">{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
             </View>
 
             <Divider />
@@ -173,8 +176,7 @@ export default function TrackSleepForm() {
 
 const styles = StyleSheet.create({
     trackSleepForm: {
-        paddingVertical: 30,
-        // backgroundColor: 'white'
+        paddingVertical: 10
     },
     lastNightSleepHeading: {
         fontWeight: '700',
@@ -196,10 +198,9 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingVertical: 10
+        paddingTop: 15
     },
     cancelButton: {
         color: 'blue',
@@ -221,5 +222,8 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         textTransform: 'uppercase',
         marginRight: 5
+    },
+    slider: {
+        width: '100%',
     }
 })
