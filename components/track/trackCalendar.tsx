@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { ExpandableCalendar, AgendaList, CalendarProvider, Calendar } from "react-native-calendars";
 import AgendaItem from "../../app/_calendar_files/AgendaItem";
 import { themeColor, lightThemeColor } from "../../app/theme";
@@ -7,8 +7,10 @@ import { getAuth } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentDate } from "@/store/trackSlice";
+import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 import { RootState } from "@/store/store";
+import { Button, Text } from 'react-native-paper';
+
 
 // Local Components Start.
 import TrackExpandableCalendar from "./trackExpandableCalendar";
@@ -18,7 +20,37 @@ import { color } from "@rneui/base";
 const leftArrowIcon = require("../../app/img/previous.png");
 const rightArrowIcon = require("../../app/img/next.png");
 
+//  New Code.
+interface MonthChangeInterface {
+    dateString: string;
+    day: number;
+    month: number;
+    timestamp: number;
+    year: number;
+}
+
+interface DayChangeInterface {
+    dateString: string;
+    day: number;
+    month: number;
+    timestamp: number;
+    year: number;
+  }
+//  New Code.
+
 export default function TrackComponent() {
+    // New Code.
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
+    const nowMonth = { month: (new Date().getMonth() + 1), year: new Date().getFullYear() }
+    
+    const nextMonthDisable = (parseInt(currentMonth.year, 10) > nowMonth.year) ||  (parseInt(currentMonth.year, 10) === nowMonth.year && parseInt(currentMonth.month, 10) >= nowMonth.month);
+    const previousButtonDisable = (parseInt(currentMonth.year, 10) < nowMonth.year) ||  (parseInt(currentMonth.year, 10) === nowMonth.year && parseInt(currentMonth.month, 10) <= 1);
+    // const prevMonthDisable = 
+    // New Code.
+    
+    
+    
     console.log('A1 rendered');
     const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
     const [ITEMS, setITEMS] = useState({
@@ -30,7 +62,8 @@ export default function TrackComponent() {
     });
     const [loadingData, setLoadingData] = useState(false);
     // const [currentDate, setCurrentDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`);
-    const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    
+    
 
     const [sleepTime, setSleepTime] = useState(new Date());
     const [sleepDate, setSleepDate] = useState(new Date());
@@ -213,19 +246,19 @@ export default function TrackComponent() {
     }
 
     return (
-        <>
-            <Calendar
+       <Calendar
                 initialDate={currentDate}
                 minDate={`${new Date(currentDate).getFullYear()}-01-01`}
-                maxDate={formatDateToYYYYMMDD(subtractOneDay(`${new Date()}`))}
-                onDayPress={(day: any) => { dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
+                maxDate={formatDateToYYYYMMDD(new Date())}
+                onMonthChange={(month: MonthChangeInterface) => { dispatch(setCurrentMonth({month: String(String(month.month).padStart(2, "0")), year: String(month.year)})) }}
+                onDayPress={(day: DayChangeInterface) => { dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
                 hideExtraDays={true}
                 firstDay={1}
-                renderHeader={(date: any) => { return <Text style={styles.calendarMonthYear}>{new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}</Text> }}
+                renderHeader={(date: any) => { console.log('date in header', date); return <Text variant="titleLarge">{new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}</Text> }}
                 style={{ marginTop: 33 }}
                 theme={{
-                    backgroundColor: '#ffffff',
-                    calendarBackground: '#ffffff',
+                    backgroundColor: 'transparent',
+                    calendarBackground: 'transparent',
                     textSectionTitleColor: '#b6c1cd',
                     textSectionTitleDisabledColor: '#d9e1e8',
                     selectedDayBackgroundColor: '#00adf5',
@@ -254,34 +287,21 @@ export default function TrackComponent() {
                             flexDirection: 'row',
                             justifyContent: 'space-between'
                         },
-                        dayTextAtIndex0: {
-                            color: 'red'
-                        },
-                        dayTextAtIndex6: {
-                            color: 'blue'
-                        }
+                        dayTextAtIndex0: { color: 'red' },
+                        dayTextAtIndex6: { color: 'blue' }
                     }
                 }}
                 markedDates={{
                     [currentDate]: {
                         selected: true,
-                        selectedColor: "red",
+                        selectedColor: "tomato",
                         selectedTextColor: "white",
                     },
                 }}
+                renderArrow={(direction: string) => { return direction == 'left' ? <Button icon="arrow-left" mode="text" disabled={previousButtonDisable}>{''}</Button> : <Button icon="arrow-right" mode="text" disabled={nextMonthDisable}>{''}</Button> }}
+                disableArrowRight={nextMonthDisable}
+                disableArrowLeft={previousButtonDisable}
             />
-            {/* <AgendaList
-                    sections={[
-                        ...ITEMS.sleep,
-                        ...ITEMS.water,
-                        ...ITEMS.diet,
-                        ...ITEMS.weight,
-                    ]}
-                    renderItem={renderItem}
-                    sectionStyle={styles.section}
-                    scrollToNextEvent={false}
-                /> */}
-        </>
     );
 }
 
