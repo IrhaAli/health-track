@@ -16,7 +16,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 export default function UserDetails({
   userDetails,
   setUserDetails,
-  needFullName,
+  isSignUpPage,
 }: any) {
   const [measurementType, setMeasurementType] = useState("cm");
   const [weightType, setWeightType] = useState("");
@@ -73,50 +73,154 @@ export default function UserDetails({
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Background Information</Text>
       <View style={styles.inputView}>
-        {needFullName && (
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            value={userDetails.fullName}
-            onChangeText={(value) => updateUserDetails(value, "fullName")}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-        )}
-        <Text>Date of Birth</Text>
-        <DateTimePicker
-          mode="date"
-          value={userDetails.dob}
-          onChange={(event: any, value: Date | undefined) =>
-            updateUserDetails(value, "dob")
-          }
-        />
-        <Dropdown
-          style={[styles.dropdown, isGenderFocus && { borderColor: "blue" }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={genderOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isGenderFocus ? "Select Gender" : "..."}
-          value={userDetails.gender}
-          onFocus={() => setIsGenderFocus(true)}
-          onBlur={() => setIsGenderFocus(false)}
-          onChange={(item: any) => {
-            updateUserDetails(item.value, "gender");
-            setIsGenderFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isGenderFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
+        {isSignUpPage && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              value={userDetails.fullName}
+              onChangeText={(value) => updateUserDetails(value, "fullName")}
+              autoCorrect={false}
+              autoCapitalize="none"
             />
-          )}
-        />
+
+            <Text>Date of Birth</Text>
+            <DateTimePicker
+              mode="date"
+              value={userDetails.dob}
+              onChange={(event: any, value: Date | undefined) =>
+                updateUserDetails(value, "dob")
+              }
+            />
+            <Dropdown
+              style={[
+                styles.dropdown,
+                isGenderFocus && { borderColor: "blue" },
+              ]}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              iconStyle={styles.iconStyle}
+              data={genderOptions}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={!isGenderFocus ? "Select Gender" : "..."}
+              value={userDetails.gender}
+              onFocus={() => setIsGenderFocus(true)}
+              onBlur={() => setIsGenderFocus(false)}
+              onChange={(item: any) => {
+                updateUserDetails(item.value, "gender");
+                setIsGenderFocus(false);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color={isGenderFocus ? "blue" : "black"}
+                  name="Safety"
+                  size={20}
+                />
+              )}
+            />
+            {measurementType === "cm" ? (
+              <TextInput
+                style={styles.input}
+                placeholder="Height in cm"
+                value={userDetails.height}
+                onChangeText={(value) => updateUserDetails(value, "height")}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+            ) : (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="ft"
+                  value={feet}
+                  onChangeText={setFeet}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="in"
+                  value={inches}
+                  onChangeText={setInches}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                />
+              </>
+            )}
+
+            <Dropdown
+              style={[
+                styles.dropdown,
+                isMeasurementTypeFocus && { borderColor: "blue" },
+              ]}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              iconStyle={styles.iconStyle}
+              data={measurementTypeOptions}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={
+                !isMeasurementTypeFocus ? "Select Measurement Unit" : "..."
+              }
+              value={measurementType}
+              onFocus={() => setIsMeasurementTypeFocus(true)}
+              onBlur={() => setIsMeasurementTypeFocus(false)}
+              onChange={(item: any) => {
+                setMeasurementType(item.value);
+                setIsMeasurementTypeFocus(false);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color={isMeasurementTypeFocus ? "blue" : "black"}
+                  name="Safety"
+                  size={20}
+                />
+              )}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Add weight here..."
+              value={userDetails.weight}
+              onChangeText={(value) => updateUserDetails(value, "weight")}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            <Dropdown
+              style={[
+                styles.dropdown,
+                isWeightTypeFocus && { borderColor: "blue" },
+              ]}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              iconStyle={styles.iconStyle}
+              data={weightTypeOptions}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
+              value={weightType}
+              onFocus={() => setIsWeightTypeFocus(true)}
+              onBlur={() => setIsWeightTypeFocus(false)}
+              onChange={(item: any) => {
+                setWeightType(item.value);
+                setIsWeightTypeFocus(false);
+              }}
+              renderLeftIcon={() => (
+                <AntDesign
+                  style={styles.icon}
+                  color={isWeightTypeFocus ? "blue" : "black"}
+                  name="Safety"
+                  size={20}
+                />
+              )}
+            />
+          </>
+        )}
         <Dropdown
           style={[styles.dropdown, isBodyTypeFocus && { borderColor: "blue" }]}
           placeholderStyle={styles.placeholderStyle}
@@ -164,104 +268,6 @@ export default function UserDetails({
             <AntDesign
               style={styles.icon}
               color={isActivityFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
-            />
-          )}
-        />
-        {measurementType === "cm" ? (
-          <TextInput
-            style={styles.input}
-            placeholder="Height in cm"
-            value={userDetails.height}
-            onChangeText={(value) => updateUserDetails(value, "height")}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-        ) : (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder="ft"
-              value={feet}
-              onChangeText={setFeet}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="in"
-              value={inches}
-              onChangeText={setInches}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-          </>
-        )}
-
-        <Dropdown
-          style={[
-            styles.dropdown,
-            isMeasurementTypeFocus && { borderColor: "blue" },
-          ]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={measurementTypeOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={
-            !isMeasurementTypeFocus ? "Select Measurement Unit" : "..."
-          }
-          value={measurementType}
-          onFocus={() => setIsMeasurementTypeFocus(true)}
-          onBlur={() => setIsMeasurementTypeFocus(false)}
-          onChange={(item: any) => {
-            setMeasurementType(item.value);
-            setIsMeasurementTypeFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isMeasurementTypeFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
-            />
-          )}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Add weight here..."
-          value={userDetails.weight}
-          onChangeText={(value) => updateUserDetails(value, "weight")}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
-        <Dropdown
-          style={[
-            styles.dropdown,
-            isWeightTypeFocus && { borderColor: "blue" },
-          ]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={weightTypeOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
-          value={weightType}
-          onFocus={() => setIsWeightTypeFocus(true)}
-          onBlur={() => setIsWeightTypeFocus(false)}
-          onChange={(item: any) => {
-            setWeightType(item.value);
-            setIsWeightTypeFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isWeightTypeFocus ? "blue" : "black"}
               name="Safety"
               size={20}
             />
