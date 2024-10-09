@@ -1,8 +1,7 @@
 import React, { useRef, useCallback, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
-import { ExpandableCalendar, AgendaList, CalendarProvider, Calendar } from "react-native-calendars";
+import { Calendar } from "react-native-calendars";
 import AgendaItem from "../../app/_calendar_files/AgendaItem";
-import { themeColor, lightThemeColor } from "../../app/theme";
+import { themeColor } from "../../app/theme";
 import { getAuth } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
@@ -10,15 +9,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 import { RootState } from "@/store/store";
 import { Button, Text } from 'react-native-paper';
-
-
-// Local Components Start.
-import TrackExpandableCalendar from "./trackExpandableCalendar";
-import { color } from "@rneui/base";
-// Local Components End.
-
-const leftArrowIcon = require("../../app/img/previous.png");
-const rightArrowIcon = require("../../app/img/next.png");
 
 //  New Code.
 interface MonthChangeInterface {
@@ -239,12 +229,6 @@ export default function TrackComponent() {
         return `${year}-${month}-${day}`;
     }
 
-    function subtractOneDay(date: string): Date {
-        const newDate = new Date(date);
-        newDate.setDate(newDate.getDate() - 1);
-        return newDate;
-    }
-
     return (
        <Calendar
                 initialDate={currentDate}
@@ -304,24 +288,3 @@ export default function TrackComponent() {
             />
     );
 }
-
-const styles = StyleSheet.create({
-    calendar: {
-        // marginTop: 0
-        // paddingLeft: 20,
-        // paddingRight: 20,
-    },
-    calendarMonthYear: {
-        fontWeight: '500',
-        fontSize: 18
-    },
-    header: {
-        backgroundColor: "lightgrey",
-        // marginTop: 50,
-    },
-    section: {
-        backgroundColor: lightThemeColor,
-        color: "grey",
-        textTransform: "capitalize",
-    },
-});
