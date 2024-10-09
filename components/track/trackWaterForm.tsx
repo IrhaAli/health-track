@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 30
+        paddingVertical: 10,
     },
     input: {
         paddingHorizontal: 30,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
         // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingVertical: 10
+        paddingTop: 15
     },
     cancelButton: {
         color: 'blue',

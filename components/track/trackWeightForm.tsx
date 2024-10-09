@@ -133,7 +133,7 @@ export default function TrackWeightForm() {
 
 const styles = StyleSheet.create({
     trackWeightForm: {
-        paddingVertical: 30,
+        paddingVertical: 10,
         // backgroundColor: 'white',
         justifyContent: 'center', 
         alignContent: 'center',
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingVertical: 10
+        paddingTop: 15
     },
     cancelButton: {
         color: 'blue',
