@@ -1,7 +1,6 @@
-import React, { useRef, useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Calendar } from "react-native-calendars";
 import AgendaItem from "../../app/_calendar_files/AgendaItem";
-import { themeColor } from "../../app/theme";
 import { getAuth } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
@@ -36,11 +35,9 @@ export default function TrackComponent() {
     
     const nextMonthDisable = (parseInt(currentMonth.year, 10) > nowMonth.year) ||  (parseInt(currentMonth.year, 10) === nowMonth.year && parseInt(currentMonth.month, 10) >= nowMonth.month);
     const previousButtonDisable = (parseInt(currentMonth.year, 10) < nowMonth.year) ||  (parseInt(currentMonth.year, 10) === nowMonth.year && parseInt(currentMonth.month, 10) <= 1);
-    // const prevMonthDisable = 
     // New Code.
     
-    
-    
+
     console.log('A1 rendered');
     const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
     const [ITEMS, setITEMS] = useState({
@@ -51,8 +48,6 @@ export default function TrackComponent() {
         update: { water: false, weight: false, diet: false, sleep: false },
     });
     const [loadingData, setLoadingData] = useState(false);
-    // const [currentDate, setCurrentDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`);
-    
     
 
     const [sleepTime, setSleepTime] = useState(new Date());
@@ -60,11 +55,6 @@ export default function TrackComponent() {
     const [sleepQuality, setSleepQuality] = useState(0);
     const [wakeupTime, setWakeupTime] = useState(new Date());
     const dispatch = useDispatch();
-
-    const todayBtnTheme = useRef({
-        todayButtonTextColor: themeColor,
-        selectedDayBackgroundColor: "red",
-    });
 
     const renderItem = useCallback(({ item }: any) => {
         return <AgendaItem item={item} />;
@@ -222,18 +212,11 @@ export default function TrackComponent() {
 
     console.log('component rendering');
 
-    function formatDateToYYYYMMDD(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
     return (
        <Calendar
                 initialDate={currentDate}
                 minDate={`${new Date(currentDate).getFullYear()}-01-01`}
-                maxDate={formatDateToYYYYMMDD(new Date())}
+                maxDate={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                 onMonthChange={(month: MonthChangeInterface) => { dispatch(setCurrentMonth({month: String(String(month.month).padStart(2, "0")), year: String(month.year)})) }}
                 onDayPress={(day: DayChangeInterface) => { dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
                 hideExtraDays={true}
