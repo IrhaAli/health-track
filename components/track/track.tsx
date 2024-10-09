@@ -1,10 +1,11 @@
 import React from "react";
-import { View } from "react-native";
 import { getAuth } from "firebase/auth";
+import { Divider } from 'react-native-paper';
 
 // Local Components Start.
 import TrackDialog from "./trackDialog";
 import TrackCalendar from "./trackCalendar";
+import TrackCards from "./trackCards";
 // Local Components End.
 
 export default function TrackComponent() {
@@ -16,6 +17,8 @@ export default function TrackComponent() {
 
     <>
       <TrackCalendar></TrackCalendar>
+      <Divider style={[{ marginTop: 10}]}/>
+      <TrackCards></TrackCards>
       <TrackDialog></TrackDialog>
     </>
   );
