@@ -222,11 +222,7 @@ export default function TrackComponent() {
                 hideExtraDays={true}
                 firstDay={1}
                 renderHeader={(date: any) => { return <Text style={styles.calendarMonthYear}>{new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}</Text> }}
-                style={{
-                    marginTop: 45,
-                    borderWidth: 1,
-                    borderColor: 'gray'
-                }}
+                style={{ marginTop: 33 }}
                 theme={{
                     backgroundColor: '#ffffff',
                     calendarBackground: '#ffffff',
@@ -254,7 +250,7 @@ export default function TrackComponent() {
                     textDayHeaderFontSize: 16,
                     'stylesheet.calendar.header': {
                         week: {
-                            marginTop: 5,
+                            marginTop: 0,
                             flexDirection: 'row',
                             justifyContent: 'space-between'
                         },
