@@ -162,13 +162,8 @@ export default function TrackSleepForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Pressable onPress={() => dispatch(setHideDialog())} disabled={loading}>
-                    <Text style={styles.cancelButton}>Cancel</Text>
-                </Pressable>
-                <Pressable onPress={onSubmit} style={styles.submitButton} disabled={loading}>
-                    <Text style={styles.submitButtonText}>{loading ? 'Loading...' : 'Submit'}</Text>
-                    {loading && <ActivityIndicator color={'white'} />}
-                </Pressable>
+                <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading}>{loading ? ( <>Loading... <ActivityIndicator color="white" /></>) : ('Submit')}</Button>
             </View>
         </View>
     );
