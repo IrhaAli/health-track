@@ -1,18 +1,35 @@
 import { getAuth } from "firebase/auth";
-import { StyleSheet, Text, View, Pressable, TextInput } from "react-native";
+import {
+  StyleSheet,
+  TextInput,
+  SafeAreaView,
+  View,
+  Text,
+  Linking,
+  TouchableOpacity,
+} from "react-native";
 import { useState } from "react";
 import { Link } from "expo-router";
 import AlertAsync from "react-native-alert-async";
 import { Button } from "react-native-paper";
+import { addDoc, collection, getDocs, query } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
 
 export default function ProfileFooterLinks() {
   const uid =
     /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
-  const [contactUs, setContactUs] = useState("");
+  const [contactUs, setContactUs] = useState({
+    subject: "",
+    text: "",
+  });
 
-  const onContactSend = () => {
-    console.log("Contacted");
-    setContactUs("");
+  const onContactSend = async () => {
+    await addDoc(collection(db, "contact"), {
+      user_id: uid,
+      ...contactUs,
+      date: new Date(),
+    });
+    setContactUs({ subject: "", text: "" });
   };
 
   const onLogout = () => {
@@ -32,6 +49,14 @@ export default function ProfileFooterLinks() {
     if (!choice) return;
     // Change is_deleted to true in users table
     console.log("Account Deleted");
+    const collectionData = query(collection(db, "users"));
+    const querySnapshot = await getDocs(collectionData);
+    let docData: any[] = [];
+
+    querySnapshot.forEach((doc) => {
+      docData.push({ id: doc.id, ...doc.data() });
+    });
+    console.log("Users:", docData, docData.length);
     onLogout();
   };
 
@@ -39,16 +64,26 @@ export default function ProfileFooterLinks() {
     <>
       <Text>Contact Us</Text>
       <TextInput
+        style={styles.subjectInput}
+        placeholder="Subject"
+        value={contactUs.subject}
+        onChangeText={(item: string) => {
+          setContactUs((prev) => ({ ...prev, subject: item }));
+        }}
+        autoCorrect={false}
+        autoCapitalize="words"
+      />
+      <TextInput
         style={styles.input}
         multiline
         numberOfLines={5}
         placeholder="Contact us here..."
-        value={contactUs}
+        value={contactUs.text}
         onChangeText={(item: string) => {
-          setContactUs(item);
+          setContactUs((prev) => ({ ...prev, text: item }));
         }}
         autoCorrect={false}
-        autoCapitalize="none"
+        autoCapitalize="sentences"
       />
       <Button mode="contained" onPress={onContactSend}>
         Send
@@ -60,12 +95,12 @@ export default function ProfileFooterLinks() {
         <Text style={styles.buttonTextRed} onPress={onAccountDelete}>
           Delete My Account
         </Text>
-        <Link href="www.google.com">
+        <TouchableOpacity onPress={() => Linking.openURL("https://google.com")}>
           <Text style={styles.buttonTextBlue}>Privacy Policy</Text>
-        </Link>
-        <Link href="www.google.com">
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL("https://google.com")}>
           <Text style={styles.buttonTextBlue}>Terms and Conditions</Text>
-        </Link>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -83,6 +118,13 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 200,
+    paddingHorizontal: 20,
+    borderColor: "tomato",
+    borderWidth: 1,
+    borderRadius: 7,
+  },
+  subjectInput: {
+    height: 40,
     paddingHorizontal: 20,
     borderColor: "tomato",
     borderWidth: 1,
