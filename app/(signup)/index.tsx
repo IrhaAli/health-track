@@ -1,15 +1,7 @@
-import React, { useRef, useState } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View, } from "react-native";
 import { Button, Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
-import { SocialIcon } from "@rneui/base";
 import "../../firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -103,11 +95,6 @@ const SignupForm = () => {
       </View>
       <Text>Aleady have an account? </Text>
       <Link href="/(login)"><Text style={styles.signInButton}>Sign In</Text></Link>
-      {/* <Text style={styles.optionsText}>OR SIGNUP LOGIN WITH</Text>
-      <View style={styles.socialIcons}>
-        <SocialIcon button type="facebook" />
-        <SocialIcon button type="google" />
-      </View> */}
     </SafeAreaView>
   );
 };
