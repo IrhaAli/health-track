@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Pressable, TextInput } from "react-native";
 import { useState } from "react";
 import { Link } from "expo-router";
 import AlertAsync from "react-native-alert-async";
+import { Button } from "react-native-paper";
 
 export default function ProfileFooterLinks() {
   const uid =
@@ -49,30 +50,33 @@ export default function ProfileFooterLinks() {
         autoCorrect={false}
         autoCapitalize="none"
       />
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onContactSend}>
-          <Text style={styles.buttonText}>Send</Text>
-        </Pressable>
+      <Button mode="contained" onPress={onContactSend}>
+        Send
+      </Button>
+      <Button mode="contained" onPress={onLogout}>
+        Logout
+      </Button>
+      <View style={styles.links}>
+        <Text style={styles.buttonTextRed} onPress={onAccountDelete}>
+          Delete My Account
+        </Text>
+        <Link href="www.google.com">
+          <Text style={styles.buttonTextBlue}>Privacy Policy</Text>
+        </Link>
+        <Link href="www.google.com">
+          <Text style={styles.buttonTextBlue}>Terms and Conditions</Text>
+        </Link>
       </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onLogout}>
-          <Text style={styles.buttonText}>Logout</Text>
-        </Pressable>
-      </View>
-      <Text style={styles.buttonTextRed} onPress={onAccountDelete}>
-        Delete My Account
-      </Text>
-      <Link href="www.google.com">
-        <Text style={styles.buttonTextBlue}>Privacy Policy</Text>
-      </Link>
-      <Link href="www.google.com">
-        <Text style={styles.buttonTextBlue}>Terms and Conditions</Text>
-      </Link>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  links: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   appLogo: {
     height: 250,
     width: 400,
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
   input: {
     height: 200,
     paddingHorizontal: 20,
-    borderColor: "red",
+    borderColor: "tomato",
     borderWidth: 1,
     borderRadius: 7,
   },
