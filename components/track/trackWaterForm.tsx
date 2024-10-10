@@ -45,7 +45,10 @@ export default function TrackWaterForm() {
         if (!userId) { router.push({ pathname: "/(signup)" }); }
 
         setLoading(true);
-        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: currentDate, intake_amount: calculateIntakeAmount(), waterType });
+        
+        let waterDate = new Date(currentDate);        
+        waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
+        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: waterDate, intake_amount: calculateIntakeAmount(), waterType });
 
         // Resetting Fields.
         setWater("");
