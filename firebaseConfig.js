@@ -1,10 +1,9 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from "firebase/firestore";
 import { initializeAuth } from "firebase/auth"
-import { getReactNativePersistence, setPersistence, browserSessionPersistence } from "firebase/auth"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getStorage } from "firebase/storage"
+import { getReactNativePersistence, setPersistence, browserSessionPersistence } from "firebase/auth";
+import { AsyncStorage } from "@react-native-async-storage/async-storage";
+import { getStorage } from "firebase/storage";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -18,15 +17,20 @@ const firebaseConfig = {
   measurementId: "G-MZ5GTWZVYT"
 };
 
-const app = initializeApp(firebaseConfig);
-const storage = getStorage(app);
-const auth = getAuth(app);
-setPersistence(auth, browserSessionPersistence)
-.then(() => { 
-  return signInWithEmailAndPassword(auth, email, password); }) 
-  .catch((error) => { 
-    const errorCode = error.code; 
-    const errorMessage = error.message; 
-    });
 
-export const db = getFirestore(app);
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApps()[0];
+}
+
+const storage = getStorage(app);
+
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
+
+const db = getFirestore(app)
+
+export { db };
