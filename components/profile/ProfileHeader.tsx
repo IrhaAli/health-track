@@ -1,7 +1,8 @@
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useEffect, useState } from "react";
+import { Avatar } from "react-native-paper";
 
 export default function ProfileHeader() {
   const uid =
@@ -37,21 +38,33 @@ export default function ProfileHeader() {
   }, []);
 
   return (
-    <>
-      <Text style={styles.title}>My Profile</Text>
-      <Text>Name: {userInfo.fullName}</Text>
-      <Text>Email: {userInfo.email}</Text>
-    </>
+    <View style={styles.container}>
+      <Avatar.Image
+        // style={styles.avatar}
+        // rounded
+        source={{
+          uri: "https://tr.rbxcdn.com/63dc4f38b22fabffccefa6363a33dd06/420/420/Hat/Webp",
+        }}
+        size={24}
+      />
+      <View style={styles.textContainer}>
+        <Text style={styles.text}>Name: {userInfo.fullName}</Text>
+        <Text style={styles.text}>Email: {userInfo.email}</Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+  container: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  textContainer: {
+    display: "flex",
+  },
+  text: {
+    fontSize: 18,
   },
 });

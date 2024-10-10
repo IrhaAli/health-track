@@ -1,4 +1,3 @@
-import { ScrollView } from "react-native";
 import ProfileFooterLinks from "./ProfileFooter";
 import ProfileHeader from "./ProfileHeader";
 import { Button } from "react-native-paper";
@@ -7,7 +6,6 @@ import { Link } from "expo-router";
 export default function ProfileComponent() {
   return (
     <>
-      <ScrollView>
         <ProfileHeader></ProfileHeader>
         <Button mode="contained">
           <Link href="/(profile)/background_information">
@@ -24,7 +22,6 @@ export default function ProfileComponent() {
           <Link href="/(profile)/stress_level">Stress Level</Link>
         </Button>
         <ProfileFooterLinks></ProfileFooterLinks>
-      </ScrollView>
     </>
   );
 }
