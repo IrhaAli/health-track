@@ -1,38 +1,30 @@
-import { StyleSheet, Image, Text } from "react-native";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import ProfileUserDetails from "./ProfileUserDetails";
-import ProfileDietaryPreferences from "./ProfileDietaryPreferences";
-import ProfileMedicalHistory from "./ProfileMedicalHistory";
-import ProfileStressLevel from "./ProfileStressLevel";
+import { ScrollView } from "react-native";
 import ProfileFooterLinks from "./ProfileFooter";
 import ProfileHeader from "./ProfileHeader";
+import { Button } from "react-native-paper";
+import { Link } from "expo-router";
 
 export default function ProfileComponent() {
   return (
     <>
-      <ParallaxScrollView
-        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-        headerImage={
-          <Image
-            source={require("@/assets/images/home-image.png")}
-            style={styles.appLogo}
-          />
-        }
-      >
+      <ScrollView>
         <ProfileHeader></ProfileHeader>
-        <ProfileUserDetails></ProfileUserDetails>
-        <ProfileDietaryPreferences></ProfileDietaryPreferences>
-        <ProfileMedicalHistory></ProfileMedicalHistory>
-        <ProfileStressLevel></ProfileStressLevel>
+        <Button mode="contained">
+          <Link href="/(profile)/background_information">
+            Background Information
+          </Link>
+        </Button>
+        <Button mode="contained">
+          <Link href="/(profile)/dietary_preferences">Dietary Preferences</Link>
+        </Button>
+        <Button mode="contained">
+          <Link href="/(profile)/medical_history">Medical History</Link>
+        </Button>
+        <Button mode="contained">
+          <Link href="/(profile)/stress_level">Stress Level</Link>
+        </Button>
         <ProfileFooterLinks></ProfileFooterLinks>
-      </ParallaxScrollView>
+      </ScrollView>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  appLogo: {
-    height: 250,
-    width: 400,
-  },
-});
