@@ -82,7 +82,7 @@ export default function TabLayout() {
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
-        barStyle={{ backgroundColor: Colors[colorScheme ?? "light"].tint }}
+        barStyle={{ backgroundColor: Colors[colorScheme ?? "light"].tint, marginBottom: -10 }}
       />
     </>
   );
