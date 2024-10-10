@@ -82,7 +82,7 @@ const LoginForm = () => {
 
       <View style={styles.signUpText}>
         <Text variant="titleMedium">Don't have an account?</Text>
-        <Button mode="text"><Link href="/(signup)">Sign Up</Link></Button>
+        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/(signup)">Sign Up</Link></Button>
       </View>
 
       <Button mode="contained" loading={loading} disabled={loading} onPress={onTestUser}>Test User</Button>
