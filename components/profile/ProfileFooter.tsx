@@ -9,30 +9,34 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useState } from "react";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import AlertAsync from "react-native-alert-async";
 import { Button } from "react-native-paper";
-import { addDoc, collection, getDocs, query } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "@/firebaseConfig";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useDispatch } from "react-redux";
+import { setUser, setUserId } from "@/store/userSlice";
 
 export default function ProfileFooterLinks() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
-  const [contactUs, setContactUs] = useState({
-    subject: "",
-    text: "",
-  });
-
-  const onContactSend = async () => {
-    await addDoc(collection(db, "contact"), {
-      user_id: uid,
-      ...contactUs,
-      date: new Date(),
-    });
-    setContactUs({ subject: "", text: "" });
-  };
+  const userId = useSelector((state: RootState) => state.user.userId);
+  const dispatch = useDispatch();
 
   const onLogout = () => {
+    dispatch(setUser(null));
+    dispatch(setUserId(null));
+    router.push({
+      pathname: "/(login)",
+    });
     console.log("Logged Out");
   };
 
@@ -47,47 +51,32 @@ export default function ProfileFooterLinks() {
     );
 
     if (!choice) return;
-    // Change is_deleted to true in users table
-    console.log("Account Deleted");
-    const collectionData = query(collection(db, "users"));
-    const querySnapshot = await getDocs(collectionData);
-    let docData: any[] = [];
 
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
-    });
-    console.log("Users:", docData, docData.length);
+    try {
+      const collectionData = query(
+        collection(db, "users"),
+        where("user_id", "==", userId)
+      );
+      const querySnapshot = await getDocs(collectionData);
+      let docData: any[] = [];
+
+      querySnapshot.forEach((doc) => {
+        docData.push({ id: doc.id, ...doc.data() });
+      });
+
+      const docId = docData[0].id;
+      const deleteAccount = doc(db, "users", docId);
+      await updateDoc(deleteAccount, {
+        is_deleted: true,
+      });
+    } catch (err) {
+      console.log("error in users", err);
+    }
     onLogout();
   };
 
   return (
     <>
-      <Text>Contact Us</Text>
-      <TextInput
-        style={styles.subjectInput}
-        placeholder="Subject"
-        value={contactUs.subject}
-        onChangeText={(item: string) => {
-          setContactUs((prev) => ({ ...prev, subject: item }));
-        }}
-        autoCorrect={false}
-        autoCapitalize="words"
-      />
-      <TextInput
-        style={styles.input}
-        multiline
-        numberOfLines={5}
-        placeholder="Contact us here..."
-        value={contactUs.text}
-        onChangeText={(item: string) => {
-          setContactUs((prev) => ({ ...prev, text: item }));
-        }}
-        autoCorrect={false}
-        autoCapitalize="sentences"
-      />
-      <Button mode="contained" onPress={onContactSend}>
-        Send
-      </Button>
       <Button mode="contained" onPress={onLogout}>
         Logout
       </Button>
