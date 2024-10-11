@@ -19,7 +19,7 @@ export default function StressLevelPanel() {
       notes: stressLevel.notes,
     });
     router.push({
-      pathname: "/(tabs)",
+      pathname: "/(root)",
       params: { uid },
     });
   };

@@ -20,11 +20,11 @@ export default function explore() {
       <Collapsible title="File-based routing">
         <ThemedText>
           This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+          <ThemedText type="defaultSemiBold">app/(root)/index.tsx</ThemedText> and{' '}
+          <ThemedText type="defaultSemiBold">app/(root)/explore.tsx</ThemedText>
         </ThemedText>
         <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
+          The layout file in <ThemedText type="defaultSemiBold">app/(root)/_layout.tsx</ThemedText>{' '}
           sets up the tab navigator.
         </ThemedText>
         <ExternalLink href="https://docs.expo.dev/router/introduction">
@@ -93,7 +93,7 @@ export default function explore() {
           <ThemedText type="subtitle">Step 1: Try it</ThemedText>
           <ThemedText>
             Edit{" "}
-            <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
+            <ThemedText type="defaultSemiBold">app/(root)/index.tsx</ThemedText>{" "}
             to see changes. Press{" "}
             <ThemedText type="defaultSemiBold">
               {Platform.select({ ios: "cmd + d", android: "cmd + m" })}
