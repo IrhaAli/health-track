@@ -1,7 +1,10 @@
-import { Stack } from "expo-router";
+import { Stack, Redirect, Slot } from "expo-router";
 import { Provider } from "react-redux";
 import store from "../store/store";
 import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
+import { useEffect, useState } from "react";
+import { getAuth } from "firebase/auth";
+import { SessionProvider } from '../ctx';
 
 const theme = {
   ...DefaultTheme,
@@ -16,9 +19,12 @@ export default function Layout() {
   return (
     <Provider store={store}>
       <PaperProvider theme={theme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-        </Stack>
+        <SessionProvider>
+        <Slot />
+          {/* <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+          </Stack> */}
+        </SessionProvider>
       </PaperProvider>
     </Provider>
   );
