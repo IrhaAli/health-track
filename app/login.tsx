@@ -7,6 +7,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { Button, TextInput, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
+import { useSession } from "@/ctx";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -14,32 +15,28 @@ const LoginForm = () => {
   const [isPasswordHidden, setPasswordHidden] = useState(true);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const { signIn } = useSession();
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    if (email.length === 0) {
-      Alert.alert("Email field is empty.");
-    } else if (reg.test(email) === false) {
-      Alert.alert("This is not a valid email.");
-    } else if (password.length === 0) {
-      Alert.alert("Password field is empty.");
-    } else {
+    if (email.length === 0) { Alert.alert("Email field is empty."); }
+    else if (reg.test(email) === false) { Alert.alert("This is not a valid email."); }
+    else if (password.length === 0) { Alert.alert("Password field is empty."); }
+    else {
       setLoading(true);
-      const auth = getAuth();
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user: any = userCredential.user;
+
+      signIn(email, password)
+        .then((user: any) => {
           dispatch(setUser(JSON.stringify(user)));
           dispatch(setUserId(user.uid));
-          router.push("/(tabs)");
+          router.push("/(root)");
           setLoading(false);
         })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          Alert.alert(errorMessage);
+        .catch((error: any) => {
+          console.log('error', error);
+          Alert.alert(error.message);
           setLoading(false);
-        });
+        })
     }
   };
 
@@ -48,21 +45,17 @@ const LoginForm = () => {
     setPassword('test1234');
     setLoading(true);
 
-    const auth = getAuth();
-    signInWithEmailAndPassword(auth, 'test@test.com', 'test1234')
-      .then((userCredential) => {
-        const user: any = userCredential.user;
+    signIn('test@test.com', 'test1234')
+      .then((user: any) => {
         dispatch(setUser(JSON.stringify(user)));
         dispatch(setUserId(user.uid));
-        router.push("/(tabs)");
+        router.push("/(root)");
         setLoading(false);
       })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        Alert.alert(errorMessage);
+      .catch((error: any) => {
+        Alert.alert(error.message);
         setLoading(false);
-      });
+      })
   }
 
   return (
@@ -82,7 +75,7 @@ const LoginForm = () => {
 
       <View style={styles.signUpText}>
         <Text variant="titleMedium">Don't have an account?</Text>
-        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/register">SIGN UP</Link></Button>
+        <Button mode="outlined" style={[{ marginLeft: 10 }]}><Link href="/register">SIGN UP</Link></Button>
       </View>
 
       <Button mode="contained" loading={loading} disabled={loading} onPress={onTestUser}>Test User</Button>
