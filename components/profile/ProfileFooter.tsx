@@ -35,7 +35,7 @@ export default function ProfileFooterLinks() {
     dispatch(setUser(null));
     dispatch(setUserId(null));
     router.push({
-      pathname: "/(login)",
+      pathname: "/login",
     });
     console.log("Logged Out");
   };

@@ -42,7 +42,7 @@ export default function TrackWaterForm() {
     }
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/(signup)" }); }
+        if (!userId) { router.push({ pathname: "/register" }); }
 
         setLoading(true);
         

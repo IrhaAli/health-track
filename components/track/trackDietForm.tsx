@@ -39,7 +39,7 @@ export default function TrackDietForm() {
     };
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/(signup)" }); }
+        if (!userId) { router.push({ pathname: "/register" }); }
 
         if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
         setLoading(true);

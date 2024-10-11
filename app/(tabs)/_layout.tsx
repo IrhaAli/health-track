@@ -24,7 +24,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const userId = getAuth().currentUser?.uid;
 
-  if (!userId) { router.push("/(signup)"); }
+  if (!userId) { router.push("/register"); }
 
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([

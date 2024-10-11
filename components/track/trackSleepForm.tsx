@@ -93,7 +93,7 @@ export default function TrackSleepForm() {
     }
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/(signup)" }); }
+        if (!userId) { router.push({ pathname: "/register" }); }
         setLoading(true);
         await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
 

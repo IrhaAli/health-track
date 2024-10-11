@@ -14,7 +14,7 @@ const index = () => {
     fetchUser();
   }, []);
 
-  return <Redirect href={auth ? "/(tabs)" : "/(login)"} />;
+  return <Redirect href={auth ? "/(tabs)" : "/login"} />;
 };
 
 export default index;
