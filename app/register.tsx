@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SafeAreaView, StyleSheet, View, } from "react-native";
 import { Alert } from "react-native";
 import { Link, router } from "expo-router";
-import "../../firebaseConfig";
+import "../firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { TextInput, Button, Text } from "react-native-paper";
 

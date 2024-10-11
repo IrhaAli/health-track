@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import { Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
-import "../../firebaseConfig";
+import "../firebaseConfig";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { Button, TextInput, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
@@ -82,7 +82,7 @@ const LoginForm = () => {
 
       <View style={styles.signUpText}>
         <Text variant="titleMedium">Don't have an account?</Text>
-        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/(signup)">Sign Up</Link></Button>
+        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/register">SIGN UP</Link></Button>
       </View>
 
       <Button mode="contained" loading={loading} disabled={loading} onPress={onTestUser}>Test User</Button>
