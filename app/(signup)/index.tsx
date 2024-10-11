@@ -36,10 +36,7 @@ const SignupForm = () => {
             auth_type: "EMAIL_PASSWORD",
           };
           setLoading(false);
-          router.push({
-            pathname: "/(signup_questionnaire)",
-            params: userInfo,
-          });
+          router.push({ pathname: "/(signup_questionnaire)", params: userInfo });
         })
         .catch((error) => {
           setLoading(false);
@@ -72,7 +69,7 @@ const SignupForm = () => {
 
       <View style={styles.signUpText}>
         <Text variant="titleMedium">Already have an account?</Text>
-        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/(login)">SIGN IN</Link></Button>
+        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/login">SIGN IN</Link></Button>
       </View>
     </SafeAreaView>
   );
