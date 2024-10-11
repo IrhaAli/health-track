@@ -17,20 +17,12 @@ const firebaseConfig = {
   measurementId: "G-MZ5GTWZVYT"
 };
 
-
 let app;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
-}
+if (!getApps().length) { app = initializeApp(firebaseConfig); } 
+else { app = getApps()[0]; }
 
 const storage = getStorage(app);
-
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
-
+const auth = initializeAuth(app, { persistence: getReactNativePersistence(AsyncStorage) });
 const db = getFirestore(app)
 
-export { db };
+export { db, auth, storage };
