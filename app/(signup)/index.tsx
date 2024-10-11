@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View, } from "react-native";
-import { Button, Alert, TouchableOpacity } from "react-native";
+import { SafeAreaView, StyleSheet, View, } from "react-native";
+import { Alert } from "react-native";
 import { Link, router } from "expo-router";
 import "../../firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { TextInput, Button, Text } from "react-native-paper";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ const SignupForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordHidden, setPasswordHidden] = useState(true);
   const [isConfirmPasswordHidden, setConfirmPasswordHidden] = useState(true);
-
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -25,6 +25,7 @@ const SignupForm = () => {
     } else if (password !== confirmPassword) {
       Alert.alert("The password does not match.");
     } else {
+      setLoading(true);
       const auth = getAuth();
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
@@ -34,12 +35,14 @@ const SignupForm = () => {
             uid: user.uid,
             auth_type: "EMAIL_PASSWORD",
           };
+          setLoading(false);
           router.push({
             pathname: "/(signup_questionnaire)",
             params: userInfo,
           });
         })
         .catch((error) => {
+          setLoading(false);
           const errorCode = error.code;
           const errorMessage = error.message;
           Alert.alert(errorMessage);
@@ -49,165 +52,54 @@ const SignupForm = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Health App</Text>
+      <Text variant="headlineLarge" style={[{ paddingVertical: 30, color: 'tomato' }]}>Health App</Text>
+
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="EMAIL"
-          value={email}
-          onChangeText={setEmail}
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
+        <TextInput label="Email" value={email} onChangeText={setEmail} autoCorrect={false} placeholder="name@email.com" editable={!loading} autoCapitalize="none" />
       </View>
+
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="PASSWORD"
-          value={password}
-          onChangeText={setPassword}
-          autoCorrect={false}
-          autoCapitalize="none"
-          secureTextEntry={isPasswordHidden}
-        />
-        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)} >
-          <Icon name={isPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
-        </TouchableOpacity>
+        <TextInput label="Password" placeholder="Password" value={password} onChangeText={setPassword} autoCorrect={false} autoCapitalize="none" secureTextEntry={isPasswordHidden} editable={!loading} />
+        <Button mode="text" icon={isPasswordHidden ? 'eye-off' : 'eye'} style={styles.passwordEyeIcon} onPress={() => setPasswordHidden(!isPasswordHidden)}><></></Button>
       </View>
+
       <View style={styles.inputView}>
-        <TextInput
-          style={styles.input}
-          placeholder="CONFIRM PASSWORD"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          autoCorrect={false}
-          autoCapitalize="none"
-          secureTextEntry={isConfirmPasswordHidden}
-        />
-        <TouchableOpacity style={styles.passwordEyeIcon} onPress={() => setConfirmPasswordHidden(!isConfirmPasswordHidden)} >
-            <Icon name={isConfirmPasswordHidden ? 'eye-slash' : 'eye'} size={20} color="gray" />
-        </TouchableOpacity>
+        <TextInput label="Confirm Password" placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} autoCorrect={false} autoCapitalize="none" secureTextEntry={isConfirmPasswordHidden} editable={!loading} />
+        <Button mode="text" icon={isConfirmPasswordHidden ? 'eye-off' : 'eye'} style={styles.passwordEyeIcon} onPress={() => setConfirmPasswordHidden(!isConfirmPasswordHidden)}><></></Button>
       </View>
-      <View style={styles.buttonView}>
-        <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>SIGN UP</Text>
-        </Pressable>
+
+      <Button loading={loading} mode="contained" disabled={loading} onPress={onSubmit}>SIGN UP</Button>
+
+      <View style={styles.signUpText}>
+        <Text variant="titleMedium">Already have an account?</Text>
+        <Button mode="outlined" style={[{marginLeft: 10}]}><Link href="/(login)">SIGN IN</Link></Button>
       </View>
-      <Text>Aleady have an account? </Text>
-      <Link href="/(login)"><Text style={styles.signInButton}>Sign In</Text></Link>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  socialIcons: {
-    display: "flex",
-    flexDirection: "row",
-  },
   container: {
-    alignItems: "center",
-    paddingTop: 70,
-  },
-  image: {
-    height: 160,
-    width: 170,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   inputView: {
-    gap: 15,
     width: "100%",
     paddingHorizontal: 40,
-    marginBottom: 5,
-  },
-  input: {
-    height: 50,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
-  },
-  rememberView: {
-    width: "100%",
-    paddingHorizontal: 50,
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  switch: {
-    flexDirection: "row",
-    gap: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  rememberText: {
-    fontSize: 13,
-  },
-  forgetText: {
-    fontSize: 11,
-    color: "red",
-  },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
-  },
-  optionsText: {
-    textAlign: "center",
-    paddingVertical: 10,
-    color: "gray",
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  mediaIcons: {
-    flexDirection: "row",
-    gap: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 23,
-  },
-  icons: {
-    width: 40,
-    height: 40,
-  },
-  footerText: {
-    textAlign: "center",
-    color: "gray",
-  },
-  signup: {
-    color: "red",
-    fontSize: 13,
+    marginVertical: 5
   },
   passwordEyeIcon: {
     position: 'absolute',
-    right: 60,
-    top: 15
+    right: 50,
+    top: 10
   },
-  signInButton: {
-    fontSize: 22,
-    color: 'blue',
-    textDecorationLine: "underline",
-    fontWeight: "700"
+  signUpText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10
   }
 });
 
