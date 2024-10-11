@@ -17,7 +17,6 @@ const AuthContext = createContext<{
 // This hook can be used to access the user info.
 export function useSession() {
   const value = useContext(AuthContext);
-  console.log('NODE_ENV', process.env.NODE_ENV);
   if (process.env.NODE_ENV !== 'production') {
     if (!value) {
       throw new Error('useSession must be wrapped in a <SessionProvider />');
@@ -35,32 +34,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
       value={{
         signIn: (email: string, password: string): Promise<any> => {
           return new Promise((resolve, reject) => {
-            
             const auth = getAuth();
             signInWithEmailAndPassword(auth, email, password)
               .then((userCredential: any) => {
-                
-                console.log('userCredential', userCredential);
-                
-                // if(userCredential?.user?.uid){
 
-                //   setSession('userId', userCredential.user.uid);
-                //   // Optionally, save the ID token in the session
-                //   user.getIdToken().then((idToken) => {
-                    setSession(userCredential);
-                //   });
-                // }
+                if (userCredential?.user?.uid) {
+                  console.log('got user id');
+                  setSession(userCredential.user.uid);
+                  resolve(userCredential);
+                }
+                else {
+                  console.log('else worked in login');
+                  reject('failed');
+                }
 
-                
-                
-                
-                resolve(userCredential);
               })
-              .catch((error) => {
-                reject(error);
-              });
-  
-  
+              .catch((error) => { reject(error); });
           })
         },
         signOut: () => {
