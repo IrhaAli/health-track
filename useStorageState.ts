@@ -1,6 +1,7 @@
-import  { useEffect, useCallback, useReducer } from 'react';
+import { useEffect, useCallback, useReducer } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { getAuth } from 'firebase/auth';
 
 type UseStateHook<T> = [[boolean, T | null], (value: T | null) => void];
 
@@ -33,32 +34,36 @@ export async function setStorageItemAsync(key: string, value: string | null) {
   }
 }
 
-export function useStorageState(key: any): UseStateHook<any> {
+export function useStorageState(key: string): UseStateHook<string> {
   // Public
-  const [state, setState] = useAsyncState<any>();
+  const [state, setState] = useAsyncState<string>();
 
   // Get
   useEffect(() => {
     if (Platform.OS === 'web') {
       try {
-        if (typeof localStorage !== 'undefined') {
-          setState(localStorage.getItem(key));
-        }
-      } catch (e) {
-        console.error('Local storage is unavailable:', e);
+        if (typeof localStorage !== 'undefined') { setState(localStorage.getItem(key)); }
       }
-    } else {
-      console.log('else works in useEffect');
-      SecureStore.getItemAsync(key).then(value => {
-        console.log('value', value);
-        setState(value);
+      catch (e) { console.error('Local storage is unavailable:', e); }
+    }
+    else {
+      const auth = getAuth();
+      
+      const unsubscribe = auth.onAuthStateChanged(async(user) => {
+        try {
+          const value = await SecureStore.getItemAsync(key);
+          if (value && user?.uid && value === user?.uid) {
+            setState(value);
+          } else { setState(null); }
+        } catch (error) { console.error('Error retrieving value from SecureStore:', error); }
       });
+      return () => unsubscribe();
     }
   }, [key]);
 
   // Set
   const setValue = useCallback(
-    (value: string | null) => {
+    (value: any | null) => {
       setState(value);
       setStorageItemAsync(key, value);
     },
