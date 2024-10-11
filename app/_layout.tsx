@@ -20,10 +20,7 @@ export default function Layout() {
     <Provider store={store}>
       <PaperProvider theme={theme}>
         <SessionProvider>
-        <Slot />
-          {/* <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack> */}
+          <Slot />
         </SessionProvider>
       </PaperProvider>
     </Provider>
