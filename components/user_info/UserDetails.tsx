@@ -85,13 +85,13 @@ export default function UserDetails({
             />
 
             <Text>Date of Birth</Text>
-            <DateTimePicker
+            {userDetails?.dob && <DateTimePicker
               mode="date"
               value={userDetails.dob}
               onChange={(event: any, value: Date | undefined) =>
                 updateUserDetails(value, "dob")
               }
-            />
+            />}
             <Dropdown
               style={[
                 styles.dropdown,
@@ -274,21 +274,21 @@ export default function UserDetails({
           )}
         />
         <Text>Wakeup Time</Text>
-        <DateTimePicker
+        {userDetails?.wakeupTime && <DateTimePicker
           mode="time"
           value={userDetails.wakeupTime}
           onChange={(event: any, value: Date | undefined) =>
             updateUserDetails(value, "wakeupTime")
           }
-        />
+        />}
         <Text>Sleep Time</Text>
-        <DateTimePicker
+        {userDetails?.sleepTime && <DateTimePicker
           mode="time"
           value={userDetails.sleepTime}
           onChange={(event: any, value: Date | undefined) =>
             updateUserDetails(value, "sleepTime")
           }
-        />
+        />}
         <Text>Health Goal</Text>
         <Dropdown
           style={[
