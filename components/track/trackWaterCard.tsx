@@ -30,7 +30,7 @@ export default function TrackWaterCard() {
 
     const { session } = useSession();
     const user = auth.currentUser;
-    const formattedMonth: string = `${currentMonth.year}-${currentMonth.month}`; 
+    const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`); 
 
     console.log('user?.uid', user?.uid);
 
@@ -83,11 +83,16 @@ export default function TrackWaterCard() {
         loadData();
     }
 
-    console.log('formattedMonth', formattedMonth);
 
-    console.log(allWaterData[formattedMonth]);
+    
 
-    if (!(formattedMonth in allWaterData) || (allWaterData[formattedMonth].length < 1)) { return <></> }
+    if (!Array.isArray(allWaterData)) { 
+        console.log('Array true');
+        if (!(formattedMonth in allWaterData)) { return <></> }
+        else if (!allWaterData[formattedMonth] || !allWaterData[formattedMonth] || allWaterData[formattedMonth].length < 1) {
+            return <></>
+        }
+    }
 
     return (
         <Card style={[{ marginHorizontal: 10 }]}>
