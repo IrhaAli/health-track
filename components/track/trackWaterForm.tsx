@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
 import { Divider, Button } from 'react-native-paper';
+import { getAuth } from "firebase/auth";
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -20,14 +21,13 @@ enum WaterTypeEnum {
 export default function TrackWaterForm() {
     const dispatch = useDispatch();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const userId = useSelector((state: RootState) => state.user.userId);
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
     const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
     const [loading, setLoading] = useState(false);
+    const auth = getAuth();
 
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
-
 
     const calculateIntakeAmount = (): number => {
         const conversionRate: Record<string, number> = { cups: 250, litres: 1000 };
@@ -42,22 +42,27 @@ export default function TrackWaterForm() {
     }
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/register" }); }
-
+        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
         setLoading(true);
-        
-        let waterDate = new Date(currentDate);        
-        waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
-        await addDoc(collection(db, "water_tracking"), { user_id: userId, date: waterDate, intake_amount: calculateIntakeAmount(), waterType });
 
-        // Resetting Fields.
-        setWater("");
-        setIsWaterTypeFocus(false);
-        setWaterType(WaterTypeEnum.MILLILITRES);
-        setLoading(false);
-        // Resetting Fields.
+        try {
+            let waterDate = new Date(currentDate);
+            waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
+            await addDoc(collection(db, "water_tracking"), { user_id: auth?.currentUser?.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType });
 
-        dispatch(setHideDialog())
+            // Resetting Fields.
+            setWater("");
+            setIsWaterTypeFocus(false);
+            setWaterType(WaterTypeEnum.MILLILITRES);
+            setLoading(false);
+            // Resetting Fields.
+
+            dispatch(setHideDialog())
+        }
+        catch (error) {
+            console.log('error', error);
+            setLoading(false);
+        }
     }
 
     return (
@@ -91,7 +96,7 @@ export default function TrackWaterForm() {
                         setWaterType(item.value as WaterTypeEnum);
                         setIsWaterTypeFocus(false);
                     }}
-                    renderRightIcon={() => ( <AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} /> )}
+                    renderRightIcon={() => (<AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
                     disable={loading}
                 />
             </View>
@@ -175,25 +180,4 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         paddingTop: 15
     },
-    cancelButton: {
-        color: 'blue',
-        textTransform: 'uppercase',
-        fontSize: 16
-    },
-    submitButton: {
-        flexDirection: 'row',
-        backgroundColor: 'red',
-        paddingVertical: 7,
-        paddingHorizontal: 15,
-        borderRadius: 3,
-        marginLeft: 15,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    submitButtonText: {
-        color: 'white',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        marginRight: 5
-    }
 })
