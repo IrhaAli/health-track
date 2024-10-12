@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { Divider, Button } from 'react-native-paper';
+import { getAuth } from "firebase/auth";
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -21,13 +22,13 @@ enum WeightTypeEnum {
 export default function TrackWeightForm() {
     const dispatch = useDispatch();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const userId = useSelector((state: RootState) => state.user.userId);
     const storage = getStorage();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const [loading, setLoading] = useState(false);
     const [weightType, setWeightType] = useState(WeightTypeEnum.KG);
     const [weight, setWeight] = useState("");
     const [isWeightTypeFocus, setIsWeightTypeFocus] = useState(false);
+    const auth = getAuth();
 
     const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type, value: type }));
 
@@ -44,25 +45,29 @@ export default function TrackWeightForm() {
     };
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/register" }); }
-
+        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
         if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
         setLoading(true);
 
-        const conversionRate: Record<string, number> = { lbs: 0.453592 };
-        const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : weight;
+        try {
+            const conversionRate: Record<string, number> = { lbs: 0.453592 };
+            const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : weight;
 
-        await addDoc(collection(db, "weight_tracking"), { user_id: userId, date: currentDate, weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '', });
-        // Ressetting Fields.
-        setWeight(WeightTypeEnum.KG);
-        setWeight("");
-        setIsWeightTypeFocus(false);
-        dispatch(setHideCamera());
-        dispatch(setImageURI(''));
-        setLoading(false);
-        // Ressetting Fields.
+            await addDoc(collection(db, "weight_tracking"), { user_id: auth?.currentUser?.uid, date: currentDate, weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '', });
+            // Ressetting Fields.
+            setWeight(WeightTypeEnum.KG);
+            setWeight("");
+            setIsWeightTypeFocus(false);
+            dispatch(setHideCamera());
+            dispatch(setImageURI(''));
+            setLoading(false);
+            // Ressetting Fields.
 
-        dispatch(setHideDialog());
+            dispatch(setHideDialog());
+        }
+        catch (error) {
+            setLoading(false);
+        }
     }
 
     return (
@@ -98,7 +103,7 @@ export default function TrackWeightForm() {
                             setWeightType(item.value);
                             setIsWeightTypeFocus(false);
                         }}
-                        renderRightIcon={() => ( <AntDesign style={styles.icon} color={isWeightTypeFocus ? "blue" : "black"} name="Safety" size={20}/> )}
+                        renderRightIcon={() => (<AntDesign style={styles.icon} color={isWeightTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
                         disable={loading}
                     />
                 </View>
@@ -123,16 +128,15 @@ export default function TrackWeightForm() {
 const styles = StyleSheet.create({
     trackWeightForm: {
         paddingVertical: 10,
-        // backgroundColor: 'white',
-        justifyContent: 'center', 
+        justifyContent: 'center',
         alignContent: 'center',
         alignItems: 'center'
     },
     weightView: {
         flexDirection: 'row',
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
-        alignContent: 'center'      
+        alignContent: 'center'
     },
     input: {
         paddingLeft: 20,
@@ -173,15 +177,6 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0.5,
         borderLeftWidth: 0
     },
-    button: {
-        backgroundColor: "red",
-        height: 45,
-        borderColor: "gray",
-        borderWidth: 1,
-        borderRadius: 5,
-        alignItems: "center",
-        justifyContent: "center",
-    },
     icon: {
         marginRight: 5,
     },
@@ -195,47 +190,10 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
     },
-    buttonText: {
-        color: "white",
-        fontSize: 18,
-        fontWeight: "700",
-        backgroundColor: 'red',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        borderRadius: 3
-    },
     formSubmission: {
         flexDirection: 'row',
-        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingTop: 15
-    },
-    cancelButton: {
-        color: 'blue',
-        textTransform: 'uppercase',
-        fontSize: 16
-    },
-    submitButton: {
-        flexDirection: 'row',
-        backgroundColor: 'red',
-        paddingVertical: 7,
-        paddingHorizontal: 15,
-        borderRadius: 3,
-        marginLeft: 15,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    submitButtonText: {
-        color: 'white',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        marginRight: 5
-    },
-    imageButtonText: {
-        color: 'black',
-        fontWeight: '700',
-        fontSize: 18,
-        marginLeft: -2
     },
 })

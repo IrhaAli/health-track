@@ -9,11 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { RootState } from "@/store/store";
 import { Divider, Text, Button } from 'react-native-paper';
+import { getAuth } from "firebase/auth";
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const userId = useSelector((state: RootState) => state.user.userId);
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
     const [sleepQuality, setSleepQuality] = useState(0);
@@ -22,6 +22,7 @@ export default function TrackSleepForm() {
     const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
     const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
     const [loading, setLoading] = useState(false);
+    const auth = getAuth();
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
@@ -93,27 +94,32 @@ export default function TrackSleepForm() {
     }
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/register" }); }
+        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
         setLoading(true);
-        await addDoc(collection(db, "sleep_tracking"), { user_id: userId, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
 
-        // Ressetting Fields.
-        setSleepDateTime(new Date());
-        setWakeupTime(new Date());
-        setSleepQuality(0);
-        setSleepDuration(0);
-        setShowSleepDateSelector(false);
-        setShowSleepTimeSelector(false);
-        setShowWakeupTimeSelector(false);
-        setLoading(false);
-        // Ressetting Fields.
+        try {
+            await addDoc(collection(db, "sleep_tracking"), { user_id: auth?.currentUser?.uid, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
 
-        dispatch(setHideDialog());
+            // Ressetting Fields.
+            setSleepDateTime(new Date());
+            setWakeupTime(new Date());
+            setSleepQuality(0);
+            setSleepDuration(0);
+            setShowSleepDateSelector(false);
+            setShowSleepTimeSelector(false);
+            setShowWakeupTimeSelector(false);
+            setLoading(false);
+            // Ressetting Fields.
+    
+            dispatch(setHideDialog());
+        }
+        catch (error) {
+            setLoading(false);
+        }
     }
 
     return (
         <View>
-
             <View style={styles.trackSleepForm}>
                 <View>
                     <Text variant="titleLarge">Last Night's Sleep</Text>
@@ -173,50 +179,16 @@ const styles = StyleSheet.create({
     trackSleepForm: {
         paddingVertical: 10
     },
-    lastNightSleepHeading: {
-        fontWeight: '700',
-    },
     sleepTimeDateView: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10
-    },
-    sleepDateText: {
-        color: 'blue'
-    },
-    sleepTimeText: {
-        color: 'blue'
-    },
-    wakeupTimeText: {
-        marginBottom: 10,
-        color: 'blue'
     },
     formSubmission: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingTop: 15
-    },
-    cancelButton: {
-        color: 'blue',
-        textTransform: 'uppercase',
-        fontSize: 16
-    },
-    submitButton: {
-        flexDirection: 'row',
-        backgroundColor: 'red',
-        paddingVertical: 7,
-        paddingHorizontal: 15,
-        borderRadius: 3,
-        marginLeft: 15,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    submitButtonText: {
-        color: 'white',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        marginRight: 5
     },
     slider: {
         width: '100%',

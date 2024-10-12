@@ -10,16 +10,17 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { Divider, Button, Text } from 'react-native-paper';
+import { getAuth } from "firebase/auth";
 
 export default function TrackDietForm() {
     const dispatch = useDispatch();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const userId = useSelector((state: RootState) => state.user.userId);
     const storage = getStorage();
     const [mealTime, setMealTime] = useState(new Date(currentDate));
     const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
     const [loading, setLoading] = useState(false);
+    const auth = getAuth();
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
@@ -39,21 +40,26 @@ export default function TrackDietForm() {
     };
 
     const onSubmit = async () => {
-        if (!userId) { router.push({ pathname: "/register" }); }
-
+        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
         if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
         setLoading(true);
-        await addDoc(collection(db, "diet_tracking"), { user_id: userId, date: mealTime, meal_picture: await uploadImage() });
 
-        // Ressetting Fields.
-        setMealTime(new Date(currentDate));
-        setShowMealTimeSelector(false);
-        dispatch(setHideCamera());
-        dispatch(setImageURI(''));
-        setLoading(false);
-        // Ressetting Fields.
+        try {
+            await addDoc(collection(db, "diet_tracking"), { user_id: auth?.currentUser?.uid, date: mealTime, meal_picture: await uploadImage() });
 
-        dispatch(setHideDialog());
+            // Ressetting Fields.
+            setMealTime(new Date(currentDate));
+            setShowMealTimeSelector(false);
+            dispatch(setHideCamera());
+            dispatch(setImageURI(''));
+            setLoading(false);
+            // Ressetting Fields.
+    
+            dispatch(setHideDialog());
+        }
+        catch (error) {
+            setLoading(false);
+        }
     }
 
     return (
@@ -93,72 +99,16 @@ export default function TrackDietForm() {
 const styles = StyleSheet.create({
     trackDietForm: {
         paddingVertical: 10,
-        // backgroundColor: 'white'
     },
     buttonContainer: {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center'
     },
-    buttonText: {
-        color: "white",
-        fontSize: 18,
-        fontWeight: "700",
-        backgroundColor: 'red',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        borderRadius: 3
-    },
-    mealTimeText: {
-        marginBottom: 10,
-        color: 'blue'
-    },
-    button: {
-        backgroundColor: "red",
-        height: 45,
-        borderColor: "gray",
-        borderWidth: 1,
-        borderRadius: 5,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    imageButton: {
-        color: 'white',
-        flexDirection: 'row',
-        paddingBottom: 10
-    },
-    imageButtonText: {
-        color: 'black',
-        fontWeight: '700',
-        fontSize: 18,
-        marginLeft: -2
-    },
     formSubmission: {
         flexDirection: 'row',
-        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingTop: 15
     },
-    cancelButton: {
-        color: 'blue',
-        textTransform: 'uppercase',
-        fontSize: 16
-    },
-    submitButton: {
-        flexDirection: 'row',
-        backgroundColor: 'red',
-        paddingVertical: 7,
-        paddingHorizontal: 15,
-        borderRadius: 3,
-        marginLeft: 15,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    submitButtonText: {
-        color: 'white',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        marginRight: 5
-    }
 })
