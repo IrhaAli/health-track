@@ -7,7 +7,12 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+} from "react-native";
 import { useEffect, useState } from "react";
 import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../firebaseConfig";
@@ -22,11 +27,12 @@ export default function ProfileStressLevel() {
     stressLevel: 0,
     notes: "",
   });
+  const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", uid)
+      where("user_id", "==", auth.currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];

@@ -3,8 +3,32 @@ import ProfileHeader from "./ProfileHeader";
 import { Button } from "react-native-paper";
 import { Link } from "expo-router";
 import ProfileContactForm from "./ProfileContactForm";
+import { getAuth } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/store/userSlice";
 
 export default function ProfileComponent() {
+  const auth = getAuth();
+  const dispatch = useDispatch();
+
+  const getUserData = async () => {
+    const collectionData = query(
+      collection(db, "users"),
+      where("user_id", "==", auth.currentUser?.uid)
+    );
+    const querySnapshot = await getDocs(collectionData);
+    let docData: any[] = [];
+    querySnapshot.forEach((doc) => {
+      docData.push({ id: doc.id, ...doc.data() });
+    });
+
+    const userInfo = docData[0];
+    dispatch(setUser(JSON.stringify(userInfo)));
+  };
+  getUserData();
+
   return (
     <>
       <ProfileHeader></ProfileHeader>

@@ -5,9 +5,10 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import { getAuth } from "firebase/auth";
 
 export default function ProfileContactForm() {
-  const userId = useSelector((state: RootState) => state.user.userId);
+  const auth = getAuth();
 
   const [contactUs, setContactUs] = useState({
     subject: "",
@@ -16,7 +17,7 @@ export default function ProfileContactForm() {
 
   const onContactSend = async () => {
     await addDoc(collection(db, "contact"), {
-      user_id: userId,
+      user_id: auth.currentUser?.uid,
       ...contactUs,
       date: new Date(),
     });

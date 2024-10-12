@@ -1,43 +1,13 @@
 import { StyleSheet, Text, View } from "react-native";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
-import { useEffect, useState } from "react";
 import { Avatar } from "react-native-paper";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function ProfileHeader() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
-  const [userInfo, setUserInfo] = useState({
-    fullName: "",
-    email: "",
-  });
+  const userObjStr = useSelector((state: RootState) => state.user.userData);
+  const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
 
-  const fetchData = async (collectionName: string) => {
-    const collectionData = query(
-      collection(db, collectionName),
-      where("user_id", "==", uid)
-    );
-    const querySnapshot = await getDocs(collectionData);
-    let docData: any[] = [];
-
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
-    });
-    return collectionName === "medical_history" ? docData : docData[0];
-  };
-
-  useEffect(() => {
-    const getData = async () => {
-      const userInfo = await fetchData("users");
-      setUserInfo({
-        fullName: userInfo.full_name,
-        email: userInfo.email,
-      });
-    };
-    getData();
-  }, []);
-
-  return (
+  return userData?.full_name && userData?.email ? (
     <View style={styles.container}>
       <Avatar.Image
         // style={styles.avatar}
@@ -48,10 +18,12 @@ export default function ProfileHeader() {
         size={24}
       />
       <View style={styles.textContainer}>
-        <Text style={styles.text}>Name: {userInfo.fullName}</Text>
-        <Text style={styles.text}>Email: {userInfo.email}</Text>
+        <Text style={styles.text}>Name: {userData.full_name}</Text>
+        <Text style={styles.text}>Email: {userData.email}</Text>
       </View>
     </View>
+  ) : (
+    <></>
   );
 }
 
