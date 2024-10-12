@@ -60,7 +60,6 @@ export default function TrackWaterForm() {
             dispatch(setHideDialog())
         }
         catch (error) {
-            console.log('error', error);
             setLoading(false);
         }
     }
@@ -112,7 +111,6 @@ export default function TrackWaterForm() {
 
 const styles = StyleSheet.create({
     trackWaterForm: {
-        // backgroundColor: 'white',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -175,7 +173,6 @@ const styles = StyleSheet.create({
     },
     formSubmission: {
         flexDirection: 'row',
-        // backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingTop: 15
