@@ -28,18 +28,15 @@ import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 
-
 export default function ProfileFooterLinks() {
   const userId = useSelector((state: RootState) => state.user.userId);
   const dispatch = useDispatch();
   const { signOut } = useSession();
-  
+
   const onLogout = () => {
     dispatch(setUser(null));
     dispatch(setUserId(null));
     signOut();
-    // router.push({ pathname: "/login" });
-    console.log("Logged Out");
   };
 
   const onAccountDelete = async () => {
@@ -53,12 +50,14 @@ export default function ProfileFooterLinks() {
     );
 
     if (!choice) return;
+    console.log(userId);
 
     try {
       const collectionData = query(
         collection(db, "users"),
         where("user_id", "==", userId)
       );
+
       const querySnapshot = await getDocs(collectionData);
       let docData: any[] = [];
 

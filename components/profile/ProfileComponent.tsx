@@ -8,20 +8,18 @@ export default function ProfileComponent() {
   return (
     <>
       <ProfileHeader></ProfileHeader>
-      <Button mode="contained">
-        <Link href="/(profile)/background_information">
-          Background Information
-        </Link>
-      </Button>
-      <Button mode="contained">
-        <Link href="/(profile)/dietary_preferences">Dietary Preferences</Link>
-      </Button>
-      <Button mode="contained">
-        <Link href="/(profile)/medical_history">Medical History</Link>
-      </Button>
-      <Button mode="contained">
-        <Link href="/(profile)/stress_level">Stress Level</Link>
-      </Button>
+      <Link href="/(profile)/background_information">
+        <Button mode="contained">Background Information</Button>
+      </Link>
+      <Link href="/(profile)/dietary_preferences">
+        <Button mode="contained">Dietary Preferences</Button>
+      </Link>
+      <Link href="/(profile)/medical_history">
+        <Button mode="contained">Medical History</Button>
+      </Link>
+      <Link href="/(profile)/stress_level">
+        <Button mode="contained">Stress Level</Button>
+      </Link>
       <ProfileContactForm></ProfileContactForm>
       <ProfileFooterLinks></ProfileFooterLinks>
     </>
