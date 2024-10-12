@@ -42,7 +42,7 @@ export default function TrackComponent() {
             minDate={`${new Date(currentDate).getFullYear()}-01-01`}
             maxDate={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
             onMonthChange={handleMonthChange}
-            onDayPress={(day: DayChangeInterface) => { console.log('onDayPress called in calendar'); dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
+            onDayPress={(day: DayChangeInterface) => { dispatch(setCurrentDate(`${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`)) }}
             hideExtraDays={true}
             firstDay={1}
             renderHeader={(date: any) => { return <Text variant="titleLarge">{new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}</Text> }}
