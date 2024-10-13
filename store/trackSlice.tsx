@@ -84,9 +84,6 @@ const trackSlice = createSlice({
         setCurrentMonth: (state: TrackState, action: PayloadAction<{ month: string; year: string }>) => {
             state.currentMonth = action.payload;
         },
-        pushWaterData: (state: TrackState, action: PayloadAction<WaterDataState>) => {
-            state.waterData = { ...state.waterData, ...action.payload };
-        },
         setLoadingTrackWaterData: (state: TrackState, action: PayloadAction<boolean>) => {
             state.loadingTrackWaterData = action.payload;
         },
@@ -114,5 +111,5 @@ const trackSlice = createSlice({
     }
 });
 
-export const { setCurrentDate, setCurrentMonth, pushWaterData } = trackSlice.actions;
+export const { setCurrentDate, setCurrentMonth } = trackSlice.actions;
 export default trackSlice.reducer;
