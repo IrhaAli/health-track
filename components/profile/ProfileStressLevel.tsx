@@ -7,19 +7,12 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../firebaseConfig";
 
 export default function ProfileStressLevel() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [stressLevel, setStressLevel] = useState({
@@ -40,6 +33,7 @@ export default function ProfileStressLevel() {
     querySnapshot.forEach((doc) => {
       docData.push({ id: doc.id, ...doc.data() });
     });
+
     return collectionName === "medical_history" ? docData : docData[0];
   };
 
