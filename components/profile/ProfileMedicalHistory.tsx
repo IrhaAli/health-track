@@ -6,6 +6,8 @@ import {
   getDocs,
   doc,
   updateDoc,
+  addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
@@ -13,8 +15,6 @@ import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { db } from "../../firebaseConfig";
 
 export default function ProfileMedicalHistory() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState([]);
@@ -29,11 +29,17 @@ export default function ProfileMedicalHistory() {
     let docData: any[] = [];
 
     querySnapshot.docs.forEach((doc) => {
-      docData.push({ docId: doc.id, ...doc.data() });
+      docData.push({
+        docId: doc.id,
+        ...doc.data(),
+        is_deleted: false,
+        diagnosis_date: new Date(
+          doc.data().diagnosis_date.toDate().toISOString()
+        ),
+      });
     });
     return collectionName === "medical_history" ? docData : docData[0];
   };
-
   useEffect(() => {
     const getData = async () => {
       const medicalInfo = await fetchData("medical_history");
@@ -46,26 +52,28 @@ export default function ProfileMedicalHistory() {
     setIsEdit(false);
     setIsDisabled(true);
     try {
-      const updateMedicalHistory = medicalHistory.map((item: any) =>
-        doc(db, "medical_history", item.docId)
-      );
-      updateMedicalHistory.forEach(
-        async (item) =>
-          await updateDoc(item, {
-            allergies: item.allergies,
+      medicalHistory.forEach(async (item: any) => {
+        if (item.docId && item.is_deleted) {
+          console.log("I'm hererere");
+          await deleteDoc(doc(db, "medical_history", item.docId));
+        } else if (!item.docId) {
+          await addDoc(collection(db, "medical_history"), {
+            user_id: item.user_id,
             condition: item.condition,
             diagnosis_date: item.diagnosis_date,
             treatment_status: item.treatment_status,
-          })
-      );
+            allergies: item.allergies,
+          });
+        }
+      });
     } catch (err) {
-      console.log(err);
+      console.log("onSubmit Medical History", err);
     }
     setIsDisabled(false);
   };
 
   return (
-    <>
+    <View style={[{ marginTop: 0 }]}>
       {isEdit ? (
         <>
           <View
@@ -80,7 +88,6 @@ export default function ProfileMedicalHistory() {
             </Pressable>
           </View>
           <MedicalHistory
-            uid={uid}
             medicalHistory={medicalHistory}
             setMedicalHistory={setMedicalHistory}
           />
@@ -93,19 +100,25 @@ export default function ProfileMedicalHistory() {
             </Pressable>
           </View>
           <Text style={styles.title}>Medical History</Text>
-          {medicalHistory.map((item: any, index: number) => {
-            return (
-              <View key={index}>
-                <Text>{item.allergies}</Text>
-                <Text>{item.condition}</Text>
-                <Text>{`${new Date(item.diagnosis_date.seconds)}`}</Text>
-                <Text>{item.treatment_status}</Text>
-              </View>
-            );
-          })}
+          {medicalHistory.length > 0 ? (
+            medicalHistory.map((item: any, index: number) => {
+              return (
+                !item.is_deleted && (
+                  <View key={index}>
+                    <Text>{item.condition}</Text>
+                    <Text>{item.treatment_status}</Text>
+                    <Text>{`${item.diagnosis_date}`}</Text>
+                    <Text>{item.allergies}</Text>
+                  </View>
+                )
+              );
+            })
+          ) : (
+            <Text>No Medical History</Text>
+          )}
         </>
       )}
-    </>
+    </View>
   );
 }
 

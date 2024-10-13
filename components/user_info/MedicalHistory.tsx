@@ -13,30 +13,33 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { getAuth } from "firebase/auth";
 interface Item {
-  user_id: string;
+  user_id: string | undefined;
   condition: string;
   diagnosis_date: Date;
   treatment_status: string;
   allergies: string;
   condition_label: string;
   treatment_status_label: string;
+  is_deleted: boolean;
 }
 interface MedicalCondition extends Array<Item> {}
 
 export default function MedicalHistory({
-  uid,
   medicalHistory,
   setMedicalHistory,
 }: any) {
+  const auth = getAuth();
   const emptyCondition = {
-    user_id: uid,
+    user_id: auth.currentUser?.uid,
     condition: "",
     condition_label: "",
     diagnosis_date: new Date(),
     treatment_status: "",
     treatment_status_label: "",
     allergies: "",
+    is_deleted: true,
   };
   const [currentMedicalCondition, setCurrentMedicalCondition] =
     useState<Item>(emptyCondition);
@@ -59,16 +62,20 @@ export default function MedicalHistory({
     if (currentMedicalCondition.condition.length === 0) return;
     setMedicalHistory((prev: any) => [
       ...prev,
-      { ...currentMedicalCondition, user_id: uid },
+      {
+        ...currentMedicalCondition,
+        user_id: auth.currentUser?.uid,
+        is_deleted: false,
+      },
     ]);
     setCurrentMedicalCondition(emptyCondition);
   };
 
   const removeMedicalHistory = (index: number) => {
     setMedicalHistory((prev: any) =>
-      prev.length === 1
-        ? []
-        : prev.filter((item: any, i: number) => i !== index)
+      prev.map((item: any, i: number) =>
+        i === index ? { ...item, is_deleted: true } : item
+      )
     );
   };
 
@@ -80,22 +87,23 @@ export default function MedicalHistory({
           {/* Added conditions */}
           {medicalHistory.map((item: any, index: number) => {
             return (
-              <View key={index}>
-                <Pressable
-                  style={styles.button}
-                  onPress={() => removeMedicalHistory(index)}
-                >
-                  <Text style={styles.buttonText}>Remove Record</Text>
-                </Pressable>
-                <Text>Condition # {index + 1}</Text>
-                <Text>Condition: {medicalHistory[index].condition_label}</Text>
-                <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
-                <Text>Treatment Status: {item.treatment_status_label}</Text>
-                <Text>Allergies {item.allergies}</Text>
-              </View>
+              !item.is_deleted && (
+                <View key={index}>
+                  <Pressable
+                    style={styles.button}
+                    onPress={() => removeMedicalHistory(index)}
+                  >
+                    <Text style={styles.buttonText}>Remove Record</Text>
+                  </Pressable>
+                  <Text>Condition # {index + 1}</Text>
+                  <Text>Condition: {medicalHistory[index].condition}</Text>
+                  <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
+                  <Text>Treatment Status: {item.treatment_status}</Text>
+                  <Text>Allergies {item.allergies}</Text>
+                </View>
+              )
             );
           })}
-          {/* Add a new condition form */}
           <>
             <Text>Condition</Text>
             <Dropdown
