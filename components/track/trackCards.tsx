@@ -30,8 +30,7 @@ export default function TrackCards() {
     const waterData: WaterDataState | [] = useSelector((state: RootState) => state.track.waterData);
     const auth = getAuth();
 
-    const { session } = useSession();
-    const user = auth.currentUser;
+    const user = auth?.currentUser;
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
 
     const firstDate = new Date(Date.UTC(parseInt(currentMonth.year, 10), parseInt(currentMonth.month, 10) - 1, 1));
@@ -44,7 +43,7 @@ export default function TrackCards() {
                     collection(db, "water_tracking"),
                     where("date", ">=", firstDate),
                     where("date", "<=", lastDate),
-                    where("user_id", "==", session)
+                    where("user_id", "==", user?.uid)
                 );
                 const docSnap = await getDocs(collectionData);
 
