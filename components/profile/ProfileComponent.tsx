@@ -9,6 +9,7 @@ import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/userSlice";
 import { AppDispatch } from "@/store/store";
+import { View } from "react-native";
 
 export default function ProfileComponent() {
   const auth = getAuth();
@@ -31,7 +32,7 @@ export default function ProfileComponent() {
   getUserData();
 
   return (
-    <>
+    <View style={[{ marginTop: 50 }]}>
       <ProfileHeader></ProfileHeader>
       <Link href="/(profile)/background_information">
         <Button mode="contained">Background Information</Button>
@@ -47,6 +48,6 @@ export default function ProfileComponent() {
       </Link>
       <ProfileContactForm></ProfileContactForm>
       <ProfileFooterLinks></ProfileFooterLinks>
-    </>
+    </View>
   );
 }

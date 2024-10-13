@@ -30,8 +30,8 @@ export default function ProfileStressLevel() {
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];
 
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
+    querySnapshot.docs.forEach((doc) => {
+      docData.push({ docId: doc.id, ...doc.data() });
     });
 
     return collectionName === "medical_history" ? docData : docData[0];
@@ -41,7 +41,7 @@ export default function ProfileStressLevel() {
     const getData = async () => {
       const stressInfo = await fetchData("stress_level");
       setStressLevel({
-        docId: stressInfo.id,
+        docId: stressInfo.docId,
         stressLevel: stressInfo.stress_level,
         notes: stressInfo.notes,
       });

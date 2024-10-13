@@ -28,8 +28,8 @@ export default function ProfileMedicalHistory() {
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];
 
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
+    querySnapshot.docs.forEach((doc) => {
+      docData.push({ docId: doc.id, ...doc.data() });
     });
     return collectionName === "medical_history" ? docData : docData[0];
   };
