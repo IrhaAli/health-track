@@ -1,6 +1,6 @@
 import React from "react";
 import Slider from "@react-native-community/slider";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function StressLevel({ stressLevel, setStressLevel }: any) {
   return (
@@ -9,10 +9,11 @@ export default function StressLevel({ stressLevel, setStressLevel }: any) {
         <Text>Stress Level: {stressLevel.stressLevel}</Text>
         <Slider
           minimumValue={1}
-          maximumValue={10}
+          maximumValue={5}
           step={1}
+          value={stressLevel.stressLevel}
           onValueChange={(value: number) =>
-            setStressLevel((prev: any) => ({ ...prev, stress_level: value }))
+            setStressLevel((prev: any) => ({ ...prev, stressLevel: value }))
           }
         />
         <Text>Notes</Text>

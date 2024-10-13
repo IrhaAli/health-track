@@ -62,11 +62,12 @@ export default function ProfileDietaryPreferences() {
     is_sugar_free: "Sugar Free",
     is_salt_free: "Salt Free",
   };
+  const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", uid)
+      where("user_id", "==", auth.currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];

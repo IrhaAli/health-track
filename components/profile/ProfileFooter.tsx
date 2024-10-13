@@ -1,37 +1,28 @@
 import { getAuth } from "firebase/auth";
 import {
   StyleSheet,
-  TextInput,
-  SafeAreaView,
   View,
   Text,
   Linking,
   TouchableOpacity,
 } from "react-native";
-import { useState } from "react";
-import { Link, router } from "expo-router";
 import AlertAsync from "react-native-alert-async";
 import { Button } from "react-native-paper";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
 import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export default function ProfileFooterLinks() {
-  const userId = useSelector((state: RootState) => state.user.userId);
+  const userObjStr = useSelector((state: RootState) => state.user.userData);
+  const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
+
   const dispatch = useDispatch();
   const { signOut } = useSession();
+  const auth = getAuth();
 
   const onLogout = () => {
     dispatch(setUser(null));
@@ -50,29 +41,17 @@ export default function ProfileFooterLinks() {
     );
 
     if (!choice) return;
-    console.log(userId);
 
+    const user: any = auth.currentUser;
     try {
-      const collectionData = query(
-        collection(db, "users"),
-        where("user_id", "==", userId)
-      );
-
-      const querySnapshot = await getDocs(collectionData);
-      let docData: any[] = [];
-
-      querySnapshot.forEach((doc) => {
-        docData.push({ id: doc.id, ...doc.data() });
-      });
-
-      const docId = docData[0].id;
-      const deleteAccount = doc(db, "users", docId);
+      const deleteAccount = doc(db, "users", userData.id);
       await updateDoc(deleteAccount, {
         is_deleted: true,
-      });
-    } catch (err) {
-      console.log("error in users", err);
+      }).then(() => user.delete());
+    } catch (error) {
+      console.log("error in delete account", error);
     }
+
     onLogout();
   };
 

@@ -1,13 +1,12 @@
-import { StyleSheet, TextInput, Text } from "react-native";
+import { StyleSheet, TextInput, Text, Alert } from "react-native";
 import { useState } from "react";
 import { Button } from "react-native-paper";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { getAuth } from "firebase/auth";
 
 export default function ProfileContactForm() {
-  const userId = useSelector((state: RootState) => state.user.userId);
+  const auth = getAuth();
 
   const [contactUs, setContactUs] = useState({
     subject: "",
@@ -15,11 +14,15 @@ export default function ProfileContactForm() {
   });
 
   const onContactSend = async () => {
-    await addDoc(collection(db, "contact"), {
-      user_id: userId,
-      ...contactUs,
-      date: new Date(),
-    });
+    if (!contactUs.subject || !contactUs.text) {
+      Alert.alert("Please fill the form before submitting.");
+    } else {
+      await addDoc(collection(db, "contacts"), {
+        user_id: auth.currentUser?.uid,
+        ...contactUs,
+        date: new Date(),
+      });
+    }
     setContactUs({ subject: "", text: "" });
   };
 

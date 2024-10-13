@@ -7,19 +7,12 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../firebaseConfig";
 
 export default function ProfileUserDetails() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [userDetails, setUserDetails] = useState({
@@ -34,11 +27,12 @@ export default function ProfileUserDetails() {
     sleepTime: new Date(),
     healthGoal: "",
   });
+  const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", uid)
+      where("user_id", "==", auth.currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];

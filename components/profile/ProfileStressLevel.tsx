@@ -13,8 +13,6 @@ import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../firebaseConfig";
 
 export default function ProfileStressLevel() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [stressLevel, setStressLevel] = useState({
@@ -22,11 +20,12 @@ export default function ProfileStressLevel() {
     stressLevel: 0,
     notes: "",
   });
+  const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", uid)
+      where("user_id", "==", auth.currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];
@@ -34,6 +33,7 @@ export default function ProfileStressLevel() {
     querySnapshot.forEach((doc) => {
       docData.push({ id: doc.id, ...doc.data() });
     });
+
     return collectionName === "medical_history" ? docData : docData[0];
   };
 
