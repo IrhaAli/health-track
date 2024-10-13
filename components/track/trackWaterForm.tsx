@@ -8,7 +8,7 @@ import { router } from "expo-router";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 
@@ -19,7 +19,7 @@ enum WaterTypeEnum {
 };
 
 export default function TrackWaterForm() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);

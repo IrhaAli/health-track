@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { setHideDialog, setShowDialog } from "@/store/trackDialogSlice";
 import AppCamera from "../camera";
 import { SegmentedButtons } from 'react-native-paper';
@@ -11,7 +11,7 @@ import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
 export default function TrackDialog() {
     const [formTab, setFormTab] = useState("sleep");
     const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
 
     return (

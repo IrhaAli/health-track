@@ -8,13 +8,14 @@ import { Button, TextInput, Text } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
+import { AppDispatch } from "@/store/store";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordHidden, setPasswordHidden] = useState(true);
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { signIn } = useSession();
 
   const onSubmit = () => {

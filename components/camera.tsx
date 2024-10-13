@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, Dimensions
 import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { setHideCamera, setImageURI } from "@/store/cameraSlice";
 import { setShowDialog } from "@/store/trackDialogSlice";
 
@@ -13,7 +13,7 @@ export default function AppCamera() {
     const cameraRef = useRef<Camera | null>(null);
     const [timer, setTimer] = useState("");
     const [cameraSide, setCameraSide] = useState(CameraType.back);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { width, height } = Dimensions.get('window');
 
     const toggleCameraFacing = () => {

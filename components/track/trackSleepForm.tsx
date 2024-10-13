@@ -7,12 +7,12 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 
 export default function TrackSleepForm() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
     const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));

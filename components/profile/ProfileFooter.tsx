@@ -14,13 +14,13 @@ import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
   const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
   const auth = getAuth();
 

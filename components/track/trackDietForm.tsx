@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideCamera, setShowCamera, setImageURI } from "@/store/cameraSlice";
 import { setHideDialog } from "@/store/trackDialogSlice";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
@@ -13,7 +13,7 @@ import { Divider, Button, Text } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 
 export default function TrackDietForm() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();

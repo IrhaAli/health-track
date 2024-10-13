@@ -8,10 +8,11 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/userSlice";
+import { AppDispatch } from "@/store/store";
 
 export default function ProfileComponent() {
   const auth = getAuth();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const getUserData = async () => {
     const collectionData = query(

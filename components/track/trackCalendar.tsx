@@ -2,7 +2,7 @@ import React from "react";
 import { Calendar } from "react-native-calendars";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { Button, Text } from 'react-native-paper';
 
 interface MonthChangeInterface {
@@ -22,7 +22,7 @@ interface DayChangeInterface {
 }
 
 export default function TrackComponent() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const nowMonth = { month: (new Date().getMonth() + 1), year: new Date().getFullYear() }
