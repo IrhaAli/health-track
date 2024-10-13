@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
@@ -20,7 +20,7 @@ enum WeightTypeEnum {
 };
 
 export default function TrackWeightForm() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
