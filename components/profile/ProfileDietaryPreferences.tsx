@@ -65,17 +65,21 @@ export default function ProfileDietaryPreferences() {
   const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
-    const collectionData = query(
-      collection(db, collectionName),
-      where("user_id", "==", auth.currentUser?.uid)
-    );
-    const querySnapshot = await getDocs(collectionData);
-    let docData: any[] = [];
+    try {
+      const collectionData = query(
+        collection(db, collectionName),
+        where("user_id", "==", auth.currentUser?.uid)
+      );
+      const querySnapshot = await getDocs(collectionData);
+      let docData: any[] = [];
 
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
-    });
-    return collectionName === "medical_history" ? docData : docData[0];
+      querySnapshot.docs.forEach((doc) => {
+        docData.push({ docId: doc.id, ...doc.data() });
+      });
+      return collectionName === "medical_history" ? docData : docData[0];
+    } catch (err: any) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
@@ -90,6 +94,7 @@ export default function ProfileDietaryPreferences() {
     setIsEdit(false);
     setIsDisabled(true);
     try {
+      console.log(dietaryPreferences.is_vegetarian, dietaryPreferences.docId);
       if (dietaryPreferences.docId) {
         const updateDietaryPreferencesDetails = doc(
           db,

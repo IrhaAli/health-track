@@ -15,48 +15,69 @@ import { db } from "../../firebaseConfig";
 export default function ProfileUserDetails() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [userDetails, setUserDetails] = useState({
+  const [userDetails, setUserDetails] = useState<{
+    docId: string | null;
+    gender: string | null;
+    bodyType: string | null;
+    activityType: string | null;
+    height: string;
+    weight: string;
+    dob: Date | null;
+    wakeupTime: Date | null;
+    sleepTime: Date | null;
+    healthGoal: string | null;
+  }>({
     docId: null,
     gender: null,
     bodyType: null,
     activityType: null,
-    dob: new Date(),
+    dob: null,
     height: "",
     weight: "",
-    wakeupTime: new Date(),
-    sleepTime: new Date(),
+    wakeupTime: null,
+    sleepTime: null,
     healthGoal: "",
   });
   const auth = getAuth();
 
   const fetchData = async (collectionName: string) => {
-    const collectionData = query(
-      collection(db, collectionName),
-      where("user_id", "==", auth.currentUser?.uid)
-    );
-    const querySnapshot = await getDocs(collectionData);
-    let docData: any[] = [];
+    try {
+      const collectionData = query(
+        collection(db, collectionName),
+        where("user_id", "==", auth.currentUser?.uid)
+      );
+      const querySnapshot = await getDocs(collectionData);
+      let docData: any[] = [];
 
-    querySnapshot.forEach((doc) => {
-      docData.push({ id: doc.id, ...doc.data() });
-    });
-    return collectionName === "medical_history" ? docData : docData[0];
+      querySnapshot.docs.forEach((doc) => {
+        docData.push({
+          docId: doc.id,
+          ...doc.data(),
+          dob: doc.data().dob.toDate().toISOString(),
+          wakeup_time: doc.data().wakeup_time.toDate().toISOString(),
+          sleep_time: doc.data().sleep_time.toDate().toISOString(),
+        });
+      });
+
+      return collectionName === "medical_history" ? docData : docData[0];
+    } catch (err: any) {
+      console.log(err);
+    }
   };
 
   useEffect(() => {
     const getData = async () => {
       const userInfo = await fetchData("user_details");
-      const userName = await fetchData("users");
       setUserDetails({
-        docId: userInfo.id,
+        docId: userInfo.docId,
         gender: userInfo.gender,
         height: userInfo.height,
         weight: userInfo.weight,
         bodyType: userInfo.body_type,
         activityType: userInfo.activity,
-        dob: new Date(userInfo.dob.seconds),
-        wakeupTime: new Date(userInfo.wakeup_time.seconds),
-        sleepTime: new Date(userInfo.wakeup_time.seconds),
+        dob: new Date(userInfo.dob),
+        wakeupTime: new Date(userInfo.wakeup_time),
+        sleepTime: new Date(userInfo.sleep_time),
         healthGoal: userInfo.health_goal,
       });
     };
@@ -71,7 +92,7 @@ export default function ProfileUserDetails() {
         const updateUserDetails = doc(db, "user_details", userDetails.docId);
         await updateDoc(updateUserDetails, {
           body_type: userDetails.bodyType,
-          activity_type: userDetails.activityType,
+          activity: userDetails.activityType,
           health_goal: userDetails.healthGoal,
           wakeup_time: userDetails.wakeupTime,
           sleep_time: userDetails.sleepTime,
@@ -84,7 +105,7 @@ export default function ProfileUserDetails() {
   };
 
   return (
-    <>
+    <View style={[{ marginTop: 80 }]}>
       {isEdit ? (
         <>
           <View
@@ -123,7 +144,7 @@ export default function ProfileUserDetails() {
           <Text>Health Goal: {userDetails.healthGoal}</Text>
         </>
       )}
-    </>
+    </View>
   );
 }
 
