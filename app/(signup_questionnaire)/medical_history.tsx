@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useLocalSearchParams, router } from "expo-router";
-import { Image, Pressable, StyleSheet, View, Text } from "react-native";
+import { router, Link } from "expo-router";
+import { Pressable, StyleSheet, View, Text } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ScrollView } from "react-native";
 
 interface Item {
   user_id: string;
@@ -12,50 +12,28 @@ interface Item {
   diagnosis_date: Date;
   treatment_status: string;
   allergies: string;
-  condition_label: string;
-  treatment_status_label: string;
+  is_deleted: boolean;
 }
 interface MedicalCondition extends Array<Item> {}
 
 export default function MedicalHistoryPanel() {
-  const { uid } = useLocalSearchParams();
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition>([]);
 
   const onSubmit = () => {
     medicalHistory.forEach(async (item) => {
-      await addDoc(collection(db, "medical_history"), {
-        user_id: uid,
-        condition: item.condition,
-        diagnosis_date: item.diagnosis_date,
-        treatment_status: item.treatment_status,
-        allergies: item.allergies,
-      });
+      if (!item.is_deleted) {
+        await addDoc(
+          collection(db, "medical_history"),
+          (({ is_deleted, ...o }) => o)(item)
+        );
+      }
     });
-    router.push({
-      pathname: "/(signup_questionnaire)/stress_level",
-      params: { uid },
-    });
-  };
-
-  const onSkip = () => {
-    router.push({
-      pathname: "/(signup_questionnaire)/stress_level",
-      params: { uid },
-    });
+    router.push("/(signup_questionnaire)/stress_level");
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/home-image.png")}
-          style={styles.appLogo}
-        />
-      }
-    >
+    <ScrollView>
       <MedicalHistory
-        uid={uid}
         medicalHistory={medicalHistory}
         setMedicalHistory={setMedicalHistory}
       />
@@ -63,11 +41,9 @@ export default function MedicalHistoryPanel() {
         <Pressable style={styles.button} onPress={onSubmit}>
           <Text style={styles.buttonText}>NEXT</Text>
         </Pressable>
-        <Pressable onPress={onSkip}>
-          <Text>Skip</Text>
-        </Pressable>
       </View>
-    </ParallaxScrollView>
+      <Link href={"/(signup_questionnaire)/stress_level"}>Skip</Link>
+    </ScrollView>
   );
 }
 

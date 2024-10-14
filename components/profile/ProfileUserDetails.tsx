@@ -25,7 +25,7 @@ export default function ProfileUserDetails() {
     dob: Date | null;
     wakeupTime: Date | null;
     sleepTime: Date | null;
-    healthGoal: string | null;
+    healthGoal: string;
   }>({
     docId: null,
     gender: null,

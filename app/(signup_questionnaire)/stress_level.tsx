@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { Link, router, useLocalSearchParams } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import StressLevel from "@/components/user_info/StressLevel";
 import { Pressable, View, Text, StyleSheet } from "react-native";
+import { getAuth } from "firebase/auth";
 
 export default function StressLevelPanel() {
-  const { uid } = useLocalSearchParams();
+  const auth = getAuth();
+  const user_id = auth.currentUser?.uid;
   const [stressLevel, setStressLevel] = useState({
     stressLevel: 0,
     notes: "",
@@ -14,30 +16,22 @@ export default function StressLevelPanel() {
 
   const onSubmit = async () => {
     await addDoc(collection(db, "stress_level"), {
-      user_id: uid,
+      user_id,
       stress_level: stressLevel.stressLevel,
       notes: stressLevel.notes,
     });
-    router.push({
-      pathname: "/(root)",
-      params: { uid },
-    });
+    router.push("/(root)");
   };
 
   return (
     <>
-      <StressLevel
-        stressLevel={stressLevel}
-        setStressLevel={setStressLevel}
-      />
+      <StressLevel stressLevel={stressLevel} setStressLevel={setStressLevel} />
       <View style={styles.buttonView}>
         <Pressable style={styles.button} onPress={onSubmit}>
-          <Text style={styles.buttonText}>SUBMIT</Text>
-        </Pressable>
-        <Pressable onPress={onSubmit}>
-          <Text>Skip</Text>
+          <Text style={styles.buttonText}>Submit</Text>
         </Pressable>
       </View>
+      <Link href={"/(root)"}>Skip</Link>
     </>
   );
 }

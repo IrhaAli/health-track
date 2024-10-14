@@ -4,72 +4,73 @@ import { useLocalSearchParams, router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import UserDetails from "@/components/user_info/UserDetails";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ScrollView } from "react-native";
+
+interface UserDetails {
+  fullName: string;
+  gender: string | null;
+  bodyType: string | null;
+  activityType: string | null;
+  height: string;
+  weight: string;
+  dob: Date | null;
+  wakeupTime: Date | null;
+  sleepTime: Date | null;
+  healthGoal: string;
+  language: string;
+}
 
 export default function UserDetailsPanel() {
-  const { email, uid, auth_type } = useLocalSearchParams();
-  const language = "en";
-  const [userDetails, setUserDetails] = useState({
+  const { email, user_id, auth_type } = useLocalSearchParams();
+  const [userDetails, setUserDetails] = useState<UserDetails>({
+    fullName: "",
     gender: null,
     bodyType: null,
     activityType: null,
-    dob: new Date(),
-    fullName: "",
+    dob: null,
     height: "",
     weight: "",
-    wakeupTime: new Date(),
-    sleepTime: new Date(),
+    wakeupTime: null,
+    sleepTime: null,
     healthGoal: "",
+    language: "en",
   });
 
   const onSubmit = async () => {
     if (userDetails.fullName.length === 0) {
       Alert.alert("Please add your name");
-    } else {
-      // const token = (await Notifications.getExpoPushTokenAsync()).data;
-      const user = {
-        user_id: uid,
-        email: email,
-        full_name: userDetails.fullName,
-        auth_type: auth_type || "EMAIL_PASSWORD",
-        language,
-        // fcm_token: "",
-        is_deleted: false,
-        is_ban: false,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-      const userDetailsToAdd = {
-        user_id: uid,
-        gender: userDetails.gender,
-        dob: userDetails.dob,
-        height: userDetails.height,
-        weight: userDetails.weight,
-        body_type: userDetails.bodyType,
-        activity: userDetails.activityType,
-        health_goal: userDetails.healthGoal,
-        sleep_time: userDetails.sleepTime,
-        wakeup_time: userDetails.wakeupTime,
-      };
-      await addDoc(collection(db, "users"), user);
-      await addDoc(collection(db, "user_details"), userDetailsToAdd);
-      router.push({
-        pathname: "/(signup_questionnaire)/dietary_preferences",
-        params: { uid },
-      });
+      return;
     }
+    const user = {
+      user_id,
+      email: email,
+      full_name: userDetails.fullName,
+      auth_type: auth_type || "EMAIL_PASSWORD",
+      language: userDetails.language,
+      is_deleted: false,
+      is_ban: false,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    const userDetailsToAdd = {
+      user_id,
+      gender: userDetails.gender,
+      dob: userDetails.dob,
+      height: userDetails.height,
+      weight: userDetails.weight,
+      body_type: userDetails.bodyType,
+      activity: userDetails.activityType,
+      health_goal: userDetails.healthGoal,
+      sleep_time: userDetails.sleepTime,
+      wakeup_time: userDetails.wakeupTime,
+    };
+    await addDoc(collection(db, "users"), user);
+    await addDoc(collection(db, "user_details"), userDetailsToAdd);
+    router.push("/(signup_questionnaire)/dietary_preferences");
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/home-image.png")}
-          style={styles.appLogo}
-        />
-      }
-    >
+    <ScrollView>
       <UserDetails
         userDetails={UserDetails}
         setUserDetails={setUserDetails}
@@ -80,7 +81,7 @@ export default function UserDetailsPanel() {
           <Text style={styles.buttonText}>NEXT</Text>
         </Pressable>
       </View>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 

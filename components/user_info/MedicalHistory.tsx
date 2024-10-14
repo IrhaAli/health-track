@@ -15,13 +15,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { getAuth } from "firebase/auth";
 interface Item {
-  user_id: string | undefined;
+  user_id: string;
   condition: string;
   diagnosis_date: Date;
   treatment_status: string;
   allergies: string;
-  condition_label: string;
-  treatment_status_label: string;
   is_deleted: boolean;
 }
 interface MedicalCondition extends Array<Item> {}
@@ -31,13 +29,11 @@ export default function MedicalHistory({
   setMedicalHistory,
 }: any) {
   const auth = getAuth();
-  const emptyCondition = {
-    user_id: auth.currentUser?.uid,
+  const emptyCondition: Item = {
+    user_id: auth.currentUser?.uid || "",
     condition: "",
-    condition_label: "",
     diagnosis_date: new Date(),
     treatment_status: "",
-    treatment_status_label: "",
     allergies: "",
     is_deleted: true,
   };
@@ -126,7 +122,6 @@ export default function MedicalHistory({
                 setCurrentMedicalCondition((prev) => ({
                   ...prev,
                   condition: item.value,
-                  condition_label: item.label,
                 }));
                 setIsConditionFocus(false);
               }}
@@ -171,7 +166,6 @@ export default function MedicalHistory({
                 setCurrentMedicalCondition((prev) => ({
                   ...prev,
                   treatment_status: item.value,
-                  treatment_status_label: item.label,
                 }));
                 setIsTreatmentStatusFocus(false);
               }}

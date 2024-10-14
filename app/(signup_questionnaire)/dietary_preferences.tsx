@@ -1,21 +1,17 @@
 import React, { useState } from "react";
-import { StyleSheet, Image, View, Pressable, Text } from "react-native";
-import { Link, useLocalSearchParams, router } from "expo-router";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { StyleSheet, View, Pressable, Text, ScrollView } from "react-native";
+import { useLocalSearchParams, router, Link } from "expo-router";
+import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import * as Notifications from "expo-notifications";
-import { Dropdown } from "react-native-element-dropdown";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import DietaryPreferences from "@/components/user_info/DietaryPreferences";
-
+import { getAuth } from "firebase/auth";
 interface dietaryPreferencesInterface {
   [key: string]: boolean;
 }
 
 export default function DietaryPreferencesPanel() {
-  const { uid } = useLocalSearchParams();
+  const auth = getAuth();
+  const user_id = auth.currentUser?.uid;
   const [dietaryPreferences, setDietaryPreferences] =
     useState<dietaryPreferencesInterface>({
       is_vegetarian: false,
@@ -42,25 +38,14 @@ export default function DietaryPreferencesPanel() {
 
   const onSubmit = async () => {
     await addDoc(collection(db, "dietary_preferences"), {
-      user_id: uid,
+      user_id,
       ...dietaryPreferences,
     });
-    router.push({
-      pathname: "/(signup_questionnaire)/medical_history",
-      params: { uid },
-    });
+    router.push("/(signup_questionnaire)/medical_history");
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/home-image.png")}
-          style={styles.appLogo}
-        />
-      }
-    >
+    <ScrollView>
       <DietaryPreferences
         dietaryPreferences={dietaryPreferences}
         setDietaryPreferences={setDietaryPreferences}
@@ -69,9 +54,9 @@ export default function DietaryPreferencesPanel() {
         <Pressable style={styles.button} onPress={onSubmit}>
           <Text style={styles.buttonText}>NEXT</Text>
         </Pressable>
-        <Link href={"/(signup_questionnaire)/medical_history"}>Skip</Link>
       </View>
-    </ParallaxScrollView>
+      <Link href={"/(signup_questionnaire)/medical_history"}>Skip</Link>
+    </ScrollView>
   );
 }
 
