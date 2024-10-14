@@ -11,6 +11,15 @@ import { setHideDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
+import { addWaterData } from "@/store/trackSlice";
+
+interface WaterDataEntry {
+    id?: string;
+    date: string | Date;
+    intake_amount: number;
+    user_id: string;
+    waterType: string;
+}
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -42,26 +51,31 @@ export default function TrackWaterForm() {
     }
 
     const onSubmit = async () => {
-        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
-        setLoading(true);
+        if (auth?.currentUser?.uid) {
+            setLoading(true);
 
-        try {
-            let waterDate = new Date(currentDate);
-            waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
-            await addDoc(collection(db, "water_tracking"), { user_id: auth?.currentUser?.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType });
+            try {
+                let waterDate = new Date(currentDate);
+                waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
 
-            // Resetting Fields.
-            setWater("");
-            setIsWaterTypeFocus(false);
-            setWaterType(WaterTypeEnum.MILLILITRES);
-            setLoading(false);
-            // Resetting Fields.
 
-            dispatch(setHideDialog())
+                let addWater: WaterDataEntry = { user_id: auth.currentUser.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType }
+                dispatch(addWaterData({ addWater, currentDate }))
+
+                // Resetting Fields.
+                setWater("");
+                setIsWaterTypeFocus(false);
+                setWaterType(WaterTypeEnum.MILLILITRES);
+                setLoading(false);
+                // Resetting Fields.
+
+                dispatch(setHideDialog())
+            }
+            catch (error) {
+                setLoading(false);
+            }
         }
-        catch (error) {
-            setLoading(false);
-        }
+        else { router.push({ pathname: "/register" }); }
     }
 
     return (

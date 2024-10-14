@@ -1,11 +1,11 @@
 import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
-import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
 
 interface WaterDataEntry {
-  id: string;
-  date: string;
+  id?: string;
+  date: string | Date;
   intake_amount: number;
   user_id: string;
   waterType: string;
@@ -36,7 +36,7 @@ const initialState: TrackState = {
 };
 
 // Track Water.
-export const fetchWaterData = createAsyncThunk(
+export const fetchWaterData = createAsyncThunk( // Fetch Water Data.
   'track/fetchWaterData',
   async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
     const formattedMonth = `${year}-${month}`;
@@ -64,15 +64,14 @@ export const fetchWaterData = createAsyncThunk(
       }));
 
       return { formattedMonth, docData };
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
   }
 );
 
-export const deleteWaterData = createAsyncThunk(
+export const deleteWaterData = createAsyncThunk( // Delete Water Data.
   'track/deleteWaterData',
-  async ({ year, month, docId, currentDate }: { month: string, year: string, docId: string, currentDate: string }, thunkAPI) => {
+  async ({ docId, currentDate }: { docId: string, currentDate: string }, thunkAPI) => {
+    const [year, month, day] = currentDate.split('-');
     const formattedMonth = `${year}-${month}`;
     const state = thunkAPI.getState() as { track: TrackState }; // Access the current state
 
@@ -83,26 +82,55 @@ export const deleteWaterData = createAsyncThunk(
       state.track.waterData[formattedMonth].length > 0
     ) {
       // Use map to create an array of promises
-      const promises: any[] = state.track.waterData[formattedMonth].map(async (entry) => {
-        if ((new Date(entry.date).toISOString().split('T')[0] === currentDate) && (entry.id === docId)) {
-          try {
-            await deleteDoc(doc(db, "water_tracking", docId));
-            return null; // Return null for the entry to be removed
-          } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
-          }
+      const existingEntry = state.track.waterData[formattedMonth].find(
+        (entry) => (new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate) && (entry.id === docId)
+      );
+      
+      console.log('existingEntry', existingEntry);
+      if (existingEntry) {
+        try {
+          await deleteDoc(doc(db, "water_tracking", docId));
+
+          let docData = state.track.waterData[formattedMonth].filter((entry) => {
+            const entryDate = new Date(entry.date).toLocaleDateString().split('/').reverse().join('-');
+            return !(entryDate === currentDate && entry.id === docId);
+          });
+          return { formattedMonth, docData };
         }
-        return entry; // Return the entry if it doesn't match
-      });
+        catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+    } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+  }
+);
 
-      // Wait for all promises to resolve
-      const results: WaterDataEntry[] = await Promise.all(promises);
+export const addWaterData = createAsyncThunk( // Add Water Data.
+  'track/addWaterData',
+  async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
+    const [year, month, day] = currentDate.split('-');
 
-      // Filter out the null values
-      const newArray = results.filter((entry: WaterDataEntry) => entry !== null);
-      return { formattedMonth, docData: newArray };
-    }
-    else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState }; // Access the current state
+
+    if (
+      !Array.isArray(state.track.waterData) &&
+      formattedMonth in state.track.waterData &&
+      state.track.waterData[formattedMonth]
+    ) {
+      // Use map to create an array of promises
+      const existingEntry = state.track.waterData[formattedMonth].find(
+        (entry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+      );
+      
+      if (!existingEntry) {
+        try {
+          const newWaterDocumentRef = await addDoc(collection(db, "water_tracking"), addWater);
+          return { formattedMonth, docData: [ ...state.track.waterData[formattedMonth], { ...addWater, id: newWaterDocumentRef.id, date: new Date(addWater.date).toISOString() }] };
+        } 
+        catch (error: any) {
+          return thunkAPI.rejectWithValue(error.message);
+        }
+      } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+    } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
   }
 );
 // Track Water.
@@ -147,7 +175,16 @@ const trackSlice = createSlice({
         state.loadingTrackWaterData = false;
       })
       .addCase(deleteWaterData.rejected, (state, action) => {   // Delete Water Data - Error
-        console.error('Error fetching water data:', action.payload);
+        console.error('Error deleting water data:', action.payload);
+        state.loadingTrackWaterData = false;
+      })
+      .addCase(addWaterData.fulfilled, (state, action) => {  // Delete Water Data
+        const { formattedMonth, docData } = action.payload;
+        state.waterData[formattedMonth] = docData;
+        state.loadingTrackWaterData = false;
+      })
+      .addCase(addWaterData.rejected, (state, action) => {   // Delete Water Data - Error
+        console.error('Error adding water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
   }
