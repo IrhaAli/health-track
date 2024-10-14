@@ -132,21 +132,21 @@ const trackSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchWaterData.fulfilled, (state, action) => {
+      .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
         state.loadingTrackWaterData = false;
       })
-      .addCase(fetchWaterData.rejected, (state, action) => {
+      .addCase(fetchWaterData.rejected, (state, action) => {    // Fetch Water Data - Error
         console.error('Error fetching water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
-      .addCase(deleteWaterData.fulfilled, (state, action) => {
+      .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
         state.loadingTrackWaterData = false;
       })
-      .addCase(deleteWaterData.rejected, (state, action) => {
+      .addCase(deleteWaterData.rejected, (state, action) => {   // Delete Water Data - Error
         console.error('Error fetching water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
