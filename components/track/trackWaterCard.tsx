@@ -5,8 +5,8 @@ import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
 
 interface WaterDataEntry {
-    id: string;
-    date: string;
+    id?: string;
+    date: string | Date;
     intake_amount: number;
     user_id: string;
     waterType: string;
@@ -24,8 +24,8 @@ export default function TrackWaterCard() {
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
     const dispatch = useDispatch<AppDispatch>();
 
-    const deleteWaterRecords = async(docId: string) => {
-        dispatch(deleteWaterData({ currentDate: currentDate, year: currentMonth.year, month: currentMonth.month, docId: docId }))
+    const deleteWaterRecords = async (docId?: string) => {
+        if (docId) { dispatch(deleteWaterData({ currentDate: currentDate, docId: docId })) }
     }
 
     if (!Array.isArray(waterData)) {
@@ -33,7 +33,7 @@ export default function TrackWaterCard() {
             if (waterData[formattedMonth] && waterData[formattedMonth].length > 0) {
                 {
                     return waterData[formattedMonth]
-                        .filter(entry => new Date(entry.date).toISOString().split('T')[0] === currentDate)
+                        .filter(entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((water: WaterDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title
