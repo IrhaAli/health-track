@@ -18,11 +18,7 @@ export default function TrackCards() {
 
     useEffect(() => {
         if (user?.uid && currentMonth.month && currentMonth.year) {
-            dispatch(fetchWaterData({
-                month: String(currentMonth.month),
-                year: String(currentMonth.year),
-                userId: String(user.uid)
-            }));
+            dispatch(fetchWaterData({ month: String(currentMonth.month), year: String(currentMonth.year), userId: String(user.uid) }));
         }
     }, [user, currentMonth, dispatch]);
 
