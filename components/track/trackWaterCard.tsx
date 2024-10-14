@@ -1,9 +1,8 @@
 import React from "react";
 import { Card, Button, Text, Avatar } from 'react-native-paper';
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
-import { deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { deleteWaterData } from "@/store/trackSlice";
 
 interface WaterDataEntry {
     id: string;
@@ -23,14 +22,10 @@ export default function TrackWaterCard() {
     const waterData: WaterDataState | [] = useSelector((state: RootState) => state.track.waterData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
+    const dispatch = useDispatch<AppDispatch>();
 
     const deleteWaterRecords = async(docId: string) => {
-        try {
-            await deleteDoc(doc(db, "water_tracking", docId));
-        }
-        catch (error) {
-            console.log('error', error);
-        }
+        dispatch(deleteWaterData({ currentDate: currentDate, year: currentMonth.year, month: currentMonth.month, docId: docId }))
     }
 
     if (!Array.isArray(waterData)) {
