@@ -8,6 +8,7 @@ const initialState: TrackState = {
   currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
   currentMonth: { month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) },
   waterData: {},
+  sleepData: {},
   loadingTrackWaterData: true,
   loadingTrackDietData: true,
   loadingTrackSleepData: true,
@@ -43,6 +44,42 @@ export const fetchWaterData = createAsyncThunk( // Fetch Water Data
         intake_amount: item.data().intake_amount,
         user_id: item.data().user_id,
         waterType: item.data().waterType
+      }));
+
+      return { formattedMonth, docData };
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+  }
+);
+
+export const fetchSleepData = createAsyncThunk( // Fetch Sleep Data
+  'track/fetchSleepData',
+  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
+    const formattedMonth = `${year}-${month}`;
+    const [firstDate, lastDate] = [
+      new Date(Date.UTC(+year, +month - 1, 1)),
+      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
+    ];
+
+    const { track: { sleepData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
+
+    if (sleepData[formattedMonth]) { return { formattedMonth, docData: sleepData[formattedMonth] }; }
+
+    try {
+      const collectionData = query(
+        collection(db, "sleep_tracking"),
+        where("wakeup_time", ">=", firstDate),
+        where("wakeup_time", "<=", lastDate),
+        where("user_id", "==", userId)
+      );
+
+      const docSnap = await getDocs(collectionData);
+      const docData = docSnap.docs.map(item => ({
+        id: item.id,
+        bed_time: item.data().bed_time.toDate().toISOString(),
+        sleep_duration: item.data().sleep_duration,
+        sleep_quality: item.data().sleep_quality,
+        user_id: item.data().user_id,
+        wakeup_time: item.data().wakeup_time.toDate().toISOString()
       }));
 
       return { formattedMonth, docData };
