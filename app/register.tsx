@@ -38,7 +38,7 @@ const SignupForm = () => {
         const user: any = userCredential.user;
         const userInfo = {
           email: user.email,
-          uid: user.uid,
+          user_id: user.uid,
           auth_type: "EMAIL_PASSWORD",
         };
         setLoading(false);
@@ -53,7 +53,7 @@ const SignupForm = () => {
   };
 
   const onTestUser = () => {
-    setEmail("test@test.com");
+    setEmail("test" + `${Math.floor(Math.random() * 1000)}` + "@test.com");
     setPassword("test1234");
     setConfirmPassword("test1234");
   };
