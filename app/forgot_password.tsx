@@ -49,10 +49,14 @@ const ForgotPassword = () => {
       >
         Reset Password
       </Button>
+      <Link href="/login">Login</Link>
     </>
   ) : (
     <>
-      <Text style={[{ marginTop: 80 }]}>Email Sent!</Text>
+      <Text style={[{ marginTop: 80 }]}>
+        Email Sent! If you have an account with us, an email will be sent.
+        Please, also check your junk mail.
+      </Text>
       <Button mode="outlined" style={[{ marginLeft: 10 }]}>
         <Link href="/login">SIGN IN</Link>
       </Button>
