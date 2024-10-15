@@ -3,18 +3,7 @@ import { Card, Button, Text, Avatar } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
-
-interface WaterDataEntry {
-    id?: string;
-    date: string | Date;
-    intake_amount: number;
-    user_id: string;
-    waterType: string;
-}
-
-type WaterDataState = {
-    [key: string]: WaterDataEntry[];
-};
+import { WaterDataEntry, WaterDataState } from "../../types/track";
 
 export default function TrackWaterCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);

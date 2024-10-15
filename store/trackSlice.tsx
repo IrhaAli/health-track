@@ -2,28 +2,7 @@ import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-
-interface WaterDataEntry {
-  id?: string;
-  date: string | Date;
-  intake_amount: number;
-  user_id: string;
-  waterType: string;
-}
-
-type WaterDataState = {
-  [key: string]: WaterDataEntry[];
-};
-
-interface TrackState {
-  currentDate: string;
-  currentMonth: { month: string; year: string; };
-  waterData: WaterDataState;
-  loadingTrackWaterData: boolean;
-  loadingTrackDietData: boolean;
-  loadingTrackSleepData: boolean;
-  loadingTrackWeightData: boolean;
-}
+import { TrackState, WaterDataEntry } from "../types/track";
 
 const initialState: TrackState = {
   currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,

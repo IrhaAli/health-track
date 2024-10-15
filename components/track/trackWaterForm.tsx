@@ -12,14 +12,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWaterData } from "@/store/trackSlice";
-
-interface WaterDataEntry {
-    id?: string;
-    date: string | Date;
-    intake_amount: number;
-    user_id: string;
-    waterType: string;
-}
+import { WaterDataEntry } from "@/types/track";
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
