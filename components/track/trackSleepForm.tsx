@@ -14,8 +14,21 @@ import { getAuth } from "firebase/auth";
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const [sleepDateTime, setSleepDateTime] = useState(new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1)));
-    const [wakeupTime, setWakeupTime] = useState(new Date(currentDate));
+    const [sleepDateTime, setSleepDateTime] = useState(() => {
+        const date = new Date(currentDate);
+        date.setDate(date.getDate() - 1); // Set to the previous day
+        date.setHours(22, 0, 0, 0); // Set time to 10:00 AM
+        return date;
+    });
+    const [wakeupTime, setWakeupTime] = useState(() => {
+        const date = new Date(currentDate); // Initialize with the current date
+        const now = new Date(); // Get the current time
+
+        // Set the hours, minutes, and seconds to the current time
+        date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+
+        return date;
+    });
     const [sleepQuality, setSleepQuality] = useState(0);
     const [sleepDuration, setSleepDuration] = useState(0);
     const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
@@ -90,7 +103,23 @@ export default function TrackSleepForm() {
 
     const onWakeupTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowWakeupTimeSelector(false); }
-        if (date) { setWakeupTime(date); }
+        if (date) {
+            // Calculate the difference in milliseconds
+            const differenceInMillis = date.getTime() - sleepDateTime.getTime();
+
+            // Convert milliseconds to hours
+            const differenceInHours = differenceInMillis / (1000 * 60 * 60);
+
+            if (differenceInHours < 1) {
+                // Otherwise, adjust sleep time by subtracting one hour
+                const adjustedSleepTime = new Date(date.getTime() - (60 * 60 * 1000));
+                setSleepDateTime(adjustedSleepTime);
+                setWakeupTime(date);
+            } else {
+                // If the sleepDateTime is less than 1 hour from the date, set only wakeup time
+                setWakeupTime(date);
+            }
+        }
     }
 
     const onSubmit = async () => {
@@ -110,7 +139,7 @@ export default function TrackSleepForm() {
             setShowWakeupTimeSelector(false);
             setLoading(false);
             // Ressetting Fields.
-    
+
             dispatch(setHideDialog());
         }
         catch (error) {
@@ -126,10 +155,9 @@ export default function TrackSleepForm() {
                     {Platform.OS == "android" ?
                         <View style={styles.sleepTimeDateView}>
                             <Button icon="calendar" mode="text" onPress={() => { setShowSleepDateSelector(true); }} disabled={loading} textColor="blue">
-
                                 {` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}
                             </Button>
-                            {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />}
+                            {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} maximumDate={new Date(currentDate)} minimumDate={new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1))} />}
 
                             <Button icon="clock" mode="text" onPress={() => { setShowSleepTimeSelector(true); }} disabled={loading} textColor="blue">
                                 {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
@@ -148,7 +176,7 @@ export default function TrackSleepForm() {
                     <Text variant="titleLarge">Wakeup Time</Text>
                     {Platform.OS == "android" ?
                         <View>
-                            <Button icon="clock" mode="text" onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading} textColor="blue" style={[{alignSelf: 'flex-start'}]}>
+                            <Button icon="clock" mode="text" onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading} textColor="blue" style={[{ alignSelf: 'flex-start' }]}>
                                 {`${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
                             </Button>
                             {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
