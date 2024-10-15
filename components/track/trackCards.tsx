@@ -2,11 +2,12 @@ import { ScrollView } from "react-native";
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { fetchWaterData } from "@/store/trackSlice";
+import { fetchSleepData, fetchWaterData } from "@/store/trackSlice";
 import { getAuth } from "firebase/auth";
 
 // Local Components Start.
 import TrackWaterCard from "./trackWaterCard";
+import TrackSleepCard from "./trackSleepCard";
 // Local Components End.
 
 export default function TrackCards() {
@@ -19,12 +20,14 @@ export default function TrackCards() {
     useEffect(() => {
         if (user?.uid && currentMonth.month && currentMonth.year) {
             dispatch(fetchWaterData({ month: String(currentMonth.month), year: String(currentMonth.year), userId: String(user.uid) }));
+            dispatch(fetchSleepData({ month: String(currentMonth.month), year: String(currentMonth.year), userId: String(user.uid) }));
         }
     }, [user, currentMonth, dispatch]);
 
     return (
         <ScrollView>
             <TrackWaterCard></TrackWaterCard>
+            <TrackSleepCard></TrackSleepCard>
         </ScrollView>
     );
 }
