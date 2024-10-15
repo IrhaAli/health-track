@@ -179,6 +179,15 @@ const trackSlice = createSlice({
         console.error('Error fetching water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
+      .addCase(fetchSleepData.fulfilled, (state, action) => {   // Fetch Sleep Data
+        const { formattedMonth, docData } = action.payload;
+        state.sleepData[formattedMonth] = docData;
+        state.loadingTrackSleepData = false;
+      })
+      .addCase(fetchSleepData.rejected, (state, action) => {    // Fetch Sleep Data - Error
+        console.error('Error fetching sleep data:', action.payload);
+        state.loadingTrackSleepData = false;
+      })
       .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
