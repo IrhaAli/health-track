@@ -93,11 +93,28 @@ export default function TrackSleepForm() {
     const onSleepTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowSleepTimeSelector(false); }
         if (date) {
-            setSleepDateTime(prev => {
-                const newDateTime = new Date(prev || date);
-                newDateTime.setHours(date.getHours(), date.getMinutes());
-                return newDateTime;
-            });
+            // Calculate the difference in milliseconds
+            const differenceInMillis = wakeupTime.getTime() - date.getTime();
+
+            // Convert milliseconds to hours
+            const differenceInHours = differenceInMillis / (1000 * 60 * 60);
+            console.log('differenceInHours', differenceInHours);
+
+            if (differenceInHours < 1) {
+                const adjustedWakeupTime = new Date(date.getTime() + (60 * 60 * 1000));
+                setWakeupTime(adjustedWakeupTime);
+                setSleepDateTime(prev => {
+                    const newDateTime = new Date(prev || date);
+                    newDateTime.setHours(date.getHours(), date.getMinutes());
+                    return newDateTime;
+                });
+            } else {
+                setSleepDateTime(prev => {
+                    const newDateTime = new Date(prev || date);
+                    newDateTime.setHours(date.getHours(), date.getMinutes());
+                    return newDateTime;
+                });
+            }
         }
     }
 
