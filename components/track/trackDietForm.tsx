@@ -17,7 +17,15 @@ export default function TrackDietForm() {
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();
-    const [mealTime, setMealTime] = useState(new Date(currentDate));
+    const [mealTime, setMealTime] = useState(() => {
+        const date = new Date(currentDate); // Initialize with the current date
+        const now = new Date(); // Get the current time
+      
+        // Set the hours, minutes, and seconds to the current time
+        date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+      
+        return date;
+    });
     const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
     const [loading, setLoading] = useState(false);
     const auth = getAuth();
