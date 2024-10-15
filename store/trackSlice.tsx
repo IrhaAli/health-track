@@ -15,15 +15,18 @@ const initialState: TrackState = {
 };
 
 // Track Water.
-export const fetchWaterData = createAsyncThunk( // Fetch Water Data.
+export const fetchWaterData = createAsyncThunk( // Fetch Water Data
   'track/fetchWaterData',
   async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
     const formattedMonth = `${year}-${month}`;
-    const firstDate = new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, 1));
-    const lastDate = new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999));
-    const state = thunkAPI.getState() as { track: TrackState }; // Access the current state
+    const [firstDate, lastDate] = [
+      new Date(Date.UTC(+year, +month - 1, 1)),
+      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
+    ];
 
-    if (state.track.waterData[formattedMonth]) { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+    const { track: { waterData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
+
+    if (waterData[formattedMonth]) { return { formattedMonth, docData: waterData[formattedMonth] }; }
 
     try {
       const collectionData = query(
@@ -49,67 +52,58 @@ export const fetchWaterData = createAsyncThunk( // Fetch Water Data.
 
 export const deleteWaterData = createAsyncThunk( // Delete Water Data.
   'track/deleteWaterData',
-  async ({ docId, currentDate }: { docId: string, currentDate: string }, thunkAPI) => {
-    const [year, month, day] = currentDate.split('-');
+  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
     const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState }; // Access the current state
+    const state = thunkAPI.getState() as { track: TrackState };
+    const waterData = state.track.waterData?.[formattedMonth];
 
-    if (
-      !Array.isArray(state.track.waterData) &&
-      formattedMonth in state.track.waterData &&
-      state.track.waterData[formattedMonth] &&
-      state.track.waterData[formattedMonth].length > 0
-    ) {
-      // Use map to create an array of promises
-      const existingEntry = state.track.waterData[formattedMonth].find(
-        (entry) => (new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate) && (entry.id === docId)
+    if (Array.isArray(waterData) && waterData.length > 0) {
+      const existingEntry = waterData.find(
+        (entry) =>
+          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+          entry.id === docId
       );
-      
-      console.log('existingEntry', existingEntry);
+
       if (existingEntry) {
         try {
           await deleteDoc(doc(db, "water_tracking", docId));
-
-          let docData = state.track.waterData[formattedMonth].filter((entry) => {
-            const entryDate = new Date(entry.date).toLocaleDateString().split('/').reverse().join('-');
-            return !(entryDate === currentDate && entry.id === docId);
-          });
+          const docData = waterData.filter(
+            (entry) =>
+              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+                entry.id === docId)
+          );
           return { formattedMonth, docData };
-        }
-        catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
-    } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      }
+    }
+    return { formattedMonth, docData: waterData || [] };
   }
 );
 
 export const addWaterData = createAsyncThunk( // Add Water Data.
   'track/addWaterData',
   async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
-    const [year, month, day] = currentDate.split('-');
-
+    const [year, month] = currentDate.split('-');
     const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState }; // Access the current state
+    const state = thunkAPI.getState() as { track: TrackState };
+    const waterDataForMonth = state.track.waterData?.[formattedMonth] || [];
 
-    if (
-      !Array.isArray(state.track.waterData) &&
-      formattedMonth in state.track.waterData &&
-      state.track.waterData[formattedMonth]
-    ) {
-      // Use map to create an array of promises
-      const existingEntry = state.track.waterData[formattedMonth].find(
-        (entry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-      );
-      
-      if (!existingEntry) {
-        try {
-          const newWaterDocumentRef = await addDoc(collection(db, "water_tracking"), addWater);
-          return { formattedMonth, docData: [ ...state.track.waterData[formattedMonth], { ...addWater, id: newWaterDocumentRef.id, date: new Date(addWater.date).toISOString() }] };
-        } 
-        catch (error: any) {
-          return thunkAPI.rejectWithValue(error.message);
-        }
-      } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
-    } else { return { formattedMonth, docData: state.track.waterData[formattedMonth] }; }
+    const existingEntry = waterDataForMonth.find(
+      entry => new Date(entry.date).toISOString().split('T')[0] === currentDate
+    );
+
+    if (existingEntry) {
+      return { formattedMonth, docData: waterDataForMonth };
+    }
+
+    try {
+      const newWaterDocumentRef = await addDoc(collection(db, "water_tracking"), addWater);
+      const newEntry = { ...addWater, id: newWaterDocumentRef.id, date: new Date(addWater.date).toISOString() };
+      return { formattedMonth, docData: [...waterDataForMonth, newEntry] };
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
   }
 );
 // Track Water.
