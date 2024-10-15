@@ -7,7 +7,7 @@ import { SleepDataEntry, SleepDataState } from "../../types/track";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="glass-pint-outline" />
+    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="moon-waning-crescent" />
     const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
