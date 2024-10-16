@@ -2,8 +2,8 @@ import React from "react";
 import { Card, Button, Text, Avatar } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-// import { deleteWaterData } from "@/store/trackSlice";
 import { SleepDataEntry, SleepDataState } from "../../types/track";
+import { deleteSleepData } from "@/store/trackSlice";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -13,9 +13,10 @@ export default function TrackSleepCard() {
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
     const dispatch = useDispatch<AppDispatch>();
 
-    // const deleteSleepRecords = async (docId?: string) => {
-    //     if (docId) { dispatch(deleteSleepData({ currentDate: currentDate, docId: docId })) }
-    // }
+    const deleteSleepRecords = async (docId?: string) => {
+        console.log('docId in deleteSleepRecords', docId);
+        if (docId) { dispatch(deleteSleepData({ currentDate: currentDate, docId: docId })) }
+    }
 
     if (!Array.isArray(sleepData)) {
         if (formattedMonth in sleepData) {
@@ -39,7 +40,7 @@ export default function TrackSleepCard() {
                                     </Text>
                                 </Card.Content>
                                 <Card.Actions>
-                                    {/* <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button> */}
+                                    <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
                                     <Button icon="pencil">Edit</Button>
                                 </Card.Actions>
                             </Card>
