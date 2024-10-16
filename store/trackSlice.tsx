@@ -2,7 +2,7 @@ import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import { TrackState, WaterDataEntry } from "../types/track";
+import { SleepDataEntry, TrackState, WaterDataEntry } from "../types/track";
 
 const initialState: TrackState = {
   currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
@@ -118,6 +118,37 @@ export const deleteWaterData = createAsyncThunk( // Delete Water Data.
   }
 );
 
+export const deleteSleepData = createAsyncThunk( // Delete Sleep Data.
+  'track/deleteSleepData',
+  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const sleepData = state.track.sleepData?.[formattedMonth];
+
+    if (Array.isArray(sleepData) && sleepData.length > 0) {
+      const existingEntry = sleepData.find(
+        (entry) =>
+          new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+          entry.id === docId
+      );
+
+      if (existingEntry) {
+        try {
+          await deleteDoc(doc(db, "sleep_tracking", docId));
+          const docData = sleepData.filter(
+            (entry) =>
+              !(new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+                entry.id === docId)
+          );
+          return { formattedMonth, docData };
+        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      }
+    }
+    return { formattedMonth, docData: sleepData || [] };
+  }
+);
+
 export const addWaterData = createAsyncThunk( // Add Water Data.
   'track/addWaterData',
   async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
@@ -127,7 +158,7 @@ export const addWaterData = createAsyncThunk( // Add Water Data.
     const waterDataForMonth = state.track.waterData?.[formattedMonth] || [];
 
     const existingEntry = waterDataForMonth.find(
-      entry => new Date(entry.date).toISOString().split('T')[0] === currentDate
+      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
     );
 
     if (existingEntry) {
@@ -138,6 +169,32 @@ export const addWaterData = createAsyncThunk( // Add Water Data.
       const newWaterDocumentRef = await addDoc(collection(db, "water_tracking"), addWater);
       const newEntry = { ...addWater, id: newWaterDocumentRef.id, date: new Date(addWater.date).toISOString() };
       return { formattedMonth, docData: [...waterDataForMonth, newEntry] };
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const addSleepData = createAsyncThunk( // Add Sleep Data.
+  'track/addSleepData',
+  async ({ currentDate, addSleep }: { currentDate: string, addSleep: SleepDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const sleepDataForMonth = state.track.sleepData?.[formattedMonth] || [];
+
+    const existingEntry = sleepDataForMonth.find(
+      entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (existingEntry) {
+      return { formattedMonth, docData: sleepDataForMonth };
+    }
+
+    try {
+      const newSleepDocumentRef = await addDoc(collection(db, "sleep_tracking"), addSleep);
+      const newEntry = { ...addSleep, id: newSleepDocumentRef.id, wakeup_time: new Date(addSleep.wakeup_time).toISOString(), bed_time: new Date(addSleep.bed_time).toISOString() };
+      return { formattedMonth, docData: [...sleepDataForMonth, newEntry] };
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -197,14 +254,32 @@ const trackSlice = createSlice({
         console.error('Error deleting water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
-      .addCase(addWaterData.fulfilled, (state, action) => {  // Delete Water Data
+      .addCase(deleteSleepData.fulfilled, (state, action) => {  // Delete Sleep Data
+        const { formattedMonth, docData } = action.payload;
+        state.sleepData[formattedMonth] = docData;
+        state.loadingTrackSleepData = false;
+      })
+      .addCase(deleteSleepData.rejected, (state, action) => {   // Delete Sleep Data - Error
+        console.error('Error deleting water data:', action.payload);
+        state.loadingTrackSleepData = false;
+      })
+      .addCase(addWaterData.fulfilled, (state, action) => {  // Add Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
         state.loadingTrackWaterData = false;
       })
-      .addCase(addWaterData.rejected, (state, action) => {   // Delete Water Data - Error
+      .addCase(addWaterData.rejected, (state, action) => {   // Add Water Data - Error
         console.error('Error adding water data:', action.payload);
         state.loadingTrackWaterData = false;
+      })
+      .addCase(addSleepData.fulfilled, (state, action) => {  // Add Sleep Data
+        const { formattedMonth, docData } = action.payload;
+        state.sleepData[formattedMonth] = docData;
+        state.loadingTrackSleepData = false;
+      })
+      .addCase(addSleepData.rejected, (state, action) => {   // Add Sleep Data - Error
+        console.error('Error adding water data:', action.payload);
+        state.loadingTrackSleepData = false;
       })
   }
 });
