@@ -10,6 +10,8 @@ import { setHideDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
+import { SleepDataEntry } from "@/types/track";
+import { addSleepData } from "@/store/trackSlice";
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -140,28 +142,32 @@ export default function TrackSleepForm() {
     }
 
     const onSubmit = async () => {
-        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
-        setLoading(true);
+        if (auth?.currentUser?.uid) {
+            setLoading(true);
 
-        try {
-            await addDoc(collection(db, "sleep_tracking"), { user_id: auth?.currentUser?.uid, sleepDateTime, wakeupTime, sleepQuality, sleepDuration });
+            try {
 
-            // Ressetting Fields.
-            setSleepDateTime(new Date());
-            setWakeupTime(new Date());
-            setSleepQuality(0);
-            setSleepDuration(0);
-            setShowSleepDateSelector(false);
-            setShowSleepTimeSelector(false);
-            setShowWakeupTimeSelector(false);
-            setLoading(false);
-            // Ressetting Fields.
+                let sleepData: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
+                dispatch(addSleepData({currentDate: currentDate, addSleep: sleepData}))
 
-            dispatch(setHideDialog());
+                // Ressetting Fields.
+                setSleepDateTime(new Date());
+                setWakeupTime(new Date());
+                setSleepQuality(0);
+                setSleepDuration(0);
+                setShowSleepDateSelector(false);
+                setShowSleepTimeSelector(false);
+                setShowWakeupTimeSelector(false);
+                setLoading(false);
+                // Ressetting Fields.
+
+                dispatch(setHideDialog());
+            }
+            catch (error) {
+                setLoading(false);
+            }
         }
-        catch (error) {
-            setLoading(false);
-        }
+        else { router.push({ pathname: "/register" }); }
     }
 
     return (
