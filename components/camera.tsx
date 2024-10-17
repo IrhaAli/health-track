@@ -1,11 +1,12 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button, Pressable, Dimensions, SafeAreaView } from "react-native";
-import { useCameraPermissions } from "expo-camera";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable } from "react-native";
+import { useCameraPermissions, CameraView } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { setHideCamera, setImageURI } from "@/store/cameraSlice";
-import { setDialog } from "@/store/trackDialogSlice";
+import { Dialog, Portal, Button, Avatar, Icon } from "react-native-paper";
+import { useWindowDimensions } from "react-native";
 
 export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
@@ -14,7 +15,8 @@ export default function AppCamera() {
     const [timer, setTimer] = useState("");
     const [cameraSide, setCameraSide] = useState(CameraType.back);
     const dispatch = useDispatch<AppDispatch>();
-    const { width, height } = Dimensions.get('window');
+    const { width } = useWindowDimensions();
+    const height = Math.round((width * 16) / 9);
 
     const toggleCameraFacing = () => {
         setCameraSide((current) =>
@@ -27,64 +29,49 @@ export default function AppCamera() {
         dispatch(setImageURI(data.uri));
         setTimer("");
         dispatch(setHideCamera());
-        dispatch(setDialog({showDialog: true}))
     };
 
     return (
-        <SafeAreaView>
-            {showCamera && (!permission ? (
-                <View />
-            ) : !permission.granted ? (
-                <View>
+        <Portal>
+            <Dialog visible={showCamera} style={[{ width: '100%', height: '100%', left: -26, position: 'relative', borderRadius: 0, padding: 0, margin: 0, backgroundColor: '#000' }]} dismissable={false}>
+                {showCamera && (!permission ? (
+                    <View />
+                ) : !permission.granted ? (
                     <View>
-                        <Text style={styles.message}>We need your permission to show the camera</Text>
-                        <Button onPress={requestPermission} title="grant permission" />
-                    </View>
-                </View>
-            ) : (
-                <>
-                    <Camera style={[{ height: '70%' }]} type={cameraSide} ref={cameraRef} autoFocus={false} focusDepth={0} focusable={true}>
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.cameraButton} onPress={toggleCameraFacing}>
-                                <Text style={styles.text}>Flip Camera</Text>
-                                <Text style={styles.text}>{timer}</Text>
-                            </TouchableOpacity>
-
-                            <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setDialog({showDialog: true})) }}>
-                                <Text>CANCEL</Text>
-                            </Pressable>
-
-                            <Pressable onPress={takePhoto}>
-                                <Text>TAKE PHOTO</Text>
-                            </Pressable>
+                        <View>
+                            <Text style={styles.message}>We need your permission to show the camera</Text>
+                            <Button onPress={requestPermission} >grant permission</Button>
                         </View>
-                    </Camera>
-                </>
-            ))}
-        </SafeAreaView>
+                    </View>
+                ) : (
+                    <View style={[{height: '100%', width: '100%', backgroundColor: '#000', justifyContent: 'center'}]}>
+                        <Camera style={[{ width: '100%', height, alignSelf: 'center', zIndex: 999, backgroundColor: '#000', justifyContent: 'flex-end' }]} type={cameraSide} ratio="16:9" ref={cameraRef} focusable={true} autoFocus={true}>
+                            <View style={styles.buttonContainer}>
+                                <Button mode="text" onPress={toggleCameraFacing} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="camera-flip" color="#fff" />)}>{''}</Button>
+                                
+                                <Button mode="text" onPress={takePhoto} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="camera" color="#fff" />)}>{''}</Button>
+                                
+                                <Button mode="text" onPress={() => { dispatch(setHideCamera()); }} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="close" color="#fff" />)}>{''}</Button>                       
+                            </View>
+                        </Camera>
+                    </View>
+                ))}
+            </Dialog>
+        </Portal>
     )
 }
 
 const styles = StyleSheet.create({
-    text: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "white",
-    },
     buttonContainer: {
-        flex: 1,
+        width: '100%',
         flexDirection: "row",
-        backgroundColor: "transparent",
         alignItems: 'flex-end',
-        justifyContent: 'center'
+        justifyContent: 'space-between',
+        alignSelf: 'flex-start',
+        paddingBottom: 10
     },
     message: {
         textAlign: "center",
         paddingBottom: 10,
-    },
-    cameraButton: {
-        flex: 1,
-        alignSelf: "flex-end",
-        alignItems: "center",
     },
 })
