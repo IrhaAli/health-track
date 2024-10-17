@@ -34,8 +34,6 @@ export default function TrackWeightCard() {
                                     <Image
                                         style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
                                         source={{ uri: weight.picture }}
-                                        onError={(error) => console.error('Image loading error:', error.nativeEvent.error)}
-
                                     />
                                 </Card.Content>
                                 <Card.Actions>
