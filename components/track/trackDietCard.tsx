@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { DietDataEntry, DietDataState } from "../../types/track";
 import { deleteDietData } from "@/store/trackSlice";
+import { Image } from "react-native";
 
 export default function TrackDietCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -26,14 +27,16 @@ export default function TrackDietCard() {
                         .map((diet: DietDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title
-                                    title={`Date: ${new Date(diet.date).toLocaleDateString()}`}
-                                    subtitle={`User ID: ${diet.user_id}`}
+                                    title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                     left={LeftContent}
                                 />
                                 <Card.Content>
-                                    <Text variant="titleLarge">
-                                        Diet Duration:
-                                    </Text>
+                                    <Image
+                                        style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
+                                        source={{ uri: diet.meal_picture }}
+                                        onError={(error) => console.error('Image loading error:', error.nativeEvent.error)}
+
+                                    />
                                 </Card.Content>
                                 <Card.Actions>
                                     <Button icon="delete" onPress={() => { deleteDietRecords(diet.id); }}>Delete</Button>

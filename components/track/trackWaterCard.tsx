@@ -26,15 +26,9 @@ export default function TrackWaterCard() {
                         .map((water: WaterDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title
-                                    title={`Date: ${new Date(water.date).toLocaleDateString()}`}
-                                    subtitle={`User ID: ${water.user_id}`}
+                                    title={`Total Water Consumed: ${water.intake_amount} ${water.waterType}`}
                                     left={LeftContent}
                                 />
-                                <Card.Content>
-                                    <Text variant="titleLarge">
-                                        Intake Amount: {water.intake_amount} {water.waterType}
-                                    </Text>
-                                </Card.Content>
                                 <Card.Actions>
                                     <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
                                     <Button icon="pencil">Edit</Button>

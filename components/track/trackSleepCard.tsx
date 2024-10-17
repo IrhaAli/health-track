@@ -18,6 +18,9 @@ export default function TrackSleepCard() {
         if (docId) { dispatch(deleteSleepData({ currentDate: currentDate, docId: docId })) }
     }
 
+    const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
+        `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
+
     if (!Array.isArray(sleepData)) {
         if (formattedMonth in sleepData) {
             if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
@@ -27,18 +30,10 @@ export default function TrackSleepCard() {
                         .map((sleep: SleepDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title
-                                    title={`Date: ${new Date(sleep.wakeup_time).toLocaleDateString()}`}
-                                    subtitle={`User ID: ${sleep.user_id}`}
+                                    title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`}
+                                    subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`}
                                     left={LeftContent}
                                 />
-                                <Card.Content>
-                                    <Text variant="titleLarge">
-                                        Sleep Duration: {sleep.sleep_duration}
-                                    </Text>
-                                    <Text variant="titleLarge">
-                                        Sleep Quality: {sleep.sleep_quality}
-                                    </Text>
-                                </Card.Content>
                                 <Card.Actions>
                                     <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
                                     <Button icon="pencil">Edit</Button>
