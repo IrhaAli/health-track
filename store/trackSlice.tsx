@@ -150,7 +150,7 @@ export const fetchDietData = createAsyncThunk( // Fetch Diet Data
       const docData: DietDataEntry[] = docSnap.docs.map(item => ({
         id: item.id,
         date: item.data().date.toDate().toISOString(),
-        meal_picture: item.data().picture,
+        meal_picture: item.data().meal_picture,
         user_id: item.data().user_id,
       }));
 
