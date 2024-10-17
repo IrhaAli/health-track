@@ -9,7 +9,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Divider, Button } from 'react-native-paper';
+import { Divider, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWaterData } from "@/store/trackSlice";
 import { WaterDataEntry } from "@/types/track";
@@ -23,10 +23,13 @@ enum WaterTypeEnum {
 export default function TrackWaterForm() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const waterData = useSelector((state: RootState) => state.track.waterData);
     const [water, setWater] = useState("");
-    const [isWaterTypeFocus, setIsWaterTypeFocus] = useState(false);
-    const [waterType, setWaterType] = useState(WaterTypeEnum.MILLILITRES);
-    const [loading, setLoading] = useState(false);
+    const [isWaterTypeFocus, setIsWaterTypeFocus] = useState<boolean>(false);
+    const [waterType, setWaterType] = useState<WaterTypeEnum>(WaterTypeEnum.MILLILITRES);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [showError, setShowError] = useState<boolean>(false);
+    const [errorString, setErrorString] = useState<string | null>(null);
     const auth = getAuth();
 
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
@@ -44,6 +47,23 @@ export default function TrackWaterForm() {
     }
 
     const onSubmit = async () => {
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+        const waterDataForMonth = waterData?.[formattedMonth] || [];
+
+        setShowError(false);
+        setErrorString(null);
+
+        const existingEntry = waterDataForMonth.find(
+            entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+        );
+
+        if (existingEntry) {
+            setShowError(true);
+            setErrorString('Water data already exists!');
+            return;
+        }
+
         if (auth?.currentUser?.uid) {
             setLoading(true);
 
@@ -110,8 +130,10 @@ export default function TrackWaterForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>Submit</Button>
             </View>
+
+            <HelperText type="error" visible={showError}>{errorString}</HelperText>
         </View>
     );
 }
