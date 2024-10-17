@@ -351,17 +351,13 @@ export const addWeightData = createAsyncThunk( // Add Weight Data.
       entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
     );
 
-    if (existingEntry) { console.log('weightData exists'); return { formattedMonth, docData: weightDataForMonth }; }
+    if (existingEntry) { return { formattedMonth, docData: weightDataForMonth }; }
 
     try {
       const newWeightDocumentRef = await addDoc(collection(db, "weight_tracking"), addWeight);
-      console.log('newWeightDocumentRef', newWeightDocumentRef);
       const newEntry = { ...addWeight, id: newWeightDocumentRef.id, date: new Date(addWeight.date).toISOString() };
       return { formattedMonth, docData: [...weightDataForMonth, newEntry] };
-    } catch (error: any) {
-      console.log('error in add', error);
-      return thunkAPI.rejectWithValue(error.message);
-    }
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
   }
 );
 
@@ -377,7 +373,7 @@ export const addDietData = createAsyncThunk( // Add Diet Data.
     //   entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
     // );
 
-    // if (existingEntry) { console.log('dietData exists'); return { formattedMonth, docData: dietDataForMonth }; }
+    // if (existingEntry) { return { formattedMonth, docData: dietDataForMonth }; }
 
     try {
       const newDietDocumentRef = await addDoc(collection(db, "diet_tracking"), addDiet);
