@@ -98,7 +98,7 @@ export default function TrackDietForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !imageURI} loading={loading}>Submit</Button>
             </View>
         </View>
     )
