@@ -242,7 +242,7 @@ export default function TrackSleepForm() {
                 <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
             </View>
 
-            <HelperText type="error" visible={showError}>{errorString}</HelperText>
+            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
         </View>
     );
 }

@@ -133,7 +133,7 @@ export default function TrackWaterForm() {
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>Submit</Button>
             </View>
 
-            <HelperText type="error" visible={showError}>{errorString}</HelperText>
+            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
         </View>
     );
 }
