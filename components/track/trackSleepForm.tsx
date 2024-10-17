@@ -166,8 +166,8 @@ export default function TrackSleepForm() {
             setLoading(true);
             
             try {
-                let sleepData: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                dispatch(addSleepData({currentDate: currentDate, addSleep: sleepData}));
+                let addSleep: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
+                dispatch(addSleepData({currentDate: currentDate, addSleep: addSleep}));
 
                 // Ressetting Fields.
                 setSleepDateTime(new Date());
@@ -181,12 +181,8 @@ export default function TrackSleepForm() {
                 // Ressetting Fields.
 
                 dispatch(setHideDialog());
-            }
-            catch (error) {
-                setLoading(false);
-            }
-        }
-        else { router.push({ pathname: "/register" }); }
+            } catch (error) { setLoading(false); }
+        } else { router.push({ pathname: "/register" }); }
     }
 
     return (
