@@ -167,7 +167,7 @@ export default function TrackSleepForm() {
             
             try {
                 let sleepData: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                dispatch(addSleepData({currentDate: currentDate, addSleep: sleepData}))
+                dispatch(addSleepData({currentDate: currentDate, addSleep: sleepData}));
 
                 // Ressetting Fields.
                 setSleepDateTime(new Date());
