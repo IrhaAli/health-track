@@ -2,7 +2,7 @@ import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import { SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
+import { DietDataEntry, SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
 
 const initialState: TrackState = {
   currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
@@ -17,7 +17,7 @@ const initialState: TrackState = {
   loadingTrackWeightData: true
 };
 
-// Track Water.
+// Fetch.
 export const fetchWaterData = createAsyncThunk( // Fetch Water Data
   'track/fetchWaterData',
   async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
@@ -40,7 +40,7 @@ export const fetchWaterData = createAsyncThunk( // Fetch Water Data
       );
 
       const docSnap = await getDocs(collectionData);
-      const docData = docSnap.docs.map(item => ({
+      const docData: WaterDataEntry[] = docSnap.docs.map(item => ({
         id: item.id,
         date: item.data().date.toDate().toISOString(),
         intake_amount: item.data().intake_amount,
@@ -75,7 +75,7 @@ export const fetchSleepData = createAsyncThunk( // Fetch Sleep Data
       );
 
       const docSnap = await getDocs(collectionData);
-      const docData = docSnap.docs.map(item => ({
+      const docData: SleepDataEntry[] = docSnap.docs.map(item => ({
         id: item.id,
         bed_time: item.data().bed_time.toDate().toISOString(),
         sleep_duration: item.data().sleep_duration,
@@ -111,7 +111,7 @@ export const fetchWeightData = createAsyncThunk( // Fetch Weight Data
       );
 
       const docSnap = await getDocs(collectionData);
-      const docData = docSnap.docs.map(item => ({
+      const docData: WeightDataEntry[] = docSnap.docs.map(item => ({
         id: item.id,
         date: item.data().date.toDate().toISOString(),
         measurement_unit: item.data().measurement_unit,
@@ -125,6 +125,42 @@ export const fetchWeightData = createAsyncThunk( // Fetch Weight Data
   }
 );
 
+export const fetchDietData = createAsyncThunk( // Fetch Diet Data
+  'track/fetchDietData',
+  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
+    const formattedMonth = `${year}-${month}`;
+    const [firstDate, lastDate] = [
+      new Date(Date.UTC(+year, +month - 1, 1)),
+      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
+    ];
+
+    const { track: { dietData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
+
+    if (dietData[formattedMonth]) { return { formattedMonth, docData: dietData[formattedMonth] }; }
+
+    try {
+      const collectionData = query(
+        collection(db, "diet_tracking"),
+        where("date", ">=", firstDate),
+        where("date", "<=", lastDate),
+        where("user_id", "==", userId)
+      );
+
+      const docSnap = await getDocs(collectionData);
+      const docData: DietDataEntry[] = docSnap.docs.map(item => ({
+        id: item.id,
+        date: item.data().date.toDate().toISOString(),
+        meal_picture: item.data().picture,
+        user_id: item.data().user_id,
+      }));
+
+      return { formattedMonth, docData };
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+  }
+);
+// Fetch.
+
+// Delete.
 export const deleteWaterData = createAsyncThunk( // Delete Water Data.
   'track/deleteWaterData',
   async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
@@ -217,7 +253,9 @@ export const deleteWeightData = createAsyncThunk( // Delete Weight Data.
     return { formattedMonth, docData: weightData || [] };
   }
 );
+// Delete.
 
+// Add.
 export const addWaterData = createAsyncThunk( // Add Water Data.
   'track/addWaterData',
   async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
@@ -295,7 +333,7 @@ export const addWeightData = createAsyncThunk( // Add Weight Data.
     }
   }
 );
-// Track Water.
+// Add.
 
 const trackSlice = createSlice({
   name: 'track',
@@ -322,6 +360,7 @@ const trackSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+    // Fetch
       .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -349,6 +388,18 @@ const trackSlice = createSlice({
         console.error('Error fetching sleep data:', action.payload);
         state.loadingTrackWeightData = false;
       })
+      .addCase(fetchDietData.fulfilled, (state, action) => {   // Fetch Diet Data
+        const { formattedMonth, docData } = action.payload;
+        state.dietData[formattedMonth] = docData;
+        state.loadingTrackDietData = false;
+      })
+      .addCase(fetchDietData.rejected, (state, action) => {    // Fetch Diet Data - Error
+        console.error('Error fetching sleep data:', action.payload);
+        state.loadingTrackDietData = false;
+      })
+      // Fetch
+
+      // Delete
       .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -376,6 +427,9 @@ const trackSlice = createSlice({
         console.error('Error deleting water data:', action.payload);
         state.loadingTrackWeightData = false;
       })
+      // Delete
+
+      // Add
       .addCase(addWaterData.fulfilled, (state, action) => {  // Add Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -403,6 +457,7 @@ const trackSlice = createSlice({
         console.error('Error adding water data:', action.payload);
         state.loadingTrackWeightData = false;
       })
+      // Add
   }
 });
 
