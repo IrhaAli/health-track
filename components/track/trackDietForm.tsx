@@ -33,7 +33,13 @@ export default function TrackDietForm() {
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
-        if (date) { setMealTime(date); }
+        if (date) { 
+            setMealTime(prev => {
+                const newDateTime = new Date(prev || date);
+                newDateTime.setHours(date.getHours(), date.getMinutes());
+                return newDateTime;
+            });
+        }
     }
 
     const uploadImage = async () => {
