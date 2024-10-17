@@ -22,7 +22,7 @@ export default function TrackWeightCard() {
             if (weightData[formattedMonth] && weightData[formattedMonth].length > 0) {
                 {
                     return weightData[formattedMonth]
-                        .filter(entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
+                        .filter((entry: WeightDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((weight: WeightDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title

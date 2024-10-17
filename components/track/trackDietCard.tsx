@@ -22,7 +22,7 @@ export default function TrackDietCard() {
             if (dietData[formattedMonth] && dietData[formattedMonth].length > 0) {
                 {
                     return dietData[formattedMonth]
-                        .filter(entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
+                        .filter((entry: DietDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((diet: DietDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title

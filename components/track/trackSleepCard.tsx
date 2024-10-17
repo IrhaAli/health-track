@@ -23,7 +23,7 @@ export default function TrackSleepCard() {
             if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
                 {
                     return sleepData[formattedMonth]
-                        .filter(entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate)
+                        .filter((entry: SleepDataEntry) => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((sleep: SleepDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title

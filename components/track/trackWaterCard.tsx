@@ -22,7 +22,7 @@ export default function TrackWaterCard() {
             if (waterData[formattedMonth] && waterData[formattedMonth].length > 0) {
                 {
                     return waterData[formattedMonth]
-                        .filter(entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
+                        .filter((entry: WaterDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((water: WaterDataEntry, index: number) => (
                             <Card key={index} style={{ margin: 10 }}>
                                 <Card.Title
