@@ -4,18 +4,18 @@ import TrackSleepForm from "./trackSleepForm";
 import TrackWaterForm from "./trackWaterForm";
 import TrackDietForm from "./trackDietForm";
 import TrackWeightForm from "./trackWeightForm";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
-interface TrackFormsProps {
-    formTab: string;
-}
+export default function TrackForms() {
+    const dialogTab = useSelector((state: RootState) => state.trackDialog.dialogTab);
 
-export default function TrackForms({ formTab }: TrackFormsProps) {
     return (
         <View>
-            {formTab === "sleep" && ( <TrackSleepForm></TrackSleepForm> )}
-            {formTab === "diet" && ( <TrackDietForm></TrackDietForm> )}
-            {formTab === "water" && ( <TrackWaterForm></TrackWaterForm> )}
-            {formTab === "weight" && ( <TrackWeightForm></TrackWeightForm> )}
+            {dialogTab === "sleep" && ( <TrackSleepForm></TrackSleepForm> )}
+            {dialogTab === "diet" && ( <TrackDietForm></TrackDietForm> )}
+            {dialogTab === "water" && ( <TrackWaterForm></TrackWaterForm> )}
+            {dialogTab === "weight" && ( <TrackWeightForm></TrackWeightForm> )}
         </View>
     )
 }

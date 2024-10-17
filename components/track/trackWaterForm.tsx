@@ -7,7 +7,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { router } from "expo-router";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { setHideDialog } from "@/store/trackDialogSlice";
+import { setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
@@ -82,7 +82,7 @@ export default function TrackWaterForm() {
                 setLoading(false);
                 // Resetting Fields.
 
-                dispatch(setHideDialog())
+                dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))
             }
             catch (error) {
                 setLoading(false);
@@ -129,7 +129,7 @@ export default function TrackWaterForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>Submit</Button>
             </View>
 

@@ -3,28 +3,28 @@ import { StyleSheet } from "react-native";
 import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { setHideDialog, setShowDialog } from "@/store/trackDialogSlice";
+import { setDialog, setTab } from "@/store/trackDialogSlice";
 import AppCamera from "../camera";
 import { SegmentedButtons } from 'react-native-paper';
 import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
 
 export default function TrackDialog() {
-    const [formTab, setFormTab] = useState("sleep");
     const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
+    const dialogTab = useSelector((state: RootState) => state.trackDialog.dialogTab);
 
     return (
         <>
-            <Button mode="contained" icon="book-plus" style={[{alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5}]} uppercase onPress={() => dispatch(setShowDialog())}>Add Track</Button>
+            <Button mode="contained" icon="book-plus" style={[{alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5}]} uppercase onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: 'sleep', dialogType: 'add' }))}>Add Track</Button>
 
             <Portal>
-                <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setHideDialog())}>
-                    <Dialog.Title>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{textTransform: 'capitalize'}]}>{formTab}</Text>{` Data`}</Dialog.Title>
+                <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
+                    <Dialog.Title>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{textTransform: 'capitalize'}]}>{dialogTab}</Text>{` Data`}</Dialog.Title>
                     <Dialog.Content>
                         <SegmentedButtons
-                            value={formTab}
-                            onValueChange={setFormTab}
+                            value={dialogTab ? dialogTab : 'sleep'}
+                            onValueChange={(value: string) => {dispatch(setTab(value))}}
                             buttons={[
                                 { value: 'sleep', label: 'Sleep', icon: 'moon-waning-crescent' },
                                 { value: 'diet', label: 'Diet', icon: 'food' },
@@ -33,7 +33,7 @@ export default function TrackDialog() {
                             ]}
                         />
                         <Divider style={[{marginTop: 10}]}/>
-                        <TrackForms formTab={formTab}></TrackForms>
+                        <TrackForms></TrackForms>
                     </Dialog.Content>
                 </Dialog>
             </Portal>

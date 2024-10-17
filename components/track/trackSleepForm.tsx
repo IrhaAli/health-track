@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { setHideDialog } from "@/store/trackDialogSlice";
+import { setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
@@ -180,7 +180,7 @@ export default function TrackSleepForm() {
                 setLoading(false);
                 // Ressetting Fields.
 
-                dispatch(setHideDialog());
+                dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
             } catch (error) { setLoading(false); }
         } else { router.push({ pathname: "/register" }); }
     }
@@ -234,7 +234,7 @@ export default function TrackSleepForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
             </View>
 

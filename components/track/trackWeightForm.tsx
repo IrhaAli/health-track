@@ -4,7 +4,7 @@ import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
-import { setHideDialog } from "@/store/trackDialogSlice";
+import { setDialog } from "@/store/trackDialogSlice";
 import { setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
@@ -91,7 +91,7 @@ export default function TrackWeightForm() {
                 setLoading(false);
                 // Ressetting Fields.
 
-                dispatch(setHideDialog());
+                dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
             } catch (error) { setLoading(false); }
         } else { router.push({ pathname: "/register" }); }
     }
@@ -134,7 +134,7 @@ export default function TrackWeightForm() {
                     />
                 </View>
 
-                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setHideDialog()); dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
+                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
                     <>
                         <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
@@ -144,7 +144,7 @@ export default function TrackWeightForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>Submit</Button>
             </View>
 

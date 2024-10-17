@@ -5,7 +5,7 @@ import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { setHideCamera, setImageURI } from "@/store/cameraSlice";
-import { setShowDialog } from "@/store/trackDialogSlice";
+import { setDialog } from "@/store/trackDialogSlice";
 
 export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
@@ -27,7 +27,7 @@ export default function AppCamera() {
         dispatch(setImageURI(data.uri));
         setTimer("");
         dispatch(setHideCamera());
-        dispatch(setShowDialog())
+        dispatch(setDialog({showDialog: true}))
     };
 
     return (
@@ -50,7 +50,7 @@ export default function AppCamera() {
                                 <Text style={styles.text}>{timer}</Text>
                             </TouchableOpacity>
 
-                            <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setShowDialog()) }}>
+                            <Pressable onPress={() => { dispatch(setHideCamera()); dispatch(setDialog({showDialog: true})) }}>
                                 <Text>CANCEL</Text>
                             </Pressable>
 
