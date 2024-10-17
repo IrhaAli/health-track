@@ -102,7 +102,7 @@ export default function TrackDietForm() {
                     </View>
                 }
 
-                {!imageURI ? (<Button icon="camera" mode="contained" style={[{marginTop: 5, marginBottom: 10}]} onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
+                {!imageURI ? (<Button icon="camera" mode="contained" style={[{marginTop: 5, marginBottom: 10}]} onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Meal Picture</Button>) : (
                     <>
                         <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />

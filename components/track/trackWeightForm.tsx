@@ -134,7 +134,7 @@ export default function TrackWeightForm() {
                     />
                 </View>
 
-                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
+                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
                     <>
                         <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
