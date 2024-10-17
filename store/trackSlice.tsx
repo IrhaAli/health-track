@@ -2,13 +2,14 @@ import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import { SleepDataEntry, TrackState, WaterDataEntry } from "../types/track";
+import { SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
 
 const initialState: TrackState = {
   currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
   currentMonth: { month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) },
   waterData: {},
   sleepData: {},
+  weightData: {},
   loadingTrackWaterData: true,
   loadingTrackDietData: true,
   loadingTrackSleepData: true,
@@ -80,6 +81,42 @@ export const fetchSleepData = createAsyncThunk( // Fetch Sleep Data
         sleep_quality: item.data().sleep_quality,
         user_id: item.data().user_id,
         wakeup_time: item.data().wakeup_time.toDate().toISOString()
+      }));
+
+      return { formattedMonth, docData };
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+  }
+);
+
+export const fetchWeightData = createAsyncThunk( // Fetch Weight Data
+  'track/fetchWeightData',
+  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
+    const formattedMonth = `${year}-${month}`;
+    const [firstDate, lastDate] = [
+      new Date(Date.UTC(+year, +month - 1, 1)),
+      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
+    ];
+
+    const { track: { weightData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
+
+    if (weightData[formattedMonth]) { return { formattedMonth, docData: weightData[formattedMonth] }; }
+
+    try {
+      const collectionData = query(
+        collection(db, "weight_tracking"),
+        where("date", ">=", firstDate),
+        where("date", "<=", lastDate),
+        where("user_id", "==", userId)
+      );
+
+      const docSnap = await getDocs(collectionData);
+      const docData = docSnap.docs.map(item => ({
+        id: item.id,
+        date: item.data().date.toDate().toISOString(),
+        measurement_unit: item.data().measurement_unit,
+        picture: item.data().picture,
+        user_id: item.data().user_id,
+        weight: item.data().weight
       }));
 
       return { formattedMonth, docData };
@@ -200,6 +237,32 @@ export const addSleepData = createAsyncThunk( // Add Sleep Data.
     }
   }
 );
+
+export const addWeightData = createAsyncThunk( // Add Weight Data.
+  'track/addWeightData',
+  async ({ currentDate, addWeight }: { currentDate: string, addWeight: WeightDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const weightDataForMonth = state.track.weightData?.[formattedMonth] || [];
+
+    const existingEntry = weightDataForMonth.find(
+      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (existingEntry) { console.log('weightData exists'); return { formattedMonth, docData: weightDataForMonth }; }
+
+    try {
+      const newWeightDocumentRef = await addDoc(collection(db, "weight_tracking"), addWeight);
+      console.log('newWeightDocumentRef', newWeightDocumentRef);
+      const newEntry = { ...addWeight, id: newWeightDocumentRef.id, date: new Date(addWeight.date).toISOString() };
+      return { formattedMonth, docData: [...weightDataForMonth, newEntry] };
+    } catch (error: any) {
+      console.log('error in add', error);
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
 // Track Water.
 
 const trackSlice = createSlice({
@@ -245,6 +308,15 @@ const trackSlice = createSlice({
         console.error('Error fetching sleep data:', action.payload);
         state.loadingTrackSleepData = false;
       })
+      .addCase(fetchWeightData.fulfilled, (state, action) => {   // Fetch Weight Data
+        const { formattedMonth, docData } = action.payload;
+        state.weightData[formattedMonth] = docData;
+        state.loadingTrackWeightData = false;
+      })
+      .addCase(fetchWeightData.rejected, (state, action) => {    // Fetch Weight Data - Error
+        console.error('Error fetching sleep data:', action.payload);
+        state.loadingTrackWeightData = false;
+      })
       .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -280,6 +352,15 @@ const trackSlice = createSlice({
       .addCase(addSleepData.rejected, (state, action) => {   // Add Sleep Data - Error
         console.error('Error adding water data:', action.payload);
         state.loadingTrackSleepData = false;
+      })
+      .addCase(addWeightData.fulfilled, (state, action) => {  // Add Weight Data
+        const { formattedMonth, docData } = action.payload;
+        state.weightData[formattedMonth] = docData;
+        state.loadingTrackWeightData = false;
+      })
+      .addCase(addWeightData.rejected, (state, action) => {   // Add Weight Data - Error
+        console.error('Error adding water data:', action.payload);
+        state.loadingTrackWeightData = false;
       })
   }
 });
