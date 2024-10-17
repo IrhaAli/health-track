@@ -186,6 +186,37 @@ export const deleteSleepData = createAsyncThunk( // Delete Sleep Data.
   }
 );
 
+export const deleteWeightData = createAsyncThunk( // Delete Weight Data.
+  'track/deleteWeightData',
+  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const weightData = state.track.weightData?.[formattedMonth];
+
+    if (Array.isArray(weightData) && weightData.length > 0) {
+      const existingEntry = weightData.find(
+        (entry) =>
+          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+          entry.id === docId
+      );
+
+      if (existingEntry) {
+        try {
+          await deleteDoc(doc(db, "weight_tracking", docId));
+          const docData = weightData.filter(
+            (entry) =>
+              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+                entry.id === docId)
+          );
+          return { formattedMonth, docData };
+        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      }
+    }
+    return { formattedMonth, docData: weightData || [] };
+  }
+);
+
 export const addWaterData = createAsyncThunk( // Add Water Data.
   'track/addWaterData',
   async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
@@ -334,6 +365,15 @@ const trackSlice = createSlice({
       .addCase(deleteSleepData.rejected, (state, action) => {   // Delete Sleep Data - Error
         console.error('Error deleting water data:', action.payload);
         state.loadingTrackSleepData = false;
+      })
+      .addCase(deleteWeightData.fulfilled, (state, action) => {  // Delete Weight Data
+        const { formattedMonth, docData } = action.payload;
+        state.weightData[formattedMonth] = docData;
+        state.loadingTrackWeightData = false;
+      })
+      .addCase(deleteWeightData.rejected, (state, action) => {   // Delete Weight Data - Error
+        console.error('Error deleting water data:', action.payload);
+        state.loadingTrackWeightData = false;
       })
       .addCase(addWaterData.fulfilled, (state, action) => {  // Add Water Data
         const { formattedMonth, docData } = action.payload;
