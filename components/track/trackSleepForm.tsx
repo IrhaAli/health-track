@@ -12,6 +12,7 @@ import { Divider, Text, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { SleepDataEntry } from "@/types/track";
 import { addSleepData } from "@/store/trackSlice";
+import { clearImageURI } from "@/store/cameraSlice";
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -164,10 +165,10 @@ export default function TrackSleepForm() {
 
         if (auth?.currentUser?.uid) {
             setLoading(true);
-            
+
             try {
                 let addSleep: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                dispatch(addSleepData({currentDate: currentDate, addSleep: addSleep}));
+                dispatch(addSleepData({ currentDate: currentDate, addSleep: addSleep }));
 
                 // Ressetting Fields.
                 setSleepDateTime(new Date());
@@ -178,6 +179,7 @@ export default function TrackSleepForm() {
                 setShowSleepTimeSelector(false);
                 setShowWakeupTimeSelector(false);
                 setLoading(false);
+                dispatch(clearImageURI());
                 // Ressetting Fields.
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
@@ -234,7 +236,7 @@ export default function TrackSleepForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
             </View>
 

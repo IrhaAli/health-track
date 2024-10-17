@@ -13,6 +13,7 @@ import { Divider, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWaterData } from "@/store/trackSlice";
 import { WaterDataEntry } from "@/types/track";
+import { clearImageURI } from "@/store/cameraSlice";
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
@@ -80,6 +81,7 @@ export default function TrackWaterForm() {
                 setIsWaterTypeFocus(false);
                 setWaterType(WaterTypeEnum.MILLILITRES);
                 setLoading(false);
+                dispatch(clearImageURI());
                 // Resetting Fields.
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))
@@ -129,7 +131,7 @@ export default function TrackWaterForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>Submit</Button>
             </View>
 

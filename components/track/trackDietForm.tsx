@@ -3,7 +3,7 @@ import { View, StyleSheet, Platform, Image } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { setHideCamera, setShowCamera, setImageURI } from "@/store/cameraSlice";
+import { setHideCamera, setShowCamera, setImageURI, clearImageURI } from "@/store/cameraSlice";
 import { setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
@@ -19,10 +19,10 @@ export default function TrackDietForm() {
     const [mealTime, setMealTime] = useState<Date>(() => {
         const date = new Date(currentDate); // Initialize with the current date
         const now = new Date(); // Get the current time
-      
+
         // Set the hours, minutes, and seconds to the current time
         date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-      
+
         return date;
     });
     const [showMealTimeSelector, setShowMealTimeSelector] = useState<boolean>(false);
@@ -33,7 +33,7 @@ export default function TrackDietForm() {
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
-        if (date) { 
+        if (date) {
             setMealTime(prev => {
                 const newDateTime = new Date(prev || date);
                 newDateTime.setHours(date.getHours(), date.getMinutes());
@@ -59,18 +59,18 @@ export default function TrackDietForm() {
         setErrorString(null);
 
         if (auth?.currentUser?.uid) {
-            if (!imageURI) { 
+            if (!imageURI) {
                 setShowError(true);
                 setErrorString('Please add your picture.');
                 return;
-             }
+            }
             setLoading(true);
-    
+
             try {
-                
+
                 // await addDoc(collection(db, "diet_tracking"), { user_id: auth?.currentUser?.uid, date: mealTime, meal_picture: await uploadImage() });
                 let addDiet = { user_id: auth.currentUser.uid, date: mealTime, meal_picture: await uploadImage() }
-                dispatch(addDietData({currentDate: currentDate, addDiet: addDiet}));
+                dispatch(addDietData({ currentDate: currentDate, addDiet: addDiet }));
 
                 // Ressetting Fields.
                 setMealTime(new Date(currentDate));
@@ -78,8 +78,9 @@ export default function TrackDietForm() {
                 dispatch(setHideCamera());
                 dispatch(setImageURI(''));
                 setLoading(false);
+                dispatch(clearImageURI());
                 // Ressetting Fields.
-        
+
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
             } catch (error) { setLoading(false); }
         } else { router.push({ pathname: "/register" }); }
@@ -102,7 +103,7 @@ export default function TrackDietForm() {
                     </View>
                 }
 
-                {!imageURI ? (<Button icon="camera" mode="contained" style={[{marginTop: 5, marginBottom: 10}]} onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Meal Picture</Button>) : (
+                {!imageURI ? (<Button icon="camera" mode="contained" style={[{ marginTop: 5, marginBottom: 10 }]} onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Meal Picture</Button>) : (
                     <>
                         <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
                         <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
@@ -112,7 +113,7 @@ export default function TrackDietForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !imageURI} loading={loading}>Submit</Button>
             </View>
 

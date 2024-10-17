@@ -5,7 +5,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
 import { setDialog } from "@/store/trackDialogSlice";
-import { setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
+import { clearImageURI, setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
@@ -79,9 +79,9 @@ export default function TrackWeightForm() {
                 const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : parseFloat(weight);
 
                 let weightData: WeightDataEntry = { user_id: auth.currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
-                
-                dispatch(addWeightData({currentDate: currentDate, addWeight: weightData}));
-                
+
+                dispatch(addWeightData({ currentDate: currentDate, addWeight: weightData }));
+
                 // Ressetting Fields.
                 setWeightType(WeightTypeEnum.KG);
                 setWeight("");
@@ -89,6 +89,7 @@ export default function TrackWeightForm() {
                 dispatch(setHideCamera());
                 dispatch(setImageURI(''));
                 setLoading(false);
+                dispatch(clearImageURI());
                 // Ressetting Fields.
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
@@ -144,7 +145,7 @@ export default function TrackWeightForm() {
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))} disabled={loading} textColor="blue">Cancel</Button>
+                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>Submit</Button>
             </View>
 

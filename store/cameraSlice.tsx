@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ActionCodeOperation } from 'firebase/auth';
 
 interface CameraState {
     showCamera: boolean;
-    imageURI: any;
+    imageURI: string | null;
 }
 
 const initialState: CameraState = {
@@ -14,17 +15,20 @@ const cameraSlice = createSlice({
     name: 'camera',
     initialState,
     reducers: {
-        setShowCamera: (state) => {
+        setShowCamera: (state: CameraState) => {
             state.showCamera = true;
         },
-        setHideCamera: (state) => {
+        setHideCamera: (state: CameraState) => {
             state.showCamera = false;
         },
-        setImageURI: (state, action: PayloadAction<string>) => {
+        setImageURI: (state: CameraState, action: PayloadAction<string>) => {
             state.imageURI = action.payload;
+        },
+        clearImageURI: (state: CameraState) => {
+            state.imageURI = null;
         }
     },
 });
 
-export const { setShowCamera, setHideCamera, setImageURI } = cameraSlice.actions;
+export const { setShowCamera, setHideCamera, setImageURI, clearImageURI } = cameraSlice.actions;
 export default cameraSlice.reducer;

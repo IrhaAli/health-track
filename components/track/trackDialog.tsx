@@ -7,6 +7,7 @@ import { setDialog, setTab } from "@/store/trackDialogSlice";
 import AppCamera from "../camera";
 import { SegmentedButtons } from 'react-native-paper';
 import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
+import { clearImageURI } from "@/store/cameraSlice";
 
 export default function TrackDialog() {
     const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
@@ -24,7 +25,7 @@ export default function TrackDialog() {
                     <Dialog.Content>
                         <SegmentedButtons
                             value={dialogTab ? dialogTab : 'sleep'}
-                            onValueChange={(value: string) => {dispatch(setTab(value))}}
+                            onValueChange={(value: string) => { dispatch(setTab(value)); dispatch(clearImageURI()); }}
                             buttons={[
                                 { value: 'sleep', label: 'Sleep', icon: 'moon-waning-crescent' },
                                 { value: 'diet', label: 'Diet', icon: 'food' },
