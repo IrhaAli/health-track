@@ -2,7 +2,7 @@ import React from "react";
 import { Card, Button, Text, Avatar } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { deleteWaterData } from "@/store/trackSlice";
+import { deleteWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, WeightDataState } from "../../types/track";
 
 export default function TrackWeightCard() {
@@ -14,7 +14,7 @@ export default function TrackWeightCard() {
     const dispatch = useDispatch<AppDispatch>();
 
     const deleteWeightRecords = async (docId?: string) => {
-        // if (docId) { dispatch(deleteWaterData({ currentDate: currentDate, docId: docId })) }
+        if (docId) { dispatch(deleteWeightData({ currentDate: currentDate, docId: docId })) }
     }
 
     if (!Array.isArray(weightData)) {
