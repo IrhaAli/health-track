@@ -10,6 +10,7 @@ const initialState: TrackState = {
   waterData: {},
   sleepData: {},
   weightData: {},
+  dietData: {},
   loadingTrackWaterData: true,
   loadingTrackDietData: true,
   loadingTrackSleepData: true,

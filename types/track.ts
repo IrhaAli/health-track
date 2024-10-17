@@ -24,6 +24,13 @@ export interface WeightDataEntry {
   weight: number;
 }
 
+export interface DietDataEntry {
+  id?: string;
+  date: string | Date;  
+  meal_picture: string;
+  user_id: string;
+}
+
 export type WaterDataState = {
   [key: string]: WaterDataEntry[];
 };
@@ -36,12 +43,17 @@ export type WeightDataState = {
   [key: string]: WeightDataEntry[];
 };
 
+export type DietDataState = {
+  [key: string]: DietDataEntry[];
+};
+
 export interface TrackState {
   currentDate: string;
   currentMonth: { month: string; year: string; };
   waterData: WaterDataState;
   sleepData: SleepDataState;
   weightData: WeightDataState;
+  dietData: DietDataState;
   loadingTrackWaterData: boolean;
   loadingTrackDietData: boolean;
   loadingTrackSleepData: boolean;
