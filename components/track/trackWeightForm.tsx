@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, View, Text, StyleSheet, ActivityIndicator, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -9,10 +9,10 @@ import { setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
-import { Divider, Button } from 'react-native-paper';
+import { Divider, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
+import { addWeightData } from "@/store/trackSlice";
+import { WeightDataEntry } from "@/types/track";
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -24,10 +24,13 @@ export default function TrackWeightForm() {
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
-    const [loading, setLoading] = useState(false);
-    const [weightType, setWeightType] = useState(WeightTypeEnum.KG);
-    const [weight, setWeight] = useState("");
-    const [isWeightTypeFocus, setIsWeightTypeFocus] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [weightType, setWeightType] = useState<WeightTypeEnum>(WeightTypeEnum.KG);
+    const [weight, setWeight] = useState<string>("");
+    const [isWeightTypeFocus, setIsWeightTypeFocus] = useState<boolean>(false);
+    const [showError, setShowError] = useState<boolean>(false);
+    const [errorString, setErrorString] = useState<string | null>(null);
+    const weightData = useSelector((state: RootState) => state.track.weightData);
     const auth = getAuth();
 
     const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type, value: type }));
@@ -45,29 +48,52 @@ export default function TrackWeightForm() {
     };
 
     const onSubmit = async () => {
-        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
-        if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
-        setLoading(true);
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+        const weightDataForMonth = weightData?.[formattedMonth] || [];
 
-        try {
-            const conversionRate: Record<string, number> = { lbs: 0.453592 };
-            const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : weight;
+        setShowError(false);
+        setErrorString(null);
 
-            await addDoc(collection(db, "weight_tracking"), { user_id: auth?.currentUser?.uid, date: currentDate, weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '', });
-            // Ressetting Fields.
-            setWeight(WeightTypeEnum.KG);
-            setWeight("");
-            setIsWeightTypeFocus(false);
-            dispatch(setHideCamera());
-            dispatch(setImageURI(''));
-            setLoading(false);
-            // Ressetting Fields.
+        const existingEntry = weightDataForMonth.find(
+            entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+        );
 
-            dispatch(setHideDialog());
+        if (existingEntry) {
+            setShowError(true);
+            setErrorString('Weight data already exists!');
+            return;
         }
-        catch (error) {
-            setLoading(false);
-        }
+
+        if (auth?.currentUser?.uid) {
+            if (!imageURI) {
+                setShowError(true);
+                setErrorString('Please add mean picture!');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const conversionRate: Record<string, number> = { lbs: 0.453592 };
+                const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : parseFloat(weight);
+
+                let weightData: WeightDataEntry = { user_id: auth.currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
+                
+                dispatch(addWeightData({currentDate: currentDate, addWeight: weightData}));
+                
+                // Ressetting Fields.
+                setWeightType(WeightTypeEnum.KG);
+                setWeight("");
+                setIsWeightTypeFocus(false);
+                dispatch(setHideCamera());
+                dispatch(setImageURI(''));
+                setLoading(false);
+                // Ressetting Fields.
+
+                dispatch(setHideDialog());
+            } catch (error) { setLoading(false); }
+        } else { router.push({ pathname: "/register" }); }
     }
 
     return (
@@ -119,8 +145,10 @@ export default function TrackWeightForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>Submit</Button>
             </View>
+
+            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
         </View>
     )
 }
