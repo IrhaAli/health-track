@@ -253,6 +253,37 @@ export const deleteWeightData = createAsyncThunk( // Delete Weight Data.
     return { formattedMonth, docData: weightData || [] };
   }
 );
+
+export const deleteDietData = createAsyncThunk( // Delete Diet Data.
+  'track/deleteDietData',
+  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const dietData = state.track.dietData?.[formattedMonth];
+
+    if (Array.isArray(dietData) && dietData.length > 0) {
+      const existingEntry = dietData.find(
+        (entry) =>
+          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+          entry.id === docId
+      );
+
+      if (existingEntry) {
+        try {
+          await deleteDoc(doc(db, "diet_tracking", docId));
+          const docData = dietData.filter(
+            (entry) =>
+              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+                entry.id === docId)
+          );
+          return { formattedMonth, docData };
+        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      }
+    }
+    return { formattedMonth, docData: dietData || [] };
+  }
+);
 // Delete.
 
 // Add.
@@ -331,6 +362,28 @@ export const addWeightData = createAsyncThunk( // Add Weight Data.
       console.log('error in add', error);
       return thunkAPI.rejectWithValue(error.message);
     }
+  }
+);
+
+export const addDietData = createAsyncThunk( // Add Diet Data.
+  'track/addDietData',
+  async ({ currentDate, addDiet }: { currentDate: string, addDiet: DietDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const dietDataForMonth = state.track.dietData?.[formattedMonth] || [];
+
+    // const existingEntry = dietDataForMonth.find(
+    //   entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    // );
+
+    // if (existingEntry) { console.log('dietData exists'); return { formattedMonth, docData: dietDataForMonth }; }
+
+    try {
+      const newDietDocumentRef = await addDoc(collection(db, "diet_tracking"), addDiet);
+      const newEntry = { ...addDiet, id: newDietDocumentRef.id, date: new Date(addDiet.date).toISOString() };
+      return { formattedMonth, docData: [...dietDataForMonth, newEntry] };
+    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
   }
 );
 // Add.
@@ -427,6 +480,15 @@ const trackSlice = createSlice({
         console.error('Error deleting water data:', action.payload);
         state.loadingTrackWeightData = false;
       })
+      .addCase(deleteDietData.fulfilled, (state, action) => {  // Delete Diet Data
+        const { formattedMonth, docData } = action.payload;
+        state.dietData[formattedMonth] = docData;
+        state.loadingTrackDietData = false;
+      })
+      .addCase(deleteDietData.rejected, (state, action) => {   // Delete Diet Data - Error
+        console.error('Error deleting water data:', action.payload);
+        state.loadingTrackDietData = false;
+      })
       // Delete
 
       // Add
@@ -456,6 +518,15 @@ const trackSlice = createSlice({
       .addCase(addWeightData.rejected, (state, action) => {   // Add Weight Data - Error
         console.error('Error adding water data:', action.payload);
         state.loadingTrackWeightData = false;
+      })
+      .addCase(addDietData.fulfilled, (state, action) => {  // Add Diet Data
+        const { formattedMonth, docData } = action.payload;
+        state.dietData[formattedMonth] = docData;
+        state.loadingTrackDietData = false;
+      })
+      .addCase(addDietData.rejected, (state, action) => {   // Add Diet Data - Error
+        console.error('Error adding water data:', action.payload);
+        state.loadingTrackDietData = false;
       })
       // Add
   }
