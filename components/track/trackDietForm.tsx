@@ -1,23 +1,22 @@
 import React, { useState } from "react";
-import { Pressable, View, StyleSheet, Platform, Image, Alert, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Platform, Image } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideCamera, setShowCamera, setImageURI } from "@/store/cameraSlice";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { Divider, Button, Text } from 'react-native-paper';
+import { Divider, Button, Text, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
+import { addDietData } from "@/store/trackSlice";
 
 export default function TrackDietForm() {
     const dispatch = useDispatch<AppDispatch>();
     const imageURI = useSelector((state: RootState) => state.camera.imageURI);
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();
-    const [mealTime, setMealTime] = useState(() => {
+    const [mealTime, setMealTime] = useState<Date>(() => {
         const date = new Date(currentDate); // Initialize with the current date
         const now = new Date(); // Get the current time
       
@@ -26,8 +25,10 @@ export default function TrackDietForm() {
       
         return date;
     });
-    const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [showMealTimeSelector, setShowMealTimeSelector] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [showError, setShowError] = useState<boolean>(false);
+    const [errorString, setErrorString] = useState<string | null>(null);
     const auth = getAuth();
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
@@ -48,26 +49,34 @@ export default function TrackDietForm() {
     };
 
     const onSubmit = async () => {
-        if (!auth?.currentUser?.uid) { router.push({ pathname: "/register" }); }
-        if (!imageURI) { Alert.alert("Please add a picture of your meal."); return; }
-        setLoading(true);
+        setShowError(false);
+        setErrorString(null);
 
-        try {
-            await addDoc(collection(db, "diet_tracking"), { user_id: auth?.currentUser?.uid, date: mealTime, meal_picture: await uploadImage() });
-
-            // Ressetting Fields.
-            setMealTime(new Date(currentDate));
-            setShowMealTimeSelector(false);
-            dispatch(setHideCamera());
-            dispatch(setImageURI(''));
-            setLoading(false);
-            // Ressetting Fields.
+        if (auth?.currentUser?.uid) {
+            if (!imageURI) { 
+                setShowError(true);
+                setErrorString('Please add your picture.');
+                return;
+             }
+            setLoading(true);
     
-            dispatch(setHideDialog());
-        }
-        catch (error) {
-            setLoading(false);
-        }
+            try {
+                
+                // await addDoc(collection(db, "diet_tracking"), { user_id: auth?.currentUser?.uid, date: mealTime, meal_picture: await uploadImage() });
+                let addDiet = { user_id: auth.currentUser.uid, date: mealTime, meal_picture: await uploadImage() }
+                dispatch(addDietData({currentDate: currentDate, addDiet: addDiet}));
+
+                // Ressetting Fields.
+                setMealTime(new Date(currentDate));
+                setShowMealTimeSelector(false);
+                dispatch(setHideCamera());
+                dispatch(setImageURI(''));
+                setLoading(false);
+                // Ressetting Fields.
+        
+                dispatch(setHideDialog());
+            } catch (error) { setLoading(false); }
+        } else { router.push({ pathname: "/register" }); }
     }
 
     return (
@@ -100,6 +109,8 @@ export default function TrackDietForm() {
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading || !imageURI} loading={loading}>Submit</Button>
             </View>
+
+            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
         </View>
     )
 }
