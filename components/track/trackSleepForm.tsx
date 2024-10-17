@@ -8,7 +8,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Divider, Text, Button } from 'react-native-paper';
+import { Divider, Text, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { SleepDataEntry } from "@/types/track";
 import { addSleepData } from "@/store/trackSlice";
@@ -16,13 +16,13 @@ import { addSleepData } from "@/store/trackSlice";
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const [sleepDateTime, setSleepDateTime] = useState(() => {
+    const [sleepDateTime, setSleepDateTime] = useState<Date>(() => {
         const date = new Date(currentDate);
         date.setDate(date.getDate() - 1); // Set to the previous day
         date.setHours(22, 0, 0, 0); // Set time to 10:00 AM
         return date;
     });
-    const [wakeupTime, setWakeupTime] = useState(() => {
+    const [wakeupTime, setWakeupTime] = useState<Date>(() => {
         const date = new Date(currentDate); // Initialize with the current date
         const now = new Date(); // Get the current time
 
@@ -31,12 +31,15 @@ export default function TrackSleepForm() {
 
         return date;
     });
-    const [sleepQuality, setSleepQuality] = useState(0);
-    const [sleepDuration, setSleepDuration] = useState(0);
-    const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
-    const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
-    const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [sleepQuality, setSleepQuality] = useState<number>(0);
+    const [sleepDuration, setSleepDuration] = useState<number>(0);
+    const [showSleepDateSelector, setShowSleepDateSelector] = useState<boolean>(false);
+    const [showSleepTimeSelector, setShowSleepTimeSelector] = useState<boolean>(false);
+    const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [showError, setShowError] = useState<boolean>(false);
+    const [errorString, setErrorString] = useState<string | null>(null);
+    const sleepData = useSelector((state: RootState) => state.track.sleepData);
     const auth = getAuth();
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
@@ -142,11 +145,27 @@ export default function TrackSleepForm() {
     }
 
     const onSubmit = async () => {
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+        const waterDataForMonth = sleepData?.[formattedMonth] || [];
+
+        setShowError(false);
+        setErrorString(null);
+
+        const existingEntry = waterDataForMonth.find(
+            entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
+        );
+
+        if (existingEntry) {
+            setShowError(true);
+            setErrorString('Sleep data already exists!');
+            return;
+        }
+
         if (auth?.currentUser?.uid) {
             setLoading(true);
-
+            
             try {
-
                 let sleepData: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
                 dispatch(addSleepData({currentDate: currentDate, addSleep: sleepData}))
 
@@ -222,6 +241,8 @@ export default function TrackSleepForm() {
                 <Button mode="text" onPress={() => dispatch(setHideDialog())} disabled={loading} textColor="blue">Cancel</Button>
                 <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
             </View>
+
+            <HelperText type="error" visible={showError}>{errorString}</HelperText>
         </View>
     );
 }
