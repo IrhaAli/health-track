@@ -1,11 +1,11 @@
 import React, { useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from "react-native";
-import { useCameraPermissions, CameraView } from "expo-camera";
+import { View, Text, StyleSheet, Modal } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 import { Camera, CameraType } from "expo-camera/legacy";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { setHideCamera, setImageURI } from "@/store/cameraSlice";
-import { Dialog, Portal, Button, Avatar, Icon } from "react-native-paper";
+import { Portal, Button, Avatar } from "react-native-paper";
 import { useWindowDimensions } from "react-native";
 
 export default function AppCamera() {
@@ -33,7 +33,7 @@ export default function AppCamera() {
 
     return (
         <Portal>
-            <Dialog visible={showCamera} style={[{ width: '100%', height: '100%', left: -26, position: 'relative', borderRadius: 0, padding: 0, margin: 0, backgroundColor: '#000' }]} dismissable={false}>
+            <Modal presentationStyle="overFullScreen" visible={showCamera}>
                 {showCamera && (!permission ? (
                     <View />
                 ) : !permission.granted ? (
@@ -44,19 +44,19 @@ export default function AppCamera() {
                         </View>
                     </View>
                 ) : (
-                    <View style={[{height: '100%', width: '100%', backgroundColor: '#000', justifyContent: 'center'}]}>
+                    <View style={[{ height: '100%', width: '100%', backgroundColor: '#000', justifyContent: 'center' }]}>
                         <Camera style={[{ width: '100%', height, alignSelf: 'center', zIndex: 999, backgroundColor: '#000', justifyContent: 'flex-end' }]} type={cameraSide} ratio="16:9" ref={cameraRef} focusable={true} autoFocus={true}>
                             <View style={styles.buttonContainer}>
                                 <Button mode="text" onPress={toggleCameraFacing} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="camera-flip" color="#fff" />)}>{''}</Button>
-                                
+
                                 <Button mode="text" onPress={takePhoto} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="camera" color="#fff" />)}>{''}</Button>
-                                
-                                <Button mode="text" onPress={() => { dispatch(setHideCamera()); }} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="close" color="#fff" />)}>{''}</Button>                       
+
+                                <Button mode="text" onPress={() => { dispatch(setHideCamera()); }} theme={{ colors: { primary: 'white' } }} icon={({ size, color }) => (<Avatar.Icon size={48} icon="close" color="#fff" />)}>{''}</Button>
                             </View>
                         </Camera>
                     </View>
                 ))}
-            </Dialog>
+            </Modal>
         </Portal>
     )
 }
