@@ -39,7 +39,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
               .then((userCredential: any) => {
 
                 if (userCredential?.user?.uid) {
-                  console.log('got user id');
                   setSession(userCredential.user.uid);
                   resolve(userCredential);
                 }
