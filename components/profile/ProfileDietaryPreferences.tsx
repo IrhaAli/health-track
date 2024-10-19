@@ -141,11 +141,20 @@ export default function ProfileDietaryPreferences() {
           <Text style={styles.title}>Dietary Preferences</Text>
           {Object.keys(dietaryPreferences).map(
             (item: string, index: number) => {
-              if (dietaryPreferences[item] === true) {
+              // Habib: Original Code by Irha.
+              // if (dietaryPreferences[item] === true) {
+              //   return (
+              //     <Text key={index}>{dietaryPreferencesLabels[item]}</Text>
+              //   );
+              // }
+
+              // Fixing validations error, if doesn't work, then use the above commented code.
+              if (dietaryPreferences[item as keyof typeof dietaryPreferences] === true) {
                 return (
-                  <Text key={index}>{dietaryPreferencesLabels[item]}</Text>
+                  <Text key={index}>{dietaryPreferencesLabels[item as keyof typeof dietaryPreferencesLabels]}</Text>
                 );
               }
+              return null; // Ensure a return value for all cases
             }
           )}
         </>
