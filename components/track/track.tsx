@@ -13,8 +13,6 @@ export default function TrackComponent() {
   const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
 
   return (
-    console.log('component rendered in return main'),
-
     <>
       <TrackCalendar></TrackCalendar>
       <Divider style={[{ marginTop: 10}]}/>
