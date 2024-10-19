@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState } from "../../types/track";
 import { View } from "react-native";
+import { setDialog } from "@/store/trackDialogSlice";
 
 export default function TrackWaterCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -33,7 +34,7 @@ export default function TrackWaterCard() {
                                     />
                                     <Card.Actions>
                                         <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
-                                        <Button icon="pencil">Edit</Button>
+                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: 'water', dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
                             </View>

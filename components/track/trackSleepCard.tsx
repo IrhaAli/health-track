@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { SleepDataEntry, SleepDataState } from "../../types/track";
 import { deleteSleepData } from "@/store/trackSlice";
 import { View } from "react-native";
+import { setDialog } from "@/store/trackDialogSlice";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -15,7 +16,6 @@ export default function TrackSleepCard() {
     const dispatch = useDispatch<AppDispatch>();
 
     const deleteSleepRecords = async (docId?: string) => {
-        console.log('docId in deleteSleepRecords', docId);
         if (docId) { dispatch(deleteSleepData({ currentDate: currentDate, docId: docId })) }
     }
 
@@ -39,7 +39,7 @@ export default function TrackSleepCard() {
                                     />
                                     <Card.Actions>
                                         <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
-                                        <Button icon="pencil">Edit</Button>
+                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: 'sleep', dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
                             </View>
