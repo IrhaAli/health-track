@@ -1,7 +1,7 @@
 import { db } from '@/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getAuth } from 'firebase/auth';
-import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { DietDataEntry, SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
 
 const initialState: TrackState = {
@@ -384,6 +384,57 @@ export const addDietData = createAsyncThunk( // Add Diet Data.
 );
 // Add.
 
+// Update.
+export const updateWaterData = createAsyncThunk( // Add Water Data.
+  'track/updateWaterData',
+  async ({ currentDate, updateWater }: { currentDate: string, updateWater: WaterDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const waterDataForMonth = state.track.waterData?.[formattedMonth] || [];
+
+    const existingEntry = waterDataForMonth.find(
+      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (!existingEntry || !updateWater) {
+      return { formattedMonth, docData: waterDataForMonth };
+    }
+
+    if (updateWater.id) {
+      try {
+        const updateWaterRef = doc(db, "water_tracking", updateWater.id);
+        await updateDoc(updateWaterRef, (({ id, date, ...rest }) => rest)(updateWater));
+
+        // Find the index of the entry to update in the array
+        const entryIndex = waterDataForMonth.findIndex(entry => entry.id === updateWater.id);
+        if (entryIndex !== -1) {
+          // Create a new entry with the updated data
+          const updatedEntry = { ...waterDataForMonth[entryIndex], ...updateWater };
+
+          // Create a new array with the updated entry
+          const updatedWaterDataForMonth = [
+            ...waterDataForMonth.slice(0, entryIndex),
+            updatedEntry,
+            ...waterDataForMonth.slice(entryIndex + 1)
+          ];
+
+          return { formattedMonth, docData: updatedWaterDataForMonth };
+        } else {
+          // If the entry is not found, you might want to handle this case
+          console.error("Entry not found for update");
+          return { formattedMonth, docData: waterDataForMonth };
+        }
+
+
+      } catch (error: any) {
+        return thunkAPI.rejectWithValue(error.message);
+      }
+    } else { return { formattedMonth, docData: waterDataForMonth }; }
+  }
+);
+// Update.
+
 const trackSlice = createSlice({
   name: 'track',
   initialState,
@@ -409,7 +460,7 @@ const trackSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-    // Fetch
+      // Fetch
       .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -525,6 +576,18 @@ const trackSlice = createSlice({
         state.loadingTrackDietData = false;
       })
       // Add
+
+      // Update
+      .addCase(updateWaterData.fulfilled, (state, action) => {  // Update Water Data
+        const { formattedMonth, docData } = action.payload;
+        state.waterData[formattedMonth] = docData;
+        state.loadingTrackWaterData = false;
+      })
+      .addCase(updateWaterData.rejected, (state, action) => {   // Update Water Data - Error
+        console.error('Error adding water data:', action.payload);
+        state.loadingTrackWaterData = false;
+      })
+    // Update
   }
 });
 

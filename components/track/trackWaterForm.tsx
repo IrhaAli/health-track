@@ -1,18 +1,16 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { addDoc, collection } from "firebase/firestore";
 import { router } from "expo-router";
-import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Divider, Button, HelperText } from 'react-native-paper';
+import { Divider, Button, HelperText, Text } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
-import { addWaterData } from "@/store/trackSlice";
-import { WaterDataEntry } from "@/types/track";
+import { addWaterData, updateWaterData } from "@/store/trackSlice";
+import { WaterDataEntry, WaterDataState } from "@/types/track";
 import { clearImageURI } from "@/store/cameraSlice";
 
 enum WaterTypeEnum {
@@ -24,7 +22,7 @@ enum WaterTypeEnum {
 export default function TrackWaterForm() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const waterData = useSelector((state: RootState) => state.track.waterData);
+    const waterData: WaterDataState = useSelector((state: RootState) => state.track.waterData);
     const [water, setWater] = useState("");
     const [isWaterTypeFocus, setIsWaterTypeFocus] = useState<boolean>(false);
     const [waterType, setWaterType] = useState<WaterTypeEnum>(WaterTypeEnum.MILLILITRES);
@@ -33,8 +31,30 @@ export default function TrackWaterForm() {
     const [errorString, setErrorString] = useState<string | null>(null);
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
+    const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type.charAt(0).toUpperCase() + type.slice(1), value: type }));
+    const [currentWaterData, setCurrentWaterData] = useState<WaterDataEntry | {}>({});
 
-    const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
+    const getWaterDataObject = (): WaterDataEntry | {} => {
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+
+        if (!Array.isArray(waterData)) {
+            if (formattedMonth in waterData) {
+                if (waterData[formattedMonth] && waterData[formattedMonth].length > 0) {
+                    const entry = waterData[formattedMonth].find((entry: WaterDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    if (entry) { return entry; }
+                }
+            }
+        }
+        return {}; // Return an empty object if conditions are not met
+    };
+
+    useEffect(() => {
+        if (dialogType === DialogType.EDIT) {
+            const entry: WaterDataEntry | {} = getWaterDataObject();
+            if (entry) { setCurrentWaterData(entry); }
+        }
+    }, [dialogType, currentDate, waterData]); // Dependencies to re-run the effect
 
     const calculateIntakeAmount = (): number => {
         const conversionRate: Record<string, number> = { cups: 250, litres: 1000 };
@@ -48,6 +68,18 @@ export default function TrackWaterForm() {
         return waterAmount;
     }
 
+    function isWaterDataEntry(obj: any): obj is WaterDataEntry {
+        return (
+          obj &&
+          typeof obj === 'object' &&
+          'intake_amount' in obj &&
+          'waterType' in obj &&
+          'id' in obj &&
+          'date' in obj &&
+          'user_id' in obj
+        );
+      }
+
     const onSubmit = async () => {
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
@@ -60,9 +92,15 @@ export default function TrackWaterForm() {
             entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
         );
 
-        if (existingEntry) {
+        if (dialogType !== DialogType.EDIT && existingEntry) {
             setShowError(true);
             setErrorString('Water data already exists!');
+            return;
+        }
+
+        if (dialogType === DialogType.EDIT && !existingEntry) {
+            setShowError(true);
+            setErrorString("Water data doesn't exists, add water first!");
             return;
         }
 
@@ -73,9 +111,14 @@ export default function TrackWaterForm() {
                 let waterDate = new Date(currentDate);
                 waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
 
-
-                let addWater: WaterDataEntry = { user_id: auth.currentUser.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType }
-                dispatch(addWaterData({ addWater, currentDate }))
+                if (dialogType !== DialogType.EDIT) {
+                    let addWater: WaterDataEntry = { user_id: auth.currentUser.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType: WaterTypeEnum.MILLILITRES }
+                    dispatch(addWaterData({ addWater, currentDate }))
+                }
+                if (dialogType === DialogType.EDIT && isWaterDataEntry(currentWaterData)) {
+                    let updateWater: WaterDataEntry = { ...currentWaterData, intake_amount: Number(currentWaterData.intake_amount) + Number(calculateIntakeAmount()) }
+                    dispatch(updateWaterData({ updateWater, currentDate }))
+                }
 
                 // Resetting Fields.
                 setWater("");
@@ -87,15 +130,18 @@ export default function TrackWaterForm() {
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))
             }
-            catch (error) {
+            catch (error) { 
                 setLoading(false);
-            }
+            } finally { setLoading(false); }
         }
         else { router.push({ pathname: "/register" }); }
     }
 
     return (
         <View>
+            {currentWaterData &&  Object.keys(currentWaterData).length > 0 && 'intake_amount' in currentWaterData && 'waterType' in currentWaterData && <View>
+                <Text variant="bodyLarge">{`Congratulations! You have consumed ${currentWaterData.intake_amount} ${currentWaterData.waterType.charAt(0).toUpperCase() + currentWaterData.waterType.slice(1)} of water today.\nDo you like to add more?`}</Text>
+            </View>}
             <View style={styles.trackWaterForm}>
                 <Dialog.Input
                     style={[styles.input]}
