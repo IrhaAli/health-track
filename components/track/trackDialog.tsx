@@ -28,7 +28,7 @@ export default function TrackDialog() {
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
-                    <Dialog.Title>{`${dialogType !== DialogType.EDIT ? 'Add' : 'Edit'} ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>{` Details`}</Dialog.Title>
+                    <Dialog.Title>{`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>{` Details`}</Dialog.Title>
                     <Dialog.Content>
                         {dialogType !== DialogType.EDIT && <>
                             <SegmentedButtons
