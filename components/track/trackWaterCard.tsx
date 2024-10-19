@@ -30,7 +30,7 @@ export default function TrackWaterCard() {
                                 <Card style={{ margin: 10 }}>
                                     <Card.Title title={`Total Water Consumed: ${water.intake_amount} ${water.waterType}`} left={LeftContent} />
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
-                                        <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
+                                        <Button icon="delete" onPress={() => deleteWaterRecords(water.id) }>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WATER, dialogType: DialogType.EDIT }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>

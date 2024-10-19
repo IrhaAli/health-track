@@ -37,7 +37,7 @@ export default function TrackWeightCard() {
                                         />
                                     </Card.Content>
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
-                                        <Button icon="delete" onPress={() => { deleteWeightRecords(weight.id); }}>Delete</Button>
+                                        <Button icon="delete" onPress={() => deleteWeightRecords(weight.id) }>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WEIGHT, dialogType: DialogType.EDIT }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
