@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { DietDataEntry, DietDataState } from "../../types/track";
 import { deleteDietData } from "@/store/trackSlice";
 import { Image, View } from "react-native";
-import { setDialog, DialogTab } from "@/store/trackDialogSlice";
+import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 
 export default function TrackDietCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -38,7 +38,7 @@ export default function TrackDietCard() {
                                     </Card.Content>
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteDietRecords(diet.id); }}>Delete</Button>
-                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.DIET, dialogType: 'EDIT' }))}>Edit</Button>
+                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.DIET, dialogType: DialogType.EDIT }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
                             </View>

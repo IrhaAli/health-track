@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { deleteWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, WeightDataState } from "../../types/track";
 import { Image, View } from "react-native";
-import { setDialog, DialogTab } from "@/store/trackDialogSlice";
+import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 
 export default function TrackWeightCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -38,7 +38,7 @@ export default function TrackWeightCard() {
                                     </Card.Content>
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteWeightRecords(weight.id); }}>Delete</Button>
-                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WEIGHT, dialogType: 'EDIT' }))}>Edit</Button>
+                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WEIGHT, dialogType: DialogType.EDIT }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
                             </View>

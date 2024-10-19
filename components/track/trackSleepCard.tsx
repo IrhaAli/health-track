@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { SleepDataEntry, SleepDataState } from "../../types/track";
 import { deleteSleepData } from "@/store/trackSlice";
 import { View } from "react-native";
-import { setDialog, DialogTab } from "@/store/trackDialogSlice";
+import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -35,7 +35,7 @@ export default function TrackSleepCard() {
                                     <Card.Title title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`} subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`} left={LeftContent} />
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
-                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: 'EDIT' }))}>Edit</Button>
+                                        <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: DialogType.EDIT }))}>Edit</Button>
                                     </Card.Actions>
                                 </Card>
                             </View>

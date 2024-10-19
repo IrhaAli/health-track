@@ -7,9 +7,14 @@ export enum DialogTab {
     WEIGHT = 'weight',
 }
 
+export enum DialogType {
+    ADD = 'ADD',
+    EDIT = 'EDIT',
+}
+
 interface TrackDialogState {
     showDialog: boolean;
-    dialogType: string | null;
+    dialogType: DialogType | null;
     dialogTab: DialogTab | null;
 }
 
@@ -29,7 +34,7 @@ const trackDialogSlice = createSlice({
         setHideDialog: (state: TrackDialogState) => {
             state.showDialog = false;
         },
-        setDialog: (state: TrackDialogState, action: PayloadAction<{ showDialog: boolean, dialogType?: string | null, dialogTab?: DialogTab | null }>) => {
+        setDialog: (state: TrackDialogState, action: PayloadAction<{ showDialog: boolean, dialogType?: DialogType | null, dialogTab?: DialogTab | null }>) => {
             state.showDialog = action.payload.showDialog;
             if (action.payload.dialogType) { state.dialogType = action.payload.dialogType; }
             if (action.payload.dialogTab) { state.dialogTab = action.payload.dialogTab };

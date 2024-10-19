@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { setDialog, setTab, DialogTab } from "@/store/trackDialogSlice";
+import { setDialog, setTab, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import AppCamera from "../camera";
 import { SegmentedButtons } from 'react-native-paper';
 import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
@@ -14,7 +14,7 @@ export default function TrackDialog() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const dialogTab: DialogTab | null = useSelector((state: RootState) => state.trackDialog.dialogTab);
-    const dialogType = useSelector((state: RootState) => state.trackDialog.dialogType);
+    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
 
     const onTabValueChange = (value: string) => {
         const tab = value as DialogTab;
@@ -24,13 +24,13 @@ export default function TrackDialog() {
 
     return (
         <>
-            <Button mode="contained" icon="book-plus" style={[{ alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5 }]} uppercase onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: 'ADD' }))}>Add Track</Button>
+            <Button mode="contained" icon="book-plus" style={[{ alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5 }]} uppercase onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: DialogType.ADD }))}>Add Track</Button>
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
                     <Dialog.Title>{`Add ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>{` Data`}</Dialog.Title>
                     <Dialog.Content>
-                        {dialogType !== 'EDIT' && <>
+                        {dialogType !== DialogType.EDIT && <>
                             <SegmentedButtons
                                 value={dialogTab ? dialogTab : DialogTab.SLEEP}
                                 onValueChange={onTabValueChange}
