@@ -32,11 +32,7 @@ export default function TrackSleepCard() {
                             <View key={index}>
                                 <Divider />
                                 <Card style={{ margin: 10 }}>
-                                    <Card.Title
-                                        title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`}
-                                        subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`}
-                                        left={LeftContent}
-                                    />
+                                    <Card.Title title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`} subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`} left={LeftContent} />
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: 'EDIT' }))}>Edit</Button>

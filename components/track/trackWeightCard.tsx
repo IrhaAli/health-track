@@ -29,10 +29,7 @@ export default function TrackWeightCard() {
                             <View key={index}>
                                 <Divider />
                                 <Card style={[{ margin: 10 }]}>
-                                    <Card.Title
-                                        title={`Weight: ${weight.weight} ${weight.measurement_unit}`}
-                                        left={LeftContent}
-                                    />
+                                    <Card.Title title={`Weight: ${weight.weight} ${weight.measurement_unit}`} left={LeftContent} />
                                     <Card.Content>
                                         <Image
                                             style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}

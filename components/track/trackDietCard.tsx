@@ -29,10 +29,7 @@ export default function TrackDietCard() {
                             <View key={index}>
                                 <Divider />
                                 <Card style={{ margin: 10 }}>
-                                    <Card.Title
-                                        title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                                        left={LeftContent}
-                                    />
+                                    <Card.Title title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`} left={LeftContent} />
                                     <Card.Content>
                                         <Image
                                             style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
