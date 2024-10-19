@@ -9,7 +9,7 @@ import { setDialog, DialogTab } from "@/store/trackDialogSlice";
 
 export default function TrackWaterCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="glass-pint-outline" />
+    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="glass-pint-outline" color="#fff" />
     const waterData: WaterDataState | [] = useSelector((state: RootState) => state.track.waterData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
@@ -32,7 +32,7 @@ export default function TrackWaterCard() {
                                         title={`Total Water Consumed: ${water.intake_amount} ${water.waterType}`}
                                         left={LeftContent}
                                     />
-                                    <Card.Actions>
+                                    <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WATER, dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>

@@ -9,7 +9,7 @@ import { setDialog, DialogTab } from "@/store/trackDialogSlice";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="moon-waning-crescent" />
+    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="moon-waning-crescent" color="#fff" />
     const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
@@ -37,7 +37,7 @@ export default function TrackSleepCard() {
                                         subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`}
                                         left={LeftContent}
                                     />
-                                    <Card.Actions>
+                                    <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>

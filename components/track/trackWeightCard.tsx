@@ -9,7 +9,7 @@ import { setDialog, DialogTab } from "@/store/trackDialogSlice";
 
 export default function TrackWeightCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="weight" />
+    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="weight" color="#fff" />
     const weightData: WeightDataState | [] = useSelector((state: RootState) => state.track.weightData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
@@ -39,7 +39,7 @@ export default function TrackWeightCard() {
                                             source={{ uri: weight.picture }}
                                         />
                                     </Card.Content>
-                                    <Card.Actions>
+                                    <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteWeightRecords(weight.id); }}>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WEIGHT, dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>

@@ -9,7 +9,7 @@ import { setDialog, DialogTab } from "@/store/trackDialogSlice";
 
 export default function TrackDietCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="food" />
+    const LeftContent = (props: any) => <Avatar.Icon {...props} icon="food" color="#fff" />
     const dietData: DietDataState | [] = useSelector((state: RootState) => state.track.dietData);
     const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
     const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
@@ -39,7 +39,7 @@ export default function TrackDietCard() {
                                             source={{ uri: diet.meal_picture }}
                                         />
                                     </Card.Content>
-                                    <Card.Actions>
+                                    <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => { deleteDietRecords(diet.id); }}>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.DIET, dialogType: 'EDIT' }))}>Edit</Button>
                                     </Card.Actions>
