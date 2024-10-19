@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideCamera, setShowCamera, setImageURI, clearImageURI } from "@/store/cameraSlice";
-import { setDialog } from "@/store/trackDialogSlice";
+import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { Divider, Button, Text, HelperText } from 'react-native-paper';
@@ -29,6 +29,7 @@ export default function TrackDietForm() {
     const [loading, setLoading] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
+    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
 
     const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
@@ -114,7 +115,7 @@ export default function TrackDietForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !imageURI} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !imageURI} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}

@@ -4,7 +4,7 @@ import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
-import { setDialog } from "@/store/trackDialogSlice";
+import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { clearImageURI, setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
@@ -31,6 +31,7 @@ export default function TrackWeightForm() {
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
     const weightData = useSelector((state: RootState) => state.track.weightData);
+    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
 
     const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type, value: type }));
@@ -146,7 +147,7 @@ export default function TrackWeightForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}

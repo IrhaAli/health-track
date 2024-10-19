@@ -7,7 +7,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { router } from "expo-router";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { setDialog } from "@/store/trackDialogSlice";
+import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
@@ -31,6 +31,7 @@ export default function TrackWaterForm() {
     const [loading, setLoading] = useState<boolean>(false);
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
+    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
 
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type, value: type }));
@@ -132,7 +133,7 @@ export default function TrackWaterForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}

@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
-import { setDialog } from "@/store/trackDialogSlice";
+import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
@@ -41,6 +41,7 @@ export default function TrackSleepForm() {
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
     const sleepData = useSelector((state: RootState) => state.track.sleepData);
+    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
@@ -236,7 +237,7 @@ export default function TrackSleepForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>Submit</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
