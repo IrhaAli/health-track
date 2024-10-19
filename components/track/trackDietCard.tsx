@@ -31,10 +31,7 @@ export default function TrackDietCard() {
                                 <Card style={{ margin: 10 }}>
                                     <Card.Title title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`} left={LeftContent} />
                                     <Card.Content>
-                                        <Image
-                                            style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
-                                            source={{ uri: diet.meal_picture }}
-                                        />
+                                        <Image style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]} source={{ uri: diet.meal_picture }} />
                                     </Card.Content>
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => deleteDietRecords(diet.id) }>Delete</Button>

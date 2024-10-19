@@ -31,10 +31,7 @@ export default function TrackWeightCard() {
                                 <Card style={[{ margin: 10 }]}>
                                     <Card.Title title={`Weight: ${weight.weight} ${weight.measurement_unit}`} left={LeftContent} />
                                     <Card.Content>
-                                        <Image
-                                            style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
-                                            source={{ uri: weight.picture }}
-                                        />
+                                        <Image style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]} source={{ uri: weight.picture }} />
                                     </Card.Content>
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => deleteWeightRecords(weight.id) }>Delete</Button>
