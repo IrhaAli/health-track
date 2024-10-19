@@ -1,9 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export enum DialogTab {
+    SLEEP = 'sleep',
+    DIET = 'diet',
+    WATER = 'water',
+    WEIGHT = 'weight',
+}
+
 interface TrackDialogState {
     showDialog: boolean;
     dialogType: string | null;
-    dialogTab: string | null;
+    dialogTab: DialogTab | null;
 }
 
 const initialState: TrackDialogState = {
@@ -22,12 +29,12 @@ const trackDialogSlice = createSlice({
         setHideDialog: (state: TrackDialogState) => {
             state.showDialog = false;
         },
-        setDialog: (state: TrackDialogState, action: PayloadAction<{ showDialog: boolean, dialogType?: string | null, dialogTab?: string | null }>) => {
+        setDialog: (state: TrackDialogState, action: PayloadAction<{ showDialog: boolean, dialogType?: string | null, dialogTab?: DialogTab | null }>) => {
             state.showDialog = action.payload.showDialog;
             if (action.payload.dialogType) { state.dialogType = action.payload.dialogType; }
             if (action.payload.dialogTab) { state.dialogTab = action.payload.dialogTab };
         },
-        setTab: (state: TrackDialogState, action: PayloadAction<string>) => {
+        setTab: (state: TrackDialogState, action: PayloadAction<DialogTab>) => {
             state.dialogTab = action.payload
         }
     },
