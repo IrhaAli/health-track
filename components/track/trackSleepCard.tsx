@@ -1,9 +1,10 @@
 import React from "react";
-import { Card, Button, Text, Avatar } from 'react-native-paper';
+import { Card, Button, Text, Avatar, Divider } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { SleepDataEntry, SleepDataState } from "../../types/track";
 import { deleteSleepData } from "@/store/trackSlice";
+import { View } from "react-native";
 
 export default function TrackSleepCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -28,17 +29,20 @@ export default function TrackSleepCard() {
                     return sleepData[formattedMonth]
                         .filter((entry: SleepDataEntry) => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((sleep: SleepDataEntry, index: number) => (
-                            <Card key={index} style={{ margin: 10 }}>
-                                <Card.Title
-                                    title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`}
-                                    subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`}
-                                    left={LeftContent}
-                                />
-                                <Card.Actions>
-                                    <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
-                                    <Button icon="pencil">Edit</Button>
-                                </Card.Actions>
-                            </Card>
+                            <View key={index}>
+                                <Divider />
+                                <Card style={{ margin: 10 }}>
+                                    <Card.Title
+                                        title={`Sleep Duration: ${convertMinutesToHoursAndMinutes(sleep.sleep_duration)}`}
+                                        subtitle={`Sleep Quality: ${sleep.sleep_quality}/5`}
+                                        left={LeftContent}
+                                    />
+                                    <Card.Actions>
+                                        <Button icon="delete" onPress={() => { deleteSleepRecords(sleep.id); }}>Delete</Button>
+                                        <Button icon="pencil">Edit</Button>
+                                    </Card.Actions>
+                                </Card>
+                            </View>
                         ))
                 }
             }

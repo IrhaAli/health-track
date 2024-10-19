@@ -1,10 +1,10 @@
 import React from "react";
-import { Card, Button, Avatar } from 'react-native-paper';
+import { Card, Button, Avatar, Divider } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, WeightDataState } from "../../types/track";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 
 export default function TrackWeightCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -25,22 +25,25 @@ export default function TrackWeightCard() {
                     return weightData[formattedMonth]
                         .filter((entry: WeightDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((weight: WeightDataEntry, index: number) => (
-                            <Card key={index} style={{ margin: 10 }}>
-                                <Card.Title
-                                    title={`Weight: ${weight.weight} ${weight.measurement_unit}`}
-                                    left={LeftContent}
-                                />
-                                <Card.Content>
-                                    <Image
-                                        style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
-                                        source={{ uri: weight.picture }}
+                            <View key={index}>
+                                <Divider />
+                                <Card style={[{ margin: 10 }]}>
+                                    <Card.Title
+                                        title={`Weight: ${weight.weight} ${weight.measurement_unit}`}
+                                        left={LeftContent}
                                     />
-                                </Card.Content>
-                                <Card.Actions>
-                                    <Button icon="delete" onPress={() => { deleteWeightRecords(weight.id); }}>Delete</Button>
-                                    <Button icon="pencil">Edit</Button>
-                                </Card.Actions>
-                            </Card>
+                                    <Card.Content>
+                                        <Image
+                                            style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
+                                            source={{ uri: weight.picture }}
+                                        />
+                                    </Card.Content>
+                                    <Card.Actions>
+                                        <Button icon="delete" onPress={() => { deleteWeightRecords(weight.id); }}>Delete</Button>
+                                        <Button icon="pencil">Edit</Button>
+                                    </Card.Actions>
+                                </Card>
+                            </View>
                         ))
                 }
             }

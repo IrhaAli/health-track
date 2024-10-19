@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState } from "../../types/track";
+import { View } from "react-native";
 
 export default function TrackWaterCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -24,16 +25,18 @@ export default function TrackWaterCard() {
                     return waterData[formattedMonth]
                         .filter((entry: WaterDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((water: WaterDataEntry, index: number) => (
-                            <Card key={index} style={{ margin: 10 }}>
-                                <Card.Title
-                                    title={`Total Water Consumed: ${water.intake_amount} ${water.waterType}`}
-                                    left={LeftContent}
-                                />
-                                <Card.Actions>
-                                    <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
-                                    <Button icon="pencil">Edit</Button>
-                                </Card.Actions>
-                            </Card>
+                            <View key={index}>
+                                <Card style={{ margin: 10 }}>
+                                    <Card.Title
+                                        title={`Total Water Consumed: ${water.intake_amount} ${water.waterType}`}
+                                        left={LeftContent}
+                                    />
+                                    <Card.Actions>
+                                        <Button icon="delete" onPress={() => { deleteWaterRecords(water.id); }}>Delete</Button>
+                                        <Button icon="pencil">Edit</Button>
+                                    </Card.Actions>
+                                </Card>
+                            </View>
                         ))
                 }
             }

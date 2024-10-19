@@ -1,10 +1,10 @@
 import React from "react";
-import { Card, Button, Text, Avatar } from 'react-native-paper';
+import { Card, Button, Text, Avatar, Divider } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { DietDataEntry, DietDataState } from "../../types/track";
 import { deleteDietData } from "@/store/trackSlice";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 
 export default function TrackDietCard() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
@@ -25,22 +25,25 @@ export default function TrackDietCard() {
                     return dietData[formattedMonth]
                         .filter((entry: DietDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
                         .map((diet: DietDataEntry, index: number) => (
-                            <Card key={index} style={{ margin: 10 }}>
-                                <Card.Title
-                                    title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                                    left={LeftContent}
-                                />
-                                <Card.Content>
-                                    <Image
-                                        style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
-                                        source={{ uri: diet.meal_picture }}
+                            <View key={index}>
+                                <Divider />
+                                <Card style={{ margin: 10 }}>
+                                    <Card.Title
+                                        title={`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                                        left={LeftContent}
                                     />
-                                </Card.Content>
-                                <Card.Actions>
-                                    <Button icon="delete" onPress={() => { deleteDietRecords(diet.id); }}>Delete</Button>
-                                    <Button icon="pencil">Edit</Button>
-                                </Card.Actions>
-                            </Card>
+                                    <Card.Content>
+                                        <Image
+                                            style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]}
+                                            source={{ uri: diet.meal_picture }}
+                                        />
+                                    </Card.Content>
+                                    <Card.Actions>
+                                        <Button icon="delete" onPress={() => { deleteDietRecords(diet.id); }}>Delete</Button>
+                                        <Button icon="pencil">Edit</Button>
+                                    </Card.Actions>
+                                </Card>
+                            </View>
                         ))
                 }
             }
