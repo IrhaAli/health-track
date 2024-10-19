@@ -45,7 +45,7 @@ export default function TabLayout() {
   });
 
   if (isLoading) { return <View><Text variant="displayLarge">Loading...</Text></View> }
-  if (!session) { console.log('redirecting to login'); return <Redirect href="/login" />; }
+  if (!session) { return <Redirect href="/login" />; }
 
   return (
     <>

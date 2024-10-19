@@ -9,7 +9,6 @@ import TrackCards from "./trackCards";
 // Local Components End.
 
 export default function TrackComponent() {
-  console.log('A1 rendered main parent');
   const userId = getAuth().currentUser?.uid || "PHCJD511ukbTHQfVXPu26N8rzqg1";
 
   return (

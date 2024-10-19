@@ -42,7 +42,6 @@ const SignupForm = () => {
           auth_type: "EMAIL_PASSWORD",
         };
         setLoading(false);
-        console.log("Line 39 register");
         router.push({ pathname: "/(signup_questionnaire)", params: userInfo });
       })
       .catch((error) => {

@@ -94,7 +94,6 @@ export default function ProfileDietaryPreferences() {
     setIsEdit(false);
     setIsDisabled(true);
     try {
-      console.log(dietaryPreferences.is_vegetarian, dietaryPreferences.docId);
       if (dietaryPreferences.docId) {
         const updateDietaryPreferencesDetails = doc(
           db,

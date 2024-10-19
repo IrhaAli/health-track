@@ -54,7 +54,6 @@ export default function ProfileMedicalHistory() {
     try {
       medicalHistory.forEach(async (item: any) => {
         if (item.docId && item.is_deleted) {
-          console.log("I'm hererere");
           await deleteDoc(doc(db, "medical_history", item.docId));
         } else if (!item.docId) {
           await addDoc(collection(db, "medical_history"), {
