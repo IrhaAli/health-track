@@ -104,7 +104,6 @@ export default function TrackSleepForm() {
 
             // Convert milliseconds to hours
             const differenceInHours = differenceInMillis / (1000 * 60 * 60);
-            console.log('differenceInHours', differenceInHours);
 
             if (differenceInHours < 1) {
                 const adjustedWakeupTime = new Date(date.getTime() + (60 * 60 * 1000));
