@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
@@ -6,13 +6,14 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { clearImageURI, setHideCamera, setImageURI, setShowCamera } from "@/store/cameraSlice";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
-import { Divider, Button, HelperText } from 'react-native-paper';
+import { Divider, Button, HelperText, Avatar } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
-import { addWeightData } from "@/store/trackSlice";
+import { addWeightData, updateWeightData } from "@/store/trackSlice";
 import { WeightDataEntry } from "@/types/track";
+import { compose } from "redux";
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -32,9 +33,32 @@ export default function TrackWeightForm() {
     const [errorString, setErrorString] = useState<string | null>(null);
     const weightData = useSelector((state: RootState) => state.track.weightData);
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
+    const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type.charAt(0).toUpperCase() + type.slice(1), value: type }));
     const auth = getAuth();
+    const [currentWeightData, setCurrentWeightData] = useState<WeightDataEntry | {}>({});
+    const [imageToBeDelete, setImageToBeDelete] = useState<string | null>(null);
 
-    const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type, value: type }));
+    const getWaterDataObject = (): WeightDataEntry | {} => {
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+
+        if (!Array.isArray(weightData)) {
+            if (formattedMonth in weightData) {
+                if (weightData[formattedMonth] && weightData[formattedMonth].length > 0) {
+                    const entry = weightData[formattedMonth].find((entry: WeightDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    if (entry) { return entry; }
+                }
+            }
+        }
+        return {}; // Return an empty object if conditions are not met
+    };
+
+    useEffect(() => {
+        if (dialogType === DialogType.EDIT) {
+            const entry: WeightDataEntry | {} = getWaterDataObject();
+            if (entry && isWeightDataEntry(entry)) { setCurrentWeightData(entry); setWeight(String(entry.weight)); }
+        }
+    }, [dialogType, currentDate, weightData]); // Dependencies to re-run the effect
 
     const uploadImage = async () => {
         if (!imageURI) { throw new Error(`Invalid URI for Weight:`); }
@@ -48,6 +72,29 @@ export default function TrackWeightForm() {
             .then((downloadUrl) => { return downloadUrl; });
     };
 
+    const deleteImage = async () => {
+        console.log('delete image called');
+        if (isWeightDataEntry(currentWeightData) && currentWeightData.picture) {
+            console.log('condition meet');
+            setImageToBeDelete(currentWeightData.picture);
+            setCurrentWeightData({ ...currentWeightData, picture: null });
+        }
+        else { throw new Error(`Image not available for the current weight card!`); }
+    };
+
+    function isWeightDataEntry(obj: any): obj is WeightDataEntry {
+        return (
+            obj &&
+            typeof obj === 'object' &&
+            'id' in obj &&
+            'date' in obj &&
+            'measurement_unit' in obj &&
+            'picture' in obj &&
+            'user_id' in obj &&
+            'weight' in obj
+        );
+    }
+
     const onSubmit = async () => {
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
@@ -60,17 +107,31 @@ export default function TrackWeightForm() {
             entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
         );
 
-        if (existingEntry) {
+        if (dialogType !== DialogType.EDIT && existingEntry) {
             setShowError(true);
-            setErrorString('Weight data already exists!');
+            setErrorString('Water data already exists!');
+            return;
+        }
+
+        if (dialogType === DialogType.EDIT && !existingEntry) {
+            setShowError(true);
+            setErrorString("Water data doesn't exists, add water first!");
             return;
         }
 
         if (auth?.currentUser?.uid) {
-            if (!imageURI) {
+            if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
-                setErrorString('Please add mean picture!');
+                setErrorString('Please add meal picture!');
                 return;
+            }
+
+            if ((dialogType === DialogType.EDIT) && isWeightDataEntry(currentWeightData)) {
+                if (!imageURI && !currentWeightData.picture) {
+                    setShowError(true);
+                    setErrorString('Please add meal picture!');
+                    return;
+                }
             }
 
             setLoading(true);
@@ -79,9 +140,23 @@ export default function TrackWeightForm() {
                 const conversionRate: Record<string, number> = { lbs: 0.453592 };
                 const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : parseFloat(weight);
 
-                let weightData: WeightDataEntry = { user_id: auth.currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
+                if (dialogType !== DialogType.EDIT) {
+                    let weightData: WeightDataEntry = { user_id: auth.currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
+                    dispatch(addWeightData({ currentDate: currentDate, addWeight: weightData }));
+                }
+                if (dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData)) {
+                    if (imageToBeDelete) {
+                        const match = imageToBeDelete.match(/weight%2F([^?]+)/);
+                        if (match && match[1]) {
+                            const id = match[1];
+                            let weightImageRef = ref(storage, `weight/${id}`);
+                            await deleteObject(weightImageRef);
+                        } else { console.error("ID not found in the URL"); }
+                    }
 
-                dispatch(addWeightData({ currentDate: currentDate, addWeight: weightData }));
+                    let updateWeight: WeightDataEntry = { ...currentWeightData, weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : currentWeightData.picture ? currentWeightData.picture : '' }
+                    dispatch(updateWeightData({ updateWeight, currentDate }));
+                }
 
                 // Ressetting Fields.
                 setWeightType(WeightTypeEnum.KG);
@@ -136,18 +211,34 @@ export default function TrackWeightForm() {
                     />
                 </View>
 
-                {!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
-                    <>
-                        <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
-                        <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
-                    </>
+                {dialogType !== DialogType.EDIT && (!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
+                    <View>
+                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
+                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
+                    </View>
+                ))}
+
+                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && !imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>)}
+
+                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
+                    <View>
+                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
+                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
+                    </View>
+                )}
+
+                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && currentWeightData.picture && currentWeightData.picture.length && (
+                    <View>
+                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { deleteImage(); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
+                        <Image source={{ uri: currentWeightData.picture }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
+                    </View>
                 )}
             </View>
 
             <Divider />
             <View style={styles.formSubmission}>
                 <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || !imageURI} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
+                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}

@@ -284,6 +284,37 @@ export const deleteDietData = createAsyncThunk( // Delete Diet Data.
     return { formattedMonth, docData: dietData || [] };
   }
 );
+
+export const deleteWeightImage = createAsyncThunk( // Delete Diet Data.
+  'track/deleteWeightImage',
+  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const dietData = state.track.dietData?.[formattedMonth];
+
+    if (Array.isArray(dietData) && dietData.length > 0) {
+      const existingEntry = dietData.find(
+        (entry) =>
+          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+          entry.id === docId
+      );
+
+      if (existingEntry) {
+        try {
+          await deleteDoc(doc(db, "diet_tracking", docId));
+          const docData = dietData.filter(
+            (entry) =>
+              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+                entry.id === docId)
+          );
+          return { formattedMonth, docData };
+        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
+      }
+    }
+    return { formattedMonth, docData: dietData || [] };
+  }
+);
 // Delete.
 
 // Add.
@@ -385,7 +416,7 @@ export const addDietData = createAsyncThunk( // Add Diet Data.
 // Add.
 
 // Update.
-export const updateWaterData = createAsyncThunk( // Add Water Data.
+export const updateWaterData = createAsyncThunk( // Update Water Data.
   'track/updateWaterData',
   async ({ currentDate, updateWater }: { currentDate: string, updateWater: WaterDataEntry }, thunkAPI) => {
     const [year, month] = currentDate.split('-');
@@ -431,6 +462,55 @@ export const updateWaterData = createAsyncThunk( // Add Water Data.
         return thunkAPI.rejectWithValue(error.message);
       }
     } else { return { formattedMonth, docData: waterDataForMonth }; }
+  }
+);
+
+export const updateWeightData = createAsyncThunk( // Update Weight Data.
+  'track/updateWeightData',
+  async ({ currentDate, updateWeight }: { currentDate: string, updateWeight: WeightDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const weightDataForMonth = state.track.weightData?.[formattedMonth] || [];
+
+    const existingEntry = weightDataForMonth.find(
+      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (!existingEntry || !updateWeight) {
+      return { formattedMonth, docData: weightDataForMonth };
+    }
+
+    if (updateWeight.id) {
+      try {
+        const updateWeightRef = doc(db, "weight_tracking", updateWeight.id);
+        await updateDoc(updateWeightRef, (({ id, date, ...rest }) => rest)(updateWeight));
+
+        // Find the index of the entry to update in the array
+        const entryIndex = weightDataForMonth.findIndex(entry => entry.id === updateWeight.id);
+        if (entryIndex !== -1) {
+          // Create a new entry with the updated data
+          const updatedEntry = { ...weightDataForMonth[entryIndex], ...updateWeight };
+
+          // Create a new array with the updated entry
+          const updatedWeightDataForMonth = [
+            ...weightDataForMonth.slice(0, entryIndex),
+            updatedEntry,
+            ...weightDataForMonth.slice(entryIndex + 1)
+          ];
+
+          return { formattedMonth, docData: updatedWeightDataForMonth };
+        } else {
+          // If the entry is not found, you might want to handle this case
+          console.error("Entry not found for update");
+          return { formattedMonth, docData: weightDataForMonth };
+        }
+
+
+      } catch (error: any) {
+        return thunkAPI.rejectWithValue(error.message);
+      }
+    } else { return { formattedMonth, docData: weightDataForMonth }; }
   }
 );
 // Update.
@@ -584,8 +664,17 @@ const trackSlice = createSlice({
         state.loadingTrackWaterData = false;
       })
       .addCase(updateWaterData.rejected, (state, action) => {   // Update Water Data - Error
-        console.error('Error adding water data:', action.payload);
+        console.error('Error updating water data:', action.payload);
         state.loadingTrackWaterData = false;
+      })
+      .addCase(updateWeightData.fulfilled, (state, action) => {  // Update Weight Data
+        const { formattedMonth, docData } = action.payload;
+        state.weightData[formattedMonth] = docData;
+        state.loadingTrackWeightData = false;
+      })
+      .addCase(updateWeightData.rejected, (state, action) => {   // Update Weight Data - Error
+        console.error('Error updating weight data:', action.payload);
+        state.loadingTrackWeightData = false;
       })
     // Update
   }
