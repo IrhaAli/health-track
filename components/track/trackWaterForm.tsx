@@ -70,15 +70,15 @@ export default function TrackWaterForm() {
 
     function isWaterDataEntry(obj: any): obj is WaterDataEntry {
         return (
-          obj &&
-          typeof obj === 'object' &&
-          'intake_amount' in obj &&
-          'waterType' in obj &&
-          'id' in obj &&
-          'date' in obj &&
-          'user_id' in obj
+            obj &&
+            typeof obj === 'object' &&
+            'intake_amount' in obj &&
+            'waterType' in obj &&
+            'id' in obj &&
+            'date' in obj &&
+            'user_id' in obj
         );
-      }
+    }
 
     const onSubmit = async () => {
         const [year, month] = currentDate.split('-');
@@ -130,7 +130,7 @@ export default function TrackWaterForm() {
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))
             }
-            catch (error) { 
+            catch (error) {
                 setLoading(false);
             } finally { setLoading(false); }
         }
@@ -139,7 +139,7 @@ export default function TrackWaterForm() {
 
     return (
         <View>
-            {currentWaterData &&  Object.keys(currentWaterData).length > 0 && 'intake_amount' in currentWaterData && 'waterType' in currentWaterData && <View>
+            {currentWaterData && Object.keys(currentWaterData).length > 0 && 'intake_amount' in currentWaterData && 'waterType' in currentWaterData && <View>
                 <Text variant="bodyLarge">{`Congratulations! You have consumed ${currentWaterData.intake_amount} ${currentWaterData.waterType.charAt(0).toUpperCase() + currentWaterData.waterType.slice(1)} of water today.\nDo you like to add more?`}</Text>
             </View>}
             <View style={styles.trackWaterForm}>
