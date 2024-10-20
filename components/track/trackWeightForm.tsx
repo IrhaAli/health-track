@@ -12,7 +12,7 @@ import { router } from "expo-router";
 import { Divider, Button, HelperText, Avatar } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWeightData, updateWeightData } from "@/store/trackSlice";
-import { WeightDataEntry } from "@/types/track";
+import { WeightDataEntry, isWeightDataEntry } from "@/types/track";
 import { compose } from "redux";
 
 enum WeightTypeEnum {
@@ -81,19 +81,6 @@ export default function TrackWeightForm() {
         }
         else { throw new Error(`Image not available for the current weight card!`); }
     };
-
-    function isWeightDataEntry(obj: any): obj is WeightDataEntry {
-        return (
-            obj &&
-            typeof obj === 'object' &&
-            'id' in obj &&
-            'date' in obj &&
-            'measurement_unit' in obj &&
-            'picture' in obj &&
-            'user_id' in obj &&
-            'weight' in obj
-        );
-    }
 
     const onSubmit = async () => {
         const [year, month] = currentDate.split('-');

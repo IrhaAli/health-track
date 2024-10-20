@@ -6,6 +6,18 @@ export interface WaterDataEntry {
   waterType: string;
 }
 
+export function isWaterDataEntry(obj: any): obj is WaterDataEntry {
+  return (
+      obj &&
+      typeof obj === 'object' &&
+      'id' in obj &&
+      'date' in obj &&
+      'intake_amount' in obj &&
+      'user_id' in obj &&
+      'waterType' in obj
+  );
+}
+
 export interface SleepDataEntry {
   id?: string;
   bed_time: string | Date;
@@ -13,6 +25,19 @@ export interface SleepDataEntry {
   sleep_quality: number;
   user_id: string;
   wakeup_time: string | Date;
+}
+
+export function isSleepDataEntry(obj: any): obj is SleepDataEntry {
+  return (
+      obj &&
+      typeof obj === 'object' &&
+      'id' in obj &&
+      'bed_time' in obj &&
+      'sleep_duration' in obj &&
+      'sleep_quality' in obj &&
+      'user_id' in obj &&
+      'wakeup_time' in obj
+  );
 }
 
 export interface WeightDataEntry {
@@ -24,11 +49,35 @@ export interface WeightDataEntry {
   weight: number;
 }
 
+export function isWeightDataEntry(obj: any): obj is WeightDataEntry {
+  return (
+      obj &&
+      typeof obj === 'object' &&
+      'id' in obj &&
+      'date' in obj &&
+      'measurement_unit' in obj &&
+      'picture' in obj &&
+      'user_id' in obj &&
+      'weight' in obj
+  );
+}
+
 export interface DietDataEntry {
   id?: string;
   date: string | Date;  
   meal_picture: string;
   user_id: string;
+}
+
+export function isDietDataEntry(obj: any): obj is DietDataEntry {
+  return (
+      obj &&
+      typeof obj === 'object' &&
+      'id' in obj &&
+      'date' in obj &&
+      'meal_picture' in obj &&
+      'user_id' in obj 
+  );
 }
 
 export type WaterDataState = {

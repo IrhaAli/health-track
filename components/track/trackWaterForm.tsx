@@ -10,7 +10,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button, HelperText, Text } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWaterData, updateWaterData } from "@/store/trackSlice";
-import { WaterDataEntry, WaterDataState } from "@/types/track";
+import { WaterDataEntry, WaterDataState, isWaterDataEntry } from "@/types/track";
 import { clearImageURI } from "@/store/cameraSlice";
 
 enum WaterTypeEnum {
@@ -66,18 +66,6 @@ export default function TrackWaterForm() {
         }
 
         return waterAmount;
-    }
-
-    function isWaterDataEntry(obj: any): obj is WaterDataEntry {
-        return (
-            obj &&
-            typeof obj === 'object' &&
-            'intake_amount' in obj &&
-            'waterType' in obj &&
-            'id' in obj &&
-            'date' in obj &&
-            'user_id' in obj
-        );
     }
 
     const onSubmit = async () => {
