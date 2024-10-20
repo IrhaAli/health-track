@@ -30,9 +30,9 @@ export default function TrackWeightCard() {
                                 <Divider />
                                 <Card style={[{ margin: 10 }]}>
                                     <Card.Title title={`Weight: ${weight.weight} ${weight.measurement_unit}`} left={LeftContent} />
-                                    <Card.Content>
+                                    {(weight.picture && weight.picture.length) && <Card.Content>
                                         <Image style={[{ width: 100, height: 150, objectFit: 'contain', alignSelf: 'center' }]} source={{ uri: weight.picture }} />
-                                    </Card.Content>
+                                    </Card.Content>}
                                     <Card.Actions style={[{ alignSelf: 'flex-start' }]}>
                                         <Button icon="delete" onPress={() => deleteWeightRecords(weight.id) }>Delete</Button>
                                         <Button icon="pencil" onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.WEIGHT, dialogType: DialogType.EDIT }))}>Edit</Button>
