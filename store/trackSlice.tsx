@@ -513,6 +513,59 @@ export const updateWeightData = createAsyncThunk( // Update Weight Data.
     } else { return { formattedMonth, docData: weightDataForMonth }; }
   }
 );
+
+export const updateDietData = createAsyncThunk( // Update Diet Data.
+  'track/updateDietData',
+  async ({ currentDate, updateDiet }: { currentDate: string, updateDiet: DietDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const dietDataForMonth = state.track.dietData?.[formattedMonth] || [];
+
+    const existingEntry = dietDataForMonth.find(
+      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (!existingEntry || !updateDiet) {
+      return { formattedMonth, docData: dietDataForMonth };
+    }
+
+    if (updateDiet.id) {
+      try {
+        const updateDietRef = doc(db, "diet_tracking", updateDiet.id);
+        await updateDoc(updateDietRef, (({ id, ...rest }) => rest)(updateDiet));
+        
+        // Find the index of the entry to update in the array
+        const entryIndex = dietDataForMonth.findIndex(entry => entry.id === updateDiet.id);
+        if (entryIndex !== -1) {
+          // Converting data into string again.
+          let updatedCurrentEntry = { ...updateDiet, date: (updateDiet.date instanceof Date ? updateDiet.date : new Date(updateDiet.date)).toISOString() }
+
+          // Create a new entry with the updated data
+          const updatedEntry = { ...dietDataForMonth[entryIndex], ...updatedCurrentEntry };
+        
+          // Create a new array with the updated entry
+          const updatedDietDataForMonth = [
+            ...dietDataForMonth.slice(0, entryIndex),
+            updatedEntry,
+            ...dietDataForMonth.slice(entryIndex + 1)
+          ];
+
+          return { formattedMonth, docData: updatedDietDataForMonth };
+        } else {
+          // If the entry is not found, you might want to handle this case
+          console.error("Entry not found for update");
+          return { formattedMonth, docData: dietDataForMonth };
+        }
+
+
+      } catch (error: any) {
+        console.log('error', error);
+        return thunkAPI.rejectWithValue(error.message);
+      }
+    } else { return { formattedMonth, docData: dietDataForMonth }; }
+  }
+);
 // Update.
 
 const trackSlice = createSlice({
@@ -675,6 +728,15 @@ const trackSlice = createSlice({
       .addCase(updateWeightData.rejected, (state, action) => {   // Update Weight Data - Error
         console.error('Error updating weight data:', action.payload);
         state.loadingTrackWeightData = false;
+      })
+      .addCase(updateDietData.fulfilled, (state, action) => {  // Update Weight Data
+        const { formattedMonth, docData } = action.payload;
+        state.dietData[formattedMonth] = docData;
+        state.loadingTrackDietData = false;
+      })
+      .addCase(updateDietData.rejected, (state, action) => {   // Update Weight Data - Error
+        console.error('Error updating diet data:', action.payload);
+        state.loadingTrackDietData = false;
       })
     // Update
   }
