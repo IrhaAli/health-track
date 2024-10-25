@@ -102,23 +102,25 @@ export default function TrackDialog() {
     const filteredButtons = tabButtons.filter(button => button.condition);
 
     useEffect(() => {
-        const waterEntry: WaterDataEntry | {} = getWaterDataObject();
-        if (waterEntry) { setCurrentWaterData(waterEntry); }
-
-        const weightEntry: WeightDataEntry | {} = getWeightDataObject();
-        if (weightEntry) { setCurrentWeightData(weightEntry); }
-
-        const sleepEntry: SleepDataEntry | {} = getSleepDataObject();
-        if (sleepEntry) { setCurrentSleepData(sleepEntry); }
-
-        const dietEntry: DietDataEntry | {} = getDietDataObject();
-        if (dietEntry) { setCurrentDietData(dietEntry); }
-
-        if (isWaterDataEntry(waterEntry) && isWeightDataEntry(weightEntry) && isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.DIET)); } 
-        else if (!isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.SLEEP)); } 
-        else if (!isWaterDataEntry(waterEntry)) { dispatch(setTab(DialogTab.WATER)); } 
-        else if (!isWeightDataEntry(weightEntry)) { dispatch(setTab(DialogTab.WEIGHT)); } 
-        else { dispatch(setTab(DialogTab.DIET)); }
+        if (dialogType !== DialogType.EDIT) {
+            const waterEntry: WaterDataEntry | {} = getWaterDataObject();
+            if (waterEntry) { setCurrentWaterData(waterEntry); }
+    
+            const weightEntry: WeightDataEntry | {} = getWeightDataObject();
+            if (weightEntry) { setCurrentWeightData(weightEntry); }
+    
+            const sleepEntry: SleepDataEntry | {} = getSleepDataObject();
+            if (sleepEntry) { setCurrentSleepData(sleepEntry); }
+    
+            const dietEntry: DietDataEntry | {} = getDietDataObject();
+            if (dietEntry) { setCurrentDietData(dietEntry); }
+    
+            if (isWaterDataEntry(waterEntry) && isWeightDataEntry(weightEntry) && isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.DIET)); } 
+            else if (!isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.SLEEP)); } 
+            else if (!isWaterDataEntry(waterEntry)) { dispatch(setTab(DialogTab.WATER)); } 
+            else if (!isWeightDataEntry(weightEntry)) { dispatch(setTab(DialogTab.WEIGHT)); } 
+            else { dispatch(setTab(DialogTab.DIET)); }
+        }
     }, [currentDate, waterData, weightData, sleepData, dietData, dialogTab]); // Dependencies to re-run the effect
 
     
