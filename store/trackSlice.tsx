@@ -566,6 +566,63 @@ export const updateDietData = createAsyncThunk( // Update Diet Data.
     } else { return { formattedMonth, docData: dietDataForMonth }; }
   }
 );
+
+export const updateSleepData = createAsyncThunk( // Update Sleep Data.
+  'track/updateSleepData',
+  async ({ currentDate, updateSleep }: { currentDate: string, updateSleep: SleepDataEntry }, thunkAPI) => {
+    const [year, month] = currentDate.split('-');
+    const formattedMonth = `${year}-${month}`;
+    const state = thunkAPI.getState() as { track: TrackState };
+    const sleepDataForMonth = state.track.sleepData?.[formattedMonth] || [];
+
+    const existingEntry = sleepDataForMonth.find(
+      entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
+    );
+
+    if (!existingEntry || !updateSleep) {
+      return { formattedMonth, docData: sleepDataForMonth };
+    }
+
+    if (updateSleep.id) {
+      try {
+        const updateSleepRef = doc(db, "sleep_tracking", updateSleep.id);
+        await updateDoc(updateSleepRef, (({ id, ...rest }) => rest)(updateSleep));
+        
+        // Find the index of the entry to update in the array
+        const entryIndex = sleepDataForMonth.findIndex(entry => entry.id === updateSleep.id);
+        if (entryIndex !== -1) {
+          // Converting data into string again.
+          let updatedCurrentEntry = { 
+            ...updateSleep, 
+            wakeup_time: (updateSleep.wakeup_time instanceof Date ? updateSleep.wakeup_time : new Date(updateSleep.wakeup_time)).toISOString(),
+            bed_time: (updateSleep.bed_time instanceof Date ? updateSleep.bed_time : new Date(updateSleep.bed_time)).toISOString() 
+          }
+
+          // Create a new entry with the updated data
+          const updatedEntry = { ...sleepDataForMonth[entryIndex], ...updatedCurrentEntry };
+        
+          // Create a new array with the updated entry
+          const updatedSleepDataForMonth = [
+            ...sleepDataForMonth.slice(0, entryIndex),
+            updatedEntry,
+            ...sleepDataForMonth.slice(entryIndex + 1)
+          ];
+
+          return { formattedMonth, docData: updatedSleepDataForMonth };
+        } else {
+          // If the entry is not found, you might want to handle this case
+          console.error("Entry not found for update");
+          return { formattedMonth, docData: sleepDataForMonth };
+        }
+
+
+      } catch (error: any) {
+        console.log('error', error);
+        return thunkAPI.rejectWithValue(error.message);
+      }
+    } else { return { formattedMonth, docData: sleepDataForMonth }; }
+  }
+);
 // Update.
 
 const trackSlice = createSlice({
@@ -737,6 +794,15 @@ const trackSlice = createSlice({
       .addCase(updateDietData.rejected, (state, action) => {   // Update Weight Data - Error
         console.error('Error updating diet data:', action.payload);
         state.loadingTrackDietData = false;
+      })
+      .addCase(updateSleepData.fulfilled, (state, action) => {  // Update Sleep Data
+        const { formattedMonth, docData } = action.payload;
+        state.sleepData[formattedMonth] = docData;
+        state.loadingTrackSleepData = false;
+      })
+      .addCase(updateSleepData.rejected, (state, action) => {   // Update Sleep Data - Error
+        console.error('Error updating diet data:', action.payload);
+        state.loadingTrackSleepData = false;
       })
     // Update
   }
