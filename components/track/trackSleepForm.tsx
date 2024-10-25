@@ -10,8 +10,8 @@ import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button, HelperText } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
-import { SleepDataEntry } from "@/types/track";
-import { addSleepData } from "@/store/trackSlice";
+import { isSleepDataEntry, SleepDataEntry } from "@/types/track";
+import { addSleepData, updateSleepData } from "@/store/trackSlice";
 import { clearImageURI } from "@/store/cameraSlice";
 
 export default function TrackSleepForm() {
@@ -41,6 +41,7 @@ export default function TrackSleepForm() {
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
     const sleepData = useSelector((state: RootState) => state.track.sleepData);
+    const [currentSleepData, setCurrentSleepData] = useState<SleepDataEntry | {}>({});
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const auth = getAuth();
 
@@ -81,6 +82,34 @@ export default function TrackSleepForm() {
         const differenceMinutes = differenceMs / (1000 * 60);
         return Math.ceil(differenceMinutes);
     };
+
+    const getSleepDataObject = (): SleepDataEntry | {} => {
+        const [year, month] = currentDate.split('-');
+        const formattedMonth = `${year}-${month}`;
+
+        if (!Array.isArray(sleepData)) {
+            if (formattedMonth in sleepData) {
+                if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
+
+                    const entry = sleepData[formattedMonth].find((entry: SleepDataEntry) => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    if (entry) { return entry; }
+                }
+            }
+        }
+        return {}; // Return an empty object if conditions are not met
+    }
+
+    useEffect(() => {
+        if (dialogType === DialogType.EDIT) {
+            const entry: SleepDataEntry | {} = getSleepDataObject();
+            if (entry && isSleepDataEntry(entry)) {
+                setCurrentSleepData(entry);
+                setSleepDateTime(new Date(entry.bed_time));
+                setWakeupTime(new Date(entry.wakeup_time))
+                setSleepQuality(entry.sleep_quality)
+            }
+        }
+    }, [dialogType, currentDate, sleepData]); // Dependencies to re-run the effect
 
     useEffect(() => {
         setSleepDuration(calculateSleepDuration());
@@ -148,18 +177,24 @@ export default function TrackSleepForm() {
     const onSubmit = async () => {
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
-        const waterDataForMonth = sleepData?.[formattedMonth] || [];
+        const sleepDataForMonth = sleepData?.[formattedMonth] || [];
 
         setShowError(false);
         setErrorString(null);
 
-        const existingEntry = waterDataForMonth.find(
+        const existingEntry = sleepDataForMonth.find(
             entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
         );
 
-        if (existingEntry) {
+        if (dialogType !== DialogType.EDIT && existingEntry) {
             setShowError(true);
             setErrorString('Sleep data already exists!');
+            return;
+        }
+
+        if (dialogType === DialogType.EDIT && !existingEntry) {
+            setShowError(true);
+            setErrorString("Sleep data doesn't exists, add water first!");
             return;
         }
 
@@ -167,8 +202,14 @@ export default function TrackSleepForm() {
             setLoading(true);
 
             try {
-                let addSleep: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                dispatch(addSleepData({ currentDate: currentDate, addSleep: addSleep }));
+                if (dialogType !== DialogType.EDIT) {
+                    let addSleep: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
+                    dispatch(addSleepData({ currentDate: currentDate, addSleep: addSleep }));
+                }
+                if (dialogType === DialogType.EDIT && isSleepDataEntry(currentSleepData)) {
+                    let updateSleep: SleepDataEntry = { ...currentSleepData, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
+                    dispatch(updateSleepData({ updateSleep, currentDate }))
+                }
 
                 // Ressetting Fields.
                 setSleepDateTime(new Date());
