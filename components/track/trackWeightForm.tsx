@@ -38,7 +38,7 @@ export default function TrackWeightForm() {
     const [currentWeightData, setCurrentWeightData] = useState<WeightDataEntry | {}>({});
     const [imageToBeDelete, setImageToBeDelete] = useState<string | null>(null);
 
-    const getWaterDataObject = (): WeightDataEntry | {} => {
+    const getWeightDataObject = (): WeightDataEntry | {} => {
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
 
@@ -55,7 +55,7 @@ export default function TrackWeightForm() {
 
     useEffect(() => {
         if (dialogType === DialogType.EDIT) {
-            const entry: WeightDataEntry | {} = getWaterDataObject();
+            const entry: WeightDataEntry | {} = getWeightDataObject();
             if (entry && isWeightDataEntry(entry)) { setCurrentWeightData(entry); setWeight(String(entry.weight)); }
         }
     }, [dialogType, currentDate, weightData]); // Dependencies to re-run the effect
