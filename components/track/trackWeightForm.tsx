@@ -109,14 +109,14 @@ export default function TrackWeightForm() {
         if (auth?.currentUser?.uid) {
             if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
-                setErrorString('Please add meal picture!');
+                setErrorString('Please add weight picture!');
                 return;
             }
 
             if ((dialogType === DialogType.EDIT) && isWeightDataEntry(currentWeightData)) {
                 if (!imageURI && !currentWeightData.picture) {
                     setShowError(true);
-                    setErrorString('Please add meal picture!');
+                    setErrorString('Please add weight picture!');
                     return;
                 }
             }
