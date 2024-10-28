@@ -116,6 +116,11 @@ export default function TrackDialog() {
             if (dietEntry) { setCurrentDietData(dietEntry); }
     
             if (isWaterDataEntry(waterEntry) && isWeightDataEntry(weightEntry) && isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.DIET)); } 
+            else if (!isWaterDataEntry(waterEntry) && !isWeightDataEntry(weightEntry) && !isSleepDataEntry(sleepEntry)) { return; }
+            else if (dialogTab === DialogTab.WATER && !isWaterDataEntry(waterData)) { return;}
+            else if (dialogTab === DialogTab.WEIGHT && !isWeightDataEntry(weightData)) { return;}
+            else if (dialogTab === DialogTab.SLEEP && !isSleepDataEntry(sleepData)) { return;} 
+            else if (dialogTab === DialogTab.DIET) { return;}
             else if (!isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.SLEEP)); } 
             else if (!isWaterDataEntry(waterEntry)) { dispatch(setTab(DialogTab.WATER)); } 
             else if (!isWeightDataEntry(weightEntry)) { dispatch(setTab(DialogTab.WEIGHT)); } 
