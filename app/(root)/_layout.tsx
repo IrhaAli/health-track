@@ -1,5 +1,5 @@
 import { router, Stack, Redirect, Slot } from "expo-router";
-import React from "react";
+import React, { useContext } from "react";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { getAuth } from "firebase/auth";
@@ -12,6 +12,9 @@ import HomeScreen from "./index";
 import TrackScreen from "./track";
 import MediaScreen from "./media";
 import ProfileScreen from "./profile";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store/store";
+import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 // Screen Imports End. 
 
 // Routes.
@@ -29,6 +32,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { session, isLoading } = useSession();
   const [index, setIndex] = React.useState(0);
+  const dispatch = useDispatch<AppDispatch>();
 
   const [routes] = React.useState([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home' },
@@ -47,6 +51,12 @@ export default function TabLayout() {
   if (isLoading) { return <View><Text variant="displayLarge">Loading...</Text></View> }
   if (!session) { return <Redirect href="/login" />; }
 
+  const handleIndexChange = (newIndex: number) => {
+    dispatch(setCurrentMonth({ month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) }));
+    dispatch(setCurrentDate(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`))
+    setIndex(newIndex);
+  };
+
   return (
     <>
       {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
@@ -57,7 +67,7 @@ export default function TabLayout() {
       />
       <BottomNavigation
         navigationState={{ index, routes }}
-        onIndexChange={setIndex}
+        onIndexChange={handleIndexChange}
         renderScene={renderScene}
         barStyle={{ backgroundColor: Colors[colorScheme ?? "light"].tint, marginBottom: -10 }}
       />
