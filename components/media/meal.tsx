@@ -47,7 +47,7 @@ export default function AppMediaMealComponent() {
                   <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, index) => (
                     <Image key={index} style={styles.image} source={{ uri: meal.meal_picture }} />
                   ))}</View>
-                  <Divider />
+                  <Divider style={[{ marginBottom: 10 }]}/>
                 </>
               );
             })}
@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    marginBottom: 10,
   }, 
   image: {
     width: 125,
