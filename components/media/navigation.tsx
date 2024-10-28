@@ -1,7 +1,7 @@
 import { AppDispatch, RootState } from "../../store/store";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Button, SegmentedButtons, Text } from "react-native-paper";
+import { Avatar, Button, Divider, SegmentedButtons, Text } from "react-native-paper";
 import { View, StyleSheet } from "react-native";
 import { fetchDietData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
 import AppMediaMealComponent from "./meal";
@@ -153,6 +153,7 @@ export default function AppMediaNavitaionComponent() {
                 <Text variant="titleLarge">{getMonthName(currentMonth.month)} {currentMonth.year}</Text>
                 <Button icon={() => (<Avatar.Icon size={30} icon="chevron-right" color='#fff' style={[{ backgroundColor: disableNextButton ? '#B0B0B0' : 'tomato' }]} />)} mode="text" onPress={navNext} disabled={disableNextButton}>{''}</Button>
             </View>
+            <Divider style={[{ marginBottom: 10 }]}/>
 
             {mediaTab === MediaTabEnum.MEAL && <AppMediaMealComponent />}
             {mediaTab === MediaTabEnum.WEIGHT && <AppMediaWeightComponent />}
