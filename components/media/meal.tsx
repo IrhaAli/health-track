@@ -1,5 +1,5 @@
 import { RootState } from "@/store/store";
-import { DietDataEntry, DietDataState, WaterDataEntry } from "@/types/track";
+import { DietDataEntry, DietDataState } from "@/types/track";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Divider, Text } from "react-native-paper";
