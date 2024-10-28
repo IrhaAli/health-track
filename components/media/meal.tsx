@@ -42,13 +42,13 @@ export default function AppMediaMealComponent() {
               const formattedDate: string = typeof item.date === 'string' ? new Date(item.date).toLocaleDateString() : item.date.toLocaleDateString();
 
               return (
-                <>
-                  <Text key={index} variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
+                <View key={index}>
+                  <Text variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
                   <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, index) => (
                     <Image key={index} style={styles.image} source={{ uri: meal.meal_picture }} />
                   ))}</View>
                   <Divider style={[{ marginBottom: 10 }]}/>
-                </>
+                </View>
               );
             })}
           </ScrollView>
