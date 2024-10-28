@@ -1,13 +1,39 @@
-import { RootState } from "@/store/store";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../store/store";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Text } from "react-native-paper";
 import { View, StyleSheet } from "react-native";
+import { setCurrentMonth } from "@/store/trackSlice";
 
 export default function AppMediaNavitaionComponent() {
-    const [disablePrevButton, setDisablePrevButton] = useState<boolean>(true);
+    const [disablePrevButton, setDisablePrevButton] = useState<boolean>(false);
     const [disableNextButton, setDisableNextButton] = useState<boolean>(true);
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
+    const dispatch = useDispatch<AppDispatch>();
+
+    useEffect(() => {
+        // Get current date
+        const currentDate = new Date();
+        const todayMonth = currentDate.getMonth() + 1; // Months are 0-indexed
+        const todayYear = currentDate.getFullYear();
+    
+        const month = parseInt(currentMonth.month);
+        const year = parseInt(currentMonth.year);
+    
+        // Set initial state for next button
+        if (year > todayYear || (year === todayYear && month >= todayMonth)) {
+          setDisableNextButton(true);
+        } else {
+          setDisableNextButton(false);
+        }
+    
+        // Set initial state for previous button
+        if (month === 1 && year === todayYear) {
+          setDisablePrevButton(true);
+        } else {
+          setDisablePrevButton(false);
+        }
+      }, [currentMonth]);
 
     const getMonthName = (monthNumber: string) => {
         const monthNames = [
@@ -27,25 +53,78 @@ export default function AppMediaNavitaionComponent() {
     }
 
     const navNext = () => {
-        
+        let month = parseInt(currentMonth.month);
+        let year = parseInt(currentMonth.year);
+
+        month++;
+        if (month > 12) {
+            month = 1;
+            year++;
+        }
+
+        const newMonth = month.toString().padStart(2, '0');
+        const newYear = year.toString();
+
+        // Get current date
+        const currentDate = new Date();
+        const todayMonth = currentDate.getMonth() + 1; // Months are 0-indexed
+        const todayYear = currentDate.getFullYear();
+
+        // Disable the next button if newMonth and newYear are equal or greater than current month and year
+        if (year > todayYear || (year === todayYear && month >= todayMonth)) { setDisableNextButton(true); }
+        else { setDisableNextButton(false); }
+
+        if (month <= 1 || year < todayYear) { setDisablePrevButton(true); }
+        else { setDisablePrevButton(false); }
+
+        dispatch(setCurrentMonth({ month: newMonth, year: newYear }));
     }
-    const navPrev = () => {}
+
+    const navPrev = () => {
+        let month = parseInt(currentMonth.month);
+        let year = parseInt(currentMonth.year);
+
+        month--;
+        if (month < 1) {
+            month = 12;
+            year--;
+        }
+
+        const newMonth = month.toString().padStart(2, '0');
+        const newYear = year.toString();
+
+        // Get current date
+        const currentDate = new Date();
+        const todayMonth = currentDate.getMonth() + 1; // Months are 0-indexed
+        const todayYear = currentDate.getFullYear();
+
+        // Disable the previous button if month reaches 1 and year is the current year
+        if (month === 1 && year === todayYear) { setDisablePrevButton(true); } 
+        else { setDisablePrevButton(false); }
+
+        // Enable the next button if the current year is smaller than the new date's year
+        // and the month is smaller than the new date's month
+        if (year < todayYear || (year === todayYear && month < todayMonth)) { setDisableNextButton(false); } 
+        else { setDisableNextButton(true); }
+
+        dispatch(setCurrentMonth({ month: newMonth, year: newYear }));
+    }
 
     return (
         <View style={styles.navigationParent}>
-            <Button icon={({ size, color }) => (<Avatar.Icon size={30} icon="chevron-left" color="#fff" />)} mode="text" onPress={navNext} disabled={disablePrevButton} style={[{  }]}>{''}</Button>
+            <Button icon={() => (<Avatar.Icon size={30} icon="chevron-left" color='#fff' style={[{ backgroundColor: disablePrevButton ? '#B0B0B0' : 'tomato' }]} />)} mode="text" onPress={navPrev} disabled={disablePrevButton}>{''}</Button>
             <Text variant="titleLarge">{getMonthName(currentMonth.month)} {currentMonth.year}</Text>
-            <Button icon={({ size, color }) => (<Avatar.Icon size={30} icon="chevron-right" color="#fff" />)} mode="text" onPress={navPrev} disabled={disableNextButton} style={[{  }]}>{''}</Button>
+            <Button icon={() => (<Avatar.Icon size={30} icon="chevron-right" color='#fff' style={[{ backgroundColor: disableNextButton ? '#B0B0B0' : 'tomato' }]} />)} mode="text" onPress={navNext} disabled={disableNextButton}>{''}</Button>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     navigationParent: {
-        flexDirection: 'row', 
-        marginTop: 43, 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+        flexDirection: 'row',
+        marginTop: 43,
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: 30,
     },
 })
