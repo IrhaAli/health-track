@@ -16,7 +16,6 @@ export default function TrackCards() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const dispatch = useDispatch<AppDispatch>();
     const auth = getAuth();
-
     const user = auth?.currentUser;
 
     useEffect(() => {
