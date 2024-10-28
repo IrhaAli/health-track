@@ -1,11 +1,74 @@
+import { RootState } from "@/store/store";
+import { DietDataEntry, DietDataState, WaterDataEntry } from "@/types/track";
 import React from "react";
-
-// Local Components.
-// Local Components.
+import { useSelector } from "react-redux";
+import { Divider, Text } from "react-native-paper";
+import { Image, View, ScrollView, StyleSheet } from "react-native";
 
 export default function AppMediaMealComponent() {
-  return ( 
-    <>
-    </>
-   );
+  const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
+  const dietData: DietDataState | [] = useSelector((state: RootState) => state.track.dietData);
+  const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
+
+  if (!Array.isArray(dietData)) {
+    if (formattedMonth in dietData) {
+      if (dietData[formattedMonth] && dietData[formattedMonth].length > 0) {
+        // Sort the array by date in descending order
+        const sortedData = [...dietData[formattedMonth]].sort((a: DietDataEntry, b: DietDataEntry) => {
+          const dateA = typeof a.date === 'string' ? new Date(a.date) : a.date;
+          const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
+          return dateB.getTime() - dateA.getTime();
+        });
+        console.log('sortedData', sortedData);
+
+        // Combine objects with the same date
+        const combinedData = sortedData.reduce((acc, current) => {
+          const dateKey = current.date instanceof Date
+            ? current.date.toISOString().split('T')[0] // Convert Date to 'YYYY-MM-DD' string
+            : current.date.split('T')[0] // Convert string to 'YYYY-MM-DD' string;
+          if (!acc[dateKey]) {
+            acc[dateKey] = { date: dateKey, data: [] };
+          }
+          acc[dateKey].data.push(current);
+          return acc;
+        }, {} as Record<string, { date: string; data: DietDataEntry[] }>);
+
+        // Convert the combined data object back to an array
+        const finalData = Object.values(combinedData);
+
+        return (
+          <ScrollView>
+            {finalData.map((item: { date: string | Date; data: DietDataEntry[] }, index) => {
+              const formattedDate: string = typeof item.date === 'string' ? new Date(item.date).toLocaleDateString() : item.date.toLocaleDateString();
+
+              return (
+                <>
+                  <Text key={index} variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
+                  <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, index) => (
+                    <Image key={index} style={styles.image} source={{ uri: meal.meal_picture }} />
+                  ))}</View>
+                  <Divider />
+                </>
+              );
+            })}
+          </ScrollView>
+        )
+      } else return <></>
+    } else return <></>
+  } else return <></>
 }
+
+const styles = StyleSheet.create({
+  imagesParent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    marginBottom: 10,
+  }, 
+  image: {
+    width: 125,
+    height: 200,
+    resizeMode: 'contain',
+    margin: 5,
+  },
+})
