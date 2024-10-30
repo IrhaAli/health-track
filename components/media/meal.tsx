@@ -19,7 +19,6 @@ export default function AppMediaMealComponent() {
           const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
           return dateB.getTime() - dateA.getTime();
         });
-        console.log('sortedData', sortedData);
 
         // Combine objects with the same date
         const combinedData = sortedData.reduce((acc, current) => {
@@ -38,14 +37,14 @@ export default function AppMediaMealComponent() {
 
         return (
           <ScrollView>
-            {finalData.map((item: { date: string | Date; data: DietDataEntry[] }, index) => {
+            {finalData.map((item: { date: string | Date; data: DietDataEntry[] }, i) => {
               const formattedDate: string = typeof item.date === 'string' ? new Date(item.date).toLocaleDateString() : item.date.toLocaleDateString();
 
               return (
-                <View key={index}>
+                <View key={i}>
                   <Text variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
-                  <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, index) => (
-                    <View key={index}>
+                  <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, ind) => (
+                    <View key={ind}>
                       <Image style={styles.image} source={{ uri: meal.meal_picture }} />
                       <Text variant="titleMedium" style={[{ fontWeight: 600 }]}>
                         Meal at:

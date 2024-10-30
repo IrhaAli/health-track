@@ -19,7 +19,6 @@ export default function AppMediaWeightComponent() {
           const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
           return dateB.getTime() - dateA.getTime();
         });
-        console.log('sortedData', sortedData);
 
         // Combine objects with the same date
         const combinedData = sortedData.reduce((acc, current) => {
@@ -38,14 +37,14 @@ export default function AppMediaWeightComponent() {
 
         return (
           <ScrollView>
-            {finalData.map((item: { date: string | Date; data: WeightDataEntry[] }, index) => {
+            {finalData.map((item: { date: string | Date; data: WeightDataEntry[] }, i) => {
               const formattedDate: string = typeof item.date === 'string' ? new Date(item.date).toLocaleDateString() : item.date.toLocaleDateString();
 
               return (
-                <View key={index}>
-                  <Text key={index} variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
-                  <View style={styles.imagesParent}>{item.data.map((weight: WeightDataEntry, index) => (
-                    <Image key={index} style={styles.image} source={{ uri: weight.picture }} />
+                <View key={i}>
+                  <Text variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
+                  <View style={styles.imagesParent}>{item.data.map((weight: WeightDataEntry, ind) => (
+                    <Image key={ind} style={styles.image} source={{ uri: weight.picture }} />
                   ))}</View>
                   <Divider style={[{ marginBottom: 10 }]}/>
                 </View>
