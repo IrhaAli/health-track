@@ -1,6 +1,6 @@
-import { useContext, createContext, type PropsWithChildren } from 'react';
+import React, { useContext, createContext, type PropsWithChildren, useEffect } from 'react';
 import { useStorageState } from "./useStorageState";
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 
 const AuthContext = createContext<{
   signIn: (email: string, password: string) => Promise<any>;
@@ -28,6 +28,20 @@ export function useSession() {
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setSession(user.uid);
+      } else {
+        setSession(null);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   return (
     <AuthContext.Provider
