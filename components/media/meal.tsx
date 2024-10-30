@@ -45,9 +45,17 @@ export default function AppMediaMealComponent() {
                 <View key={index}>
                   <Text variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
                   <View style={styles.imagesParent}>{item.data.map((meal: DietDataEntry, index) => (
-                    <Image key={index} style={styles.image} source={{ uri: meal.meal_picture }} />
+                    <View key={index}>
+                      <Image style={styles.image} source={{ uri: meal.meal_picture }} />
+                      <Text variant="titleMedium" style={[{ fontWeight: 600 }]}>
+                        Meal at:
+                        {typeof meal.date === 'string'
+                          ? new Date(meal.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                          : meal.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </Text>
+                    </View>
                   ))}</View>
-                  <Divider style={[{ marginBottom: 10 }]}/>
+                  <Divider style={[{ marginBottom: 10 }]} />
                 </View>
               );
             })}
@@ -63,7 +71,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-  }, 
+  },
   image: {
     width: 125,
     height: 200,
