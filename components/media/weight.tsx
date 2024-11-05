@@ -2,71 +2,212 @@ import { RootState } from "@/store/store";
 import { WeightDataEntry, WeightDataState } from "@/types/track";
 import React from "react";
 import { useSelector } from "react-redux";
-import { Divider, Text } from "react-native-paper";
-import { Image, View, ScrollView, StyleSheet } from "react-native";
+import { Divider, Text, Surface, Portal, Modal, IconButton } from "react-native-paper";
+import { Image, View, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity } from "react-native";
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CARD_WIDTH = SCREEN_WIDTH * 0.3; // Reduced to fit 3 cards per row
 
 export default function AppMediaWeightComponent() {
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const weightData: WeightDataState | [] = useSelector((state: RootState) => state.track.weightData);
-  const formattedMonth: string = String(`${currentMonth.year}-${currentMonth.month}`);
+  const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
 
-  if (!Array.isArray(weightData)) {
-    if (formattedMonth in weightData) {
-      if (weightData[formattedMonth] && weightData[formattedMonth].length > 0) {
-        // Sort the array by date in descending order
-        const sortedData = [...weightData[formattedMonth]].sort((a: WeightDataEntry, b: WeightDataEntry) => {
-          const dateA = typeof a.date === 'string' ? new Date(a.date) : a.date;
-          const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
-          return dateB.getTime() - dateA.getTime();
-        });
+  React.useEffect(() => {
+    fadeAnim.setValue(0); // Reset animation value
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, [currentMonth, formattedMonth]);
 
-        // Combine objects with the same date
-        const combinedData = sortedData.reduce((acc, current) => {
-          const dateKey = current.date instanceof Date
-            ? current.date.toISOString().split('T')[0] // Convert Date to 'YYYY-MM-DD' string
-            : current.date.split('T')[0] // Convert string to 'YYYY-MM-DD' string;
-          if (!acc[dateKey]) {
-            acc[dateKey] = { date: dateKey, data: [] };
-          }
-          acc[dateKey].data.push(current);
-          return acc;
-        }, {} as Record<string, { date: string; data: WeightDataEntry[] }>);
+  if (Array.isArray(weightData) || !weightData[formattedMonth]?.length) {
+    return null;
+  }
 
-        // Convert the combined data object back to an array
-        const finalData = Object.values(combinedData);
+  const groupedData = [...weightData[formattedMonth]]
+    .sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    })
+    .reduce((acc: { [key: string]: { date: string; data: WeightDataEntry[] } }, entry) => {
+      const dateKey = new Date(entry.date).toISOString().split('T')[0];
+      if (!acc[dateKey]) {
+        acc[dateKey] = { date: dateKey, data: [] };
+      }
+      acc[dateKey].data.push(entry);
+      return acc;
+    }, {});
 
-        return (
-          <ScrollView>
-            {finalData.map((item: { date: string | Date; data: WeightDataEntry[] }, i) => {
-              const formattedDate: string = typeof item.date === 'string' ? new Date(item.date).toLocaleDateString() : item.date.toLocaleDateString();
+  return (
+    <>
+      <ScrollView>
+        {Object.values(groupedData).map((group, index) => (
+          <View key={index}>
+            <View style={styles.dateContainer}>
+              <Surface style={styles.dateSurface} elevation={1}>
+                <Text variant="titleLarge" style={styles.dateText}>
+                  {new Date(group.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </Text>
+              </Surface>
+            </View>
+            <View style={styles.imagesParent}>
+              {group.data.map((weight, i) => (
+                <Animated.View
+                  key={i}
+                  style={[
+                    styles.animatedCard,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{
+                        translateY: fadeAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [50, 0]
+                        })
+                      }, {
+                        scale: fadeAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1]
+                        })
+                      }]
+                    }
+                  ]}
+                >
+                  <TouchableOpacity onPress={() => setSelectedImage(weight.picture)}>
+                    <Surface style={styles.card} elevation={2}>
+                      <Image 
+                        style={styles.image} 
+                        source={{ uri: weight.picture }}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.timeContainer}>
+                        <Text variant="titleSmall" style={styles.timeText}>
+                          {new Date(weight.date).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: true 
+                          })}
+                        </Text>
+                      </View>
+                    </Surface>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+            </View>
+            <Divider style={styles.divider} />
+          </View>
+        ))}
+      </ScrollView>
 
-              return (
-                <View key={i}>
-                  <Text variant="titleLarge" style={[{ fontWeight: 600 }]}>{formattedDate}</Text>
-                  <View style={styles.imagesParent}>{item.data.map((weight: WeightDataEntry, ind) => (
-                    <Image key={ind} style={styles.image} source={{ uri: weight.picture }} />
-                  ))}</View>
-                  <Divider style={[{ marginBottom: 10 }]}/>
-                </View>
-              );
-            })}
-          </ScrollView>
-        )
-      } else return <></>
-    } else return <></>
-  } else return <></>
+      <Portal>
+        <Modal 
+          visible={!!selectedImage} 
+          onDismiss={() => setSelectedImage(null)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          {selectedImage && (
+            <View style={styles.modalContent}>
+              <IconButton
+                icon="close"
+                size={24}
+                onPress={() => setSelectedImage(null)}
+                style={styles.closeButton}
+                iconColor="#fff"
+              />
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.fullScreenImage}
+                resizeMode="contain"
+              />
+            </View>
+          )}
+        </Modal>
+      </Portal>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
   imagesParent: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-  }, 
-  image: {
-    width: 125,
-    height: 200,
-    resizeMode: 'contain',
-    margin: 5,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    gap: 16,
   },
-})
+  animatedCard: {
+    margin: 8,
+    maxWidth: `${100/3}%`,
+  },
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_WIDTH * 1.5,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  dateContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  dateSurface: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  dateText: {
+    fontWeight: '600',
+    color: '#2c3e50',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  timeContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 8,
+  },
+  timeText: {
+    color: '#fff',
+    textAlign: 'center',
+  },
+  divider: {
+    marginVertical: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  modalContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 10,
+    zIndex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+});
