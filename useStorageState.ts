@@ -37,35 +37,59 @@ export async function setStorageItemAsync(key: string, value: string | null) {
 export function useStorageState(key: string): UseStateHook<string> {
   // Public
   const [state, setState] = useAsyncState<string>();
+  const auth = getAuth();
 
   // Get
   useEffect(() => {
     if (Platform.OS === 'web') {
       try {
-        if (typeof localStorage !== 'undefined') { setState(localStorage.getItem(key)); }
+        if (typeof localStorage !== 'undefined') {
+          setState(localStorage.getItem(key));
+        }
+      } catch (e) {
+        console.error('Local storage is unavailable:', e);
       }
-      catch (e) { console.error('Local storage is unavailable:', e); }
-    }
-    else {
-      const auth = getAuth();
-      
-      const unsubscribe = auth.onAuthStateChanged(async(user) => {
+    } else {
+      // First check current auth state
+      const currentUser = auth.currentUser;
+      if (currentUser?.uid) {
+        SecureStore.getItemAsync(key).then(value => {
+          if (value === currentUser.uid) {
+            setState(value);
+          }
+        }).catch(error => {
+          console.error('Error retrieving initial value from SecureStore:', error);
+        });
+      }
+
+      // Then listen for changes
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
         try {
           const value = await SecureStore.getItemAsync(key);
-          if (value && user?.uid && value === user?.uid) {
-            setState(value);
-          } else { setState(null); }
-        } catch (error) { console.error('Error retrieving value from SecureStore:', error); }
+          if (user?.uid) {
+            if (!value || value !== user.uid) {
+              // Update storage if needed
+              await setStorageItemAsync(key, user.uid);
+            }
+            setState(user.uid);
+          } else {
+            setState(null);
+          }
+        } catch (error) {
+          console.error('Error retrieving value from SecureStore:', error);
+          setState(null);
+        }
       });
+
       return () => unsubscribe();
     }
   }, [key]);
 
   // Set
   const setValue = useCallback(
-    (value: any | null) => {
+    async (value: string | null) => {
+      await setStorageItemAsync(key, value);
       setState(value);
-      setStorageItemAsync(key, value);
     },
     [key]
   );

@@ -1,5 +1,5 @@
 import { router, Stack, Redirect, Slot } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { getAuth } from "firebase/auth";
@@ -48,8 +48,19 @@ export default function TabLayout() {
     profile: ProfileRoute,
   });
 
-  if (isLoading) { return <View><Text variant="displayLarge">Loading...</Text></View> }
-  if (!session) { return <Redirect href="/login" />; }
+  // Add loading state to prevent flash
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text variant="displayLarge">Loading...</Text>
+      </View>
+    );
+  }
+
+  // Only redirect if we're definitely not logged in
+  if (session === null) {
+    return <Redirect href="/login" />;
+  }
 
   const handleIndexChange = (newIndex: number) => {
     dispatch(setCurrentMonth({ month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) }));
@@ -59,11 +70,10 @@ export default function TabLayout() {
 
   return (
     <>
-      {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
       <StatusBar
         barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={Colors[colorScheme ?? "light"].background}
-        hidden={false} // Ensure the status bar is not hidden
+        hidden={false}
       />
       <BottomNavigation
         navigationState={{ index, routes }}
