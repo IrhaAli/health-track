@@ -189,23 +189,44 @@ export default function TrackDietForm() {
                     </View>
                 }
 
-                {/* Original Code */}
-                {/* {!imageURI ? (<Button icon="camera" mode="contained" style={[{ marginTop: 5, marginBottom: 10 }]} onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Meal Picture</Button>) : (
-                    <>
-                        <Button icon="delete" mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading}>{''}</Button>
-                        <Image source={{ uri: imageURI }} width={100} height={200} resizeMode="contain" />
-                    </>
-                )} */}
-                {/* Original Code */}
-
-                {dialogType !== DialogType.EDIT && (!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
+                {dialogType !== DialogType.EDIT && (!imageURI ? (
+                    <Button 
+                        icon="camera" 
+                        mode="contained" 
+                        onPress={() => {
+                            // Ensure camera state is cleared before opening
+                            dispatch(clearImageURI());
+                            // Small delay to allow state update before showing camera
+                            setTimeout(() => {
+                                dispatch(setShowCamera());
+                            }, 100);
+                        }} 
+                        disabled={loading}
+                    >
+                        Add Meal Picture
+                    </Button>
+                ) : (
                     <View>
                         <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
                         <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
                     </View>
                 ))}
 
-                {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Meal Picture</Button>)}
+                {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
+                    <Button 
+                        icon="camera" 
+                        mode="contained" 
+                        onPress={() => {
+                            dispatch(clearImageURI());
+                            setTimeout(() => {
+                                dispatch(setShowCamera());
+                            }, 100);
+                        }} 
+                        disabled={loading}
+                    >
+                        Add Meal Picture
+                    </Button>
+                )}
 
                 {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
                     <View>
