@@ -1,5 +1,5 @@
 import { ScrollView } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData } from "@/store/trackSlice";
@@ -14,9 +14,11 @@ import TrackDietCard from "./trackDietCard";
 
 export default function TrackCards() {
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
+    const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const dispatch = useDispatch<AppDispatch>();
     const auth = getAuth();
     const user = auth?.currentUser;
+    const scrollViewRef = useRef<ScrollView>(null);
 
     useEffect(() => {
         if (user?.uid && currentMonth.month && currentMonth.year) {
@@ -27,8 +29,12 @@ export default function TrackCards() {
         }
     }, [user, currentMonth, dispatch]);
 
+    useEffect(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }, [currentDate, currentMonth]);
+
     return (
-        <ScrollView>
+        <ScrollView ref={scrollViewRef}>
             <TrackWaterCard></TrackWaterCard>
             <TrackSleepCard></TrackSleepCard>
             <TrackWeightCard></TrackWeightCard>
