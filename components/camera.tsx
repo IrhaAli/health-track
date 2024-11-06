@@ -8,6 +8,7 @@ import { setHideCamera, setImageURI } from "@/store/cameraSlice";
 import { Portal, Button, Avatar } from "react-native-paper";
 import { useWindowDimensions } from "react-native";
 import { useIsFocused } from '@react-navigation/native';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
@@ -46,7 +47,7 @@ export default function AppCamera() {
 
         try {
             const options = {
-                quality: 0.5, // Reduced quality
+                quality: 0.5,
                 base64: false,
                 skipProcessing: true,
                 exif: false,
@@ -56,10 +57,22 @@ export default function AppCamera() {
             // Disable camera before taking picture to prevent race conditions
             setIsReady(false);
             
-            const data = await cameraRef.current.takePictureAsync(options);
+            const photo = await cameraRef.current.takePictureAsync(options);
             
-            if (data?.uri) {
-                dispatch(setImageURI(data.uri));
+            if (photo?.uri) {
+                // Compress and resize the image
+                const manipulatedImage = await manipulateAsync(
+                    photo.uri,
+                    [
+                        { resize: { width: 800 } } // Resize to max width of 800px while maintaining aspect ratio
+                    ],
+                    {
+                        compress: 0.7, // 70% quality
+                        format: SaveFormat.JPEG
+                    }
+                );
+
+                dispatch(setImageURI(manipulatedImage.uri));
                 handleCloseCamera();
             } else {
                 throw new Error('No image URI returned');
