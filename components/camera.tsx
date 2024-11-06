@@ -46,29 +46,29 @@ export default function AppCamera() {
 
         try {
             const options = {
-                quality: 0.8,
+                quality: 0.5, // Reduced quality
                 base64: false,
                 skipProcessing: true,
                 exif: false,
-                // Add these options to avoid the SortedSet error
-                fastMode: true,
                 fixOrientation: true
             };
+
+            // Disable camera before taking picture to prevent race conditions
+            setIsReady(false);
             
-            // Wrap in try-catch to handle potential null reference
-            try {
-                const data = await cameraRef.current.takePictureAsync(options);
-                if (data?.uri) {
-                    dispatch(setImageURI(data.uri));
-                    handleCloseCamera();
-                }
-            } catch (err) {
-                console.error("Error taking picture:", err);
-                // Handle error gracefully
+            const data = await cameraRef.current.takePictureAsync(options);
+            
+            if (data?.uri) {
+                dispatch(setImageURI(data.uri));
                 handleCloseCamera();
+            } else {
+                throw new Error('No image URI returned');
             }
+
         } catch (error) {
             console.error("Error taking photo:", error);
+            // Always close camera on error to prevent getting stuck
+            handleCloseCamera();
         }
     };
 
