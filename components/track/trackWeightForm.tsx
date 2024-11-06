@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
 import Dialog from "react-native-dialog";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -20,11 +20,15 @@ enum WeightTypeEnum {
     KG = 'kg'
 };
 
+interface CameraState {
+    imageURI: string;
+}
+
 export default function TrackWeightForm() {
     const dispatch = useDispatch<AppDispatch>();
     const currentDate = useSelector((state: RootState) => state.track.currentDate);
     const storage = getStorage();
-    const imageURI = useSelector((state: RootState) => state.camera.imageURI);
+    const imageURI = useSelector((state: RootState) => (state.camera as CameraState).imageURI);
     const [loading, setLoading] = useState<boolean>(false);
     const [weightType, setWeightType] = useState<WeightTypeEnum>(WeightTypeEnum.KG);
     const [weight, setWeight] = useState<string>("");
@@ -83,6 +87,7 @@ export default function TrackWeightForm() {
     };
 
     const onSubmit = async () => {
+        Keyboard.dismiss();
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
         const weightDataForMonth = weightData?.[formattedMonth] || [];
@@ -160,76 +165,158 @@ export default function TrackWeightForm() {
         } else { router.push({ pathname: "/register" }); }
     }
 
+    const handleCancel = () => {
+        Keyboard.dismiss();
+        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+        dispatch(clearImageURI());
+    }
+
+    const handleShowCamera = () => {
+        Keyboard.dismiss();
+        dispatch(setShowCamera());
+    }
+
     return (
-        <View>
-            <View style={styles.trackWeightForm}>
-                <View style={styles.weightView}>
-                    <Dialog.Input
-                        style={[styles.input]}
-                        placeholder="Add Weight"
-                        value={weight}
-                        onChangeText={setWeight}
-                        autoCorrect={false}
-                        autoCapitalize="none"
-                        keyboardType="numeric"
-                        maxLength={4}
-                        underlineColorAndroid={'transparent'}
-                        editable={!loading}
-                    />
-                    <Dropdown
-                        style={[styles.dropdown, isWeightTypeFocus && { borderColor: "blue" }]}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        iconStyle={styles.iconStyle}
-                        data={weightTypeOptions}
-                        maxHeight={300}
-                        labelField="label"
-                        valueField="value"
-                        placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
-                        value={weightType}
-                        onFocus={() => setIsWeightTypeFocus(true)}
-                        onBlur={() => setIsWeightTypeFocus(false)}
-                        onChange={(item: any) => {
-                            setWeightType(item.value);
-                            setIsWeightTypeFocus(false);
-                        }}
-                        renderRightIcon={() => (<AntDesign style={styles.icon} color={isWeightTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
-                        disable={loading}
-                    />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+                <View style={styles.trackWeightForm}>
+                    <View style={styles.weightView}>
+                        <Dialog.Input
+                            style={[styles.input]}
+                            placeholder="Add Weight"
+                            value={weight}
+                            onChangeText={setWeight}
+                            autoCorrect={false}
+                            autoCapitalize="none"
+                            keyboardType="numeric"
+                            maxLength={4}
+                            underlineColorAndroid={'transparent'}
+                            editable={!loading}
+                        />
+                        <Dropdown
+                            style={[styles.dropdown, isWeightTypeFocus && { borderColor: "blue" }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            iconStyle={styles.iconStyle}
+                            data={weightTypeOptions}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
+                            value={weightType}
+                            onFocus={() => setIsWeightTypeFocus(true)}
+                            onBlur={() => setIsWeightTypeFocus(false)}
+                            onChange={(item: any) => {
+                                setWeightType(item.value);
+                                setIsWeightTypeFocus(false);
+                            }}
+                            renderRightIcon={() => (<AntDesign style={styles.icon} color={isWeightTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
+                            disable={loading}
+                        />
+                    </View>
+
+                    {dialogType !== DialogType.EDIT && (!imageURI ? (
+                        <Button 
+                            icon="camera" 
+                            mode="contained" 
+                            onPress={() => {
+                                // Ensure camera state is cleared before opening
+                                dispatch(clearImageURI());
+                                // Small delay to allow state update before showing camera
+                                setTimeout(() => {
+                                    handleShowCamera();
+                                }, 100);
+                            }} 
+                            disabled={loading}
+                        >
+                            Add Weight Picture
+                        </Button>
+                    ) : (
+                        <View>
+                            <Button 
+                                icon={({ size, color }) => (
+                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
+                                )} 
+                                mode="text" 
+                                onPress={() => dispatch(setImageURI(''))} 
+                                disabled={loading} 
+                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
+                            >
+                                {''}
+                            </Button>
+                            <Image 
+                                source={{ uri: imageURI }} 
+                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                            />
+                        </View>
+                    ))}
+
+                    {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && !imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
+                        <Button 
+                            icon="camera" 
+                            mode="contained" 
+                            onPress={() => {
+                                dispatch(clearImageURI());
+                                setTimeout(() => {
+                                    handleShowCamera();
+                                }, 100);
+                            }} 
+                            disabled={loading}
+                        >
+                            Add Weight Picture
+                        </Button>
+                    )}
+
+                    {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
+                        <View>
+                            <Button 
+                                icon={({ size, color }) => (
+                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
+                                )} 
+                                mode="text" 
+                                onPress={() => dispatch(setImageURI(''))} 
+                                disabled={loading} 
+                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
+                            >
+                                {''}
+                            </Button>
+                            <Image 
+                                source={{ uri: imageURI }} 
+                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                            />
+                        </View>
+                    )}
+
+                    {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && currentWeightData.picture && currentWeightData.picture.length && (
+                        <View>
+                            <Button 
+                                icon={({ size, color }) => (
+                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
+                                )} 
+                                mode="text" 
+                                onPress={() => deleteImage()} 
+                                disabled={loading} 
+                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
+                            >
+                                {''}
+                            </Button>
+                            <Image 
+                                source={{ uri: currentWeightData.picture }} 
+                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                            />
+                        </View>
+                    )}
                 </View>
 
-                {dialogType !== DialogType.EDIT && (!imageURI ? (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>) : (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                ))}
+                <Divider />
+                <View style={styles.formSubmission}>
+                    <Button mode="text" onPress={handleCancel} disabled={loading} textColor="blue">Cancel</Button>
+                    <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
+                </View>
 
-                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && !imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (<Button icon="camera" mode="contained" onPress={() => { dispatch(setShowCamera()); }} disabled={loading}>Add Weight Picture</Button>)}
-
-                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                )}
-
-                {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && currentWeightData.picture && currentWeightData.picture.length && (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { deleteImage(); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: currentWeightData.picture }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                )}
+                {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
             </View>
-
-            <Divider />
-            <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
-            </View>
-
-            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
-        </View>
+        </TouchableWithoutFeedback>
     )
 }
 
