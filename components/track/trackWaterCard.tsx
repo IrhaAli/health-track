@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import { Card, Button, Text, Avatar, Divider } from 'react-native-paper';
+import { Button, Text, Avatar, Divider, Surface } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState } from "../../types/track";
-import { View, Animated } from "react-native";
+import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 
 export default function TrackWaterCard() {
@@ -14,13 +14,13 @@ export default function TrackWaterCard() {
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
 
     React.useEffect(() => {
-        fadeAnim.setValue(0); // Reset the animation value
+        fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 600,
             useNativeDriver: true,
         }).start();
-    }, [currentDate]); // Only depend on currentMonth changes, removed currentDate dependency
+    }, [currentDate]);
 
     const waterEntries = useMemo(() => {
         if (!Array.isArray(waterData) && waterData[formattedMonth]?.length > 0) {
@@ -49,32 +49,77 @@ export default function TrackWaterCard() {
                     }}
                 >
                     <Divider />
-                    <Card style={{ margin: 10 }}>
-                        <Card.Title
-                            title={`${water.intake_amount} ${water.waterType.charAt(0).toUpperCase()}${water.waterType.slice(1).toLowerCase()}`}
-                            left={(props) => <Avatar.Icon {...props} icon="glass-pint-outline" color="#fff" />}
-                        />
-                        <Card.Actions style={{ alignSelf: 'flex-start' }}>
-                            <Button
-                                icon="delete"
-                                onPress={() => water.id && dispatch(deleteWaterData({ currentDate, docId: water.id }))}
-                            >
-                                Delete
-                            </Button>
-                            <Button
-                                icon="pencil"
-                                onPress={() => dispatch(setDialog({
-                                    showDialog: true,
-                                    dialogTab: DialogTab.WATER,
-                                    dialogType: DialogType.EDIT
-                                }))}
-                            >
-                                Edit
-                            </Button>
-                        </Card.Actions>
-                    </Card>
+                    <Surface style={styles.surface} elevation={0}>
+                        <View style={styles.contentContainer}>
+                            <View style={styles.headerContainer}>
+                                <Avatar.Icon 
+                                    size={40} 
+                                    icon="glass-pint-outline" 
+                                    color="#fff" 
+                                    style={styles.avatar}
+                                />
+                                <Text variant="titleLarge" style={styles.title}>
+                                    {`${water.intake_amount} ${water.waterType.charAt(0).toUpperCase()}${water.waterType.slice(1).toLowerCase()}`}
+                                </Text>
+                            </View>
+                            
+                            <View style={[styles.buttonContainer, { width: '50%', alignSelf: 'flex-start' }]}>
+                                <Button
+                                    mode="contained-tonal"
+                                    icon="delete"
+                                    onPress={() => water.id && dispatch(deleteWaterData({ currentDate, docId: water.id }))}
+                                    style={styles.button}
+                                >
+                                    Delete
+                                </Button>
+                                <Button
+                                    mode="contained"
+                                    icon="pencil"
+                                    onPress={() => dispatch(setDialog({
+                                        showDialog: true,
+                                        dialogTab: DialogTab.WATER,
+                                        dialogType: DialogType.EDIT
+                                    }))}
+                                    style={styles.button}
+                                >
+                                    Edit
+                                </Button>
+                            </View>
+                        </View>
+                    </Surface>
                 </Animated.View>
             ))}
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    surface: {
+        margin: 10,
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        padding: 16
+    },
+    contentContainer: {
+        gap: 16
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12
+    },
+    avatar: {
+        backgroundColor: '#2196F3'
+    },
+    title: {
+        flex: 1,
+        fontWeight: '600'
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        gap: 8
+    },
+    button: {
+        flex: 1
+    }
+});
