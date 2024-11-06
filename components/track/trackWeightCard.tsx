@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
         gap: 12
     },
     avatar: {
-        backgroundColor: '#2196F3'
+        backgroundColor: '#9C27B0' // Purple color for weight/fitness
     },
     title: {
         flex: 1,
