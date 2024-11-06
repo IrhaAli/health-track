@@ -35,7 +35,9 @@ export default function AppMediaWeightComponent() {
       return dateB.getTime() - dateA.getTime();
     })
     .reduce((acc: { [key: string]: { date: string; data: WeightDataEntry[] } }, entry) => {
-      const dateKey = new Date(entry.date).toISOString().split('T')[0];
+        // Create date in local timezone to avoid timezone offset issues
+        const entryDate = new Date(entry.date);
+        const dateKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
       if (!acc[dateKey]) {
         acc[dateKey] = { date: dateKey, data: [] };
       }
