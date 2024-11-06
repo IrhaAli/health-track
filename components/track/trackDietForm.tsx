@@ -20,13 +20,14 @@ export default function TrackDietForm() {
 
     const storage = getStorage();
     const [mealTime, setMealTime] = useState<Date>(() => {
-        const date = new Date(currentDate); // Initialize with the current date
-        const now = new Date(); // Get the current time
-
-        // Set the hours, minutes, and seconds to the current time
-        date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-
-        return date;
+        // Create date object in local timezone using currentDate
+        const localDate = new Date(currentDate + 'T00:00:00');
+        const now = new Date();
+        
+        // Set time components while preserving the date
+        localDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        
+        return localDate;
     });
     const [showMealTimeSelector, setShowMealTimeSelector] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -59,9 +60,13 @@ export default function TrackDietForm() {
             if (entry && isDietDataEntry(entry)) {
                 setCurrentDietData(entry);
                 setMealTime(prev => {
-                    const newDateTime = new Date(prev || entry.date);
-                    newDateTime.setHours(new Date(entry.date).getHours(), new Date(entry.date).getMinutes());
-                    return newDateTime;
+                    // Create date object in local timezone
+                    const localDate = new Date(currentDate + 'T00:00:00');
+                    const entryDate = new Date(entry.date);
+                    
+                    // Set time while preserving the date
+                    localDate.setHours(entryDate.getHours(), entryDate.getMinutes());
+                    return localDate;
                 });
             }
         }
@@ -71,9 +76,12 @@ export default function TrackDietForm() {
         if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
         if (date) {
             setMealTime(prev => {
-                const newDateTime = new Date(prev || date);
-                newDateTime.setHours(date.getHours(), date.getMinutes());
-                return newDateTime;
+                // Create new date object in local timezone
+                const localDate = new Date(currentDate + 'T00:00:00');
+                
+                // Set time while preserving the date
+                localDate.setHours(date.getHours(), date.getMinutes());
+                return localDate;
             });
         }
     }
@@ -159,7 +167,10 @@ export default function TrackDietForm() {
                 }
 
                 // Ressetting Fields.
-                setMealTime(new Date(currentDate));
+                const resetDate = new Date(currentDate + 'T00:00:00');
+                const now = new Date();
+                resetDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+                setMealTime(resetDate);
                 setShowMealTimeSelector(false);
                 dispatch(setHideCamera());
                 dispatch(setImageURI(''));
