@@ -20,7 +20,7 @@ export default function TrackSleepForm() {
     const [sleepDateTime, setSleepDateTime] = useState<Date>(() => {
         const date = new Date(currentDate);
         date.setDate(date.getDate() - 1); // Set to the previous day
-        date.setHours(22, 0, 0, 0); // Set time to 10:00 AM
+        date.setHours(22, 0, 0, 0); // Set time to 10:00 PM
         return date;
     });
     const [wakeupTime, setWakeupTime] = useState<Date>(() => {
@@ -49,38 +49,19 @@ export default function TrackSleepForm() {
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
 
     const calculateSleepDuration = () => {
-        const timezoneOffsetMs = sleepDateTime.getTimezoneOffset() * 60 * 1000;
-        let sleepTimeUTC = sleepDateTime;
-        let wakeupTimeUTC = wakeupTime;
-
-        if (timezoneOffsetMs > 0) {
-            sleepTimeUTC = new Date(sleepDateTime.getTime() - timezoneOffsetMs);
-            wakeupTimeUTC = new Date(wakeupTime.getTime() - timezoneOffsetMs);
-        } else if (timezoneOffsetMs < 0) {
-            sleepTimeUTC = new Date(sleepDateTime.getTime() + timezoneOffsetMs);
-            wakeupTimeUTC = new Date(wakeupTime.getTime() + timezoneOffsetMs);
+        // Convert both times to UTC timestamps for comparison
+        const sleepTimeMs = sleepDateTime.getTime();
+        const wakeupTimeMs = wakeupTime.getTime();
+        
+        // Handle case where sleep time is after wakeup time (crosses midnight)
+        let differenceMs = wakeupTimeMs - sleepTimeMs;
+        if (differenceMs < 0) {
+            // Add 24 hours worth of milliseconds
+            differenceMs += 24 * 60 * 60 * 1000;
         }
-
-        const currentHours = sleepTimeUTC.getUTCHours();
-        const currentMinutes = sleepTimeUTC.getUTCMinutes();
-        const currentSeconds = sleepTimeUTC.getUTCSeconds();
-
-        const sleepDatePickTime = new Date(
-            Date.UTC(
-                sleepDateTime.getUTCFullYear(),
-                sleepDateTime.getUTCMonth(),
-                sleepDateTime.getUTCDate(),
-                currentHours,
-                currentMinutes,
-                currentSeconds
-            )
-        );
-
-        const sleepTimeMs = sleepDatePickTime.getTime();
-        const wakeupTimeMs = wakeupTimeUTC.getTime();
-        const differenceMs = wakeupTimeMs - sleepTimeMs;
-        const differenceMinutes = differenceMs / (1000 * 60);
-        return Math.ceil(differenceMinutes);
+        
+        const differenceMinutes = Math.floor(differenceMs / (1000 * 60));
+        return differenceMinutes;
     };
 
     const getSleepDataObject = (): SleepDataEntry | {} => {
