@@ -1,14 +1,14 @@
 import { router, Stack, Redirect, Slot } from "expo-router";
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useMemo, useCallback } from "react";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { getAuth } from "firebase/auth";
 import { BottomNavigation, Text } from 'react-native-paper';
-import { StatusBar, View, InteractionManager } from 'react-native';
+import { StatusBar, View, Platform } from 'react-native';
 import { useSession } from '../../ctx';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Screen Imports Start. 
+// Screen Imports Start.
 import HomeScreen from "./index";
 import TrackScreen from "./track";
 import MediaScreen from "./media";
@@ -16,13 +16,13 @@ import ProfileScreen from "./profile";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
-// Screen Imports End. 
+// Screen Imports End.
 
-// Memoize route components to prevent unnecessary re-renders
-const HomeRoute = React.memo(() => <HomeScreen />);
-const TrackRoute = React.memo(() => <TrackScreen />);
-const MediaRoute = React.memo(() => <MediaScreen />);
-const ProfileRoute = React.memo(() => <ProfileScreen />);
+// Pre-load all screens to avoid lazy loading delays
+const MemoizedHomeScreen = React.memo(HomeScreen);
+const MemoizedTrackScreen = React.memo(TrackScreen);
+const MemoizedMediaScreen = React.memo(MediaScreen);
+const MemoizedProfileScreen = React.memo(ProfileScreen);
 
 export const unstable_settings = {
   initialRouteName: '(root)',
@@ -30,39 +30,9 @@ export const unstable_settings = {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { session, isLoading, isFirstLaunch } = useSession();
+  const { isLoading } = useSession();
   const [index, setIndex] = React.useState(0);
   const dispatch = useDispatch<AppDispatch>();
-  const [hasCheckedStorage, setHasCheckedStorage] = React.useState(false);
-  const [shouldRedirect, setShouldRedirect] = React.useState<string | null>(null);
-  const [isReady, setIsReady] = React.useState(false);
-
-  useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      setIsReady(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    const checkStorageState = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        const savedSession = await AsyncStorage.getItem('session');
-
-        if (!language && !isFirstLaunch) {
-          router.replace('/language');
-        } else if (!savedSession && !session) {
-          router.replace('/login');
-        }
-        setHasCheckedStorage(true);
-      } catch (error) {
-        console.error('Error checking storage state:', error);
-        setHasCheckedStorage(true);
-      }
-    };
-
-    checkStorageState();
-  }, [session, isFirstLaunch]);
 
   const routes = useMemo(() => [
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home' },
@@ -71,37 +41,38 @@ export default function TabLayout() {
     { key: 'profile', title: 'Profile', focusedIcon: 'account', unfocusedIcon: 'account' },
   ], []);
 
-  const renderScene = useMemo(() => BottomNavigation.SceneMap({
-    home: HomeRoute,
-    track: TrackRoute,
-    media: MediaRoute,
-    profile: ProfileRoute,
+  // Pre-render all scenes to avoid lazy loading
+  const scenes = useMemo(() => ({
+    home: MemoizedHomeScreen,
+    track: MemoizedTrackScreen,
+    media: MemoizedMediaScreen,
+    profile: MemoizedProfileScreen,
   }), []);
 
-  // Wait for both loading states before rendering
-  if (isLoading || !hasCheckedStorage || !isReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text variant="displayLarge">Loading...</Text>
-      </View>
-    );
-  }
+  const renderScene = useCallback(({ route }: { route: { key: string } }) => {
+    const Scene = scenes[route.key as keyof typeof scenes];
+    return <Scene />;
+  }, [scenes]);
 
-  // Check if user is authenticated
-  if (!session) {
-    return null; // Return null to prevent rendering while redirecting
-  }
-
-  const handleIndexChange = (newIndex: number) => {
-    InteractionManager.runAfterInteractions(() => {
-      dispatch(setCurrentMonth({ month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) }));
-      dispatch(setCurrentDate(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`));
-      setIndex(newIndex);
-    });
-  };
+  const handleIndexChange = useCallback((newIndex: number) => {
+    // Update index immediately for UI responsiveness
+    setIndex(newIndex);
+    
+    // Handle date updates in the next tick to prioritize navigation
+    setTimeout(() => {
+      const now = new Date();
+      dispatch(setCurrentMonth({ 
+        month: String(now.getMonth() + 1).padStart(2, "0"), 
+        year: String(now.getFullYear()) 
+      }));
+      dispatch(setCurrentDate(
+        `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+      ));
+    }, 0);
+  }, [dispatch]);
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <StatusBar
         barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={Colors[colorScheme ?? "light"].background}
@@ -111,8 +82,20 @@ export default function TabLayout() {
         navigationState={{ index, routes }}
         onIndexChange={handleIndexChange}
         renderScene={renderScene}
-        barStyle={{ backgroundColor: Colors[colorScheme ?? "light"].tint, marginBottom: -10 }}
+        barStyle={Platform.select({
+          ios: {
+            backgroundColor: Colors[colorScheme ?? "light"].tint,
+            marginBottom: -10
+          },
+          android: {
+            backgroundColor: Colors[colorScheme ?? "light"].tint,
+            marginBottom: -10,
+            elevation: 8
+          }
+        })}
+        sceneAnimationEnabled={true}
+        shifting={false}
       />
-    </>
+    </View>
   );
 }
