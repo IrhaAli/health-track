@@ -114,6 +114,19 @@ const LoginForm = () => {
       });
   };
 
+  const clearAllSessions = async () => {
+    try {
+      await AsyncStorage.clear();
+      await auth.signOut();
+      dispatch(setUser(null));
+      dispatch(setUserId(null));
+      Alert.alert('Success', 'All sessions cleared successfully');
+    } catch (error) {
+      console.error('Error clearing sessions:', error);
+      Alert.alert('Error', 'Failed to clear sessions');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -282,6 +295,15 @@ const LoginForm = () => {
                 style={styles.testButton}
               >
                 {t.testUser}
+              </Button>
+
+              <Button
+                mode="outlined"
+                onPress={clearAllSessions}
+                style={styles.testButton}
+                icon="delete"
+              >
+                Clear Session
               </Button>
             </Surface>
           </View>
