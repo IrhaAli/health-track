@@ -1,26 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { Link } from "expo-router";
 import { TextInput, Button, Text, Surface, useTheme, HelperText } from "react-native-paper";
 import { StyleSheet, View, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/auth.json';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [currentLanguage, setCurrentLanguage] = useState("en");
   const auth = getAuth();
   const theme = useTheme();
+
+  useEffect(() => {
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+    getLanguage();
+  }, []);
+
+  const t = translations[currentLanguage as keyof typeof translations];
 
   const onSubmit = () => {
     setIsLoading(true);
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
     if (email.length === 0) {
-      setEmailError("Email field is empty.");
+      setEmailError(t.emailEmpty);
       setIsLoading(false);
       return;
     } else if (reg.test(email) === false) {
-      setEmailError("This is not a valid email.");
+      setEmailError(t.emailInvalid);
       setIsLoading(false);
       return;
     }
@@ -52,26 +71,26 @@ const ForgotPassword = () => {
                 variant="displaySmall"
                 style={[styles.title, { color: theme.colors.primary }]}
               >
-                Reset Password
+                {t.resetPassword}
               </Text>
 
               {!isEmailSent ? (
                 <>
                   <Text variant="bodyLarge" style={styles.subtitle}>
-                    Enter your email address and we'll send you instructions to reset your password.
+                    {t.resetInstructions}
                   </Text>
 
                   <View style={styles.inputView}>
                     <TextInput
                       mode="outlined"
-                      label="Email"
+                      label={t.email}
                       value={email}
                       onChangeText={(text) => {
                         setEmail(text);
                         setEmailError("");
                       }}
                       autoCorrect={false}
-                      placeholder="name@email.com"
+                      placeholder={t.emailPlaceholder}
                       editable={!isLoading}
                       autoCapitalize="none"
                       left={<TextInput.Icon icon="email" />}
@@ -93,7 +112,7 @@ const ForgotPassword = () => {
                     labelStyle={{ fontSize: 16 }}
                     contentStyle={styles.buttonContent}
                   >
-                    Send Reset Link
+                    {t.sendResetLink}
                   </Button>
 
                   <Link href="/login" asChild>
@@ -102,19 +121,18 @@ const ForgotPassword = () => {
                       style={styles.backButton}
                       labelStyle={{ fontSize: 16 }}
                     >
-                      Back to Login
+                      {t.backToLogin}
                     </Button>
                   </Link>
                 </>
               ) : (
                 <View style={styles.successContainer}>
                   <Text variant="headlineSmall" style={styles.successTitle}>
-                    Email Sent!
+                    {t.emailSent}
                   </Text>
                   
                   <Text variant="bodyLarge" style={styles.successText}>
-                    If you have an account with us, an email will be sent with password reset instructions.
-                    Please check your inbox and spam folder.
+                    {t.checkInbox}
                   </Text>
 
                   <Link href="/login" asChild>
@@ -124,7 +142,7 @@ const ForgotPassword = () => {
                       labelStyle={{ fontSize: 16 }}
                       contentStyle={styles.buttonContent}
                     >
-                      Return to Login
+                      {t.returnToLogin}
                     </Button>
                   </Link>
                 </View>
