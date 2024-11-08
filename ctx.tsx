@@ -38,7 +38,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(true);
-  const [initialRoute, setInitialRoute] = React.useState<string | null>(null);
   const [lastAuthCheck, setLastAuthCheck] = React.useState<number>(0);
   const ONE_HOUR = 3600000; // 1 hour in milliseconds
 
@@ -59,24 +58,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
         if (!hasLaunched) {
           setIsFirstLaunch(true);
           await AsyncStorage.setItem('hasLaunched', 'true');
-          router.replace('/language');
+          // Defer navigation
+          setTimeout(() => router.replace('/language'), 0);
         } else {
           setIsFirstLaunch(false);
           if (savedSession) {
             await setSession(savedSession);
             if (!language) {
-              router.replace('/language');
+              setTimeout(() => router.replace('/language'), 0);
             } else {
-              router.replace('/(root)');
+              setTimeout(() => router.replace('/(root)'), 0);
             }
           } else {
-            router.replace('/login');
+            setTimeout(() => router.replace('/login'), 0);
           }
         }
       } catch (error) {
         console.error('Initialization error:', error);
         setIsFirstLaunch(false);
-        router.replace('/login');
+        setTimeout(() => router.replace('/login'), 0);
       } finally {
         setIsInitializing(false);
       }
@@ -133,9 +133,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setLastAuthCheck(currentTime);
 
         if (!language) {
-          router.replace('/language');
+          setTimeout(() => router.replace('/language'), 0);
         } else {
-          router.replace('/(root)');
+          setTimeout(() => router.replace('/(root)'), 0);
         }
       } else {
         await Promise.all([
@@ -144,12 +144,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(null)
         ]);
         setLastAuthCheck(0);
-        router.replace('/login');
+        setTimeout(() => router.replace('/login'), 0);
       }
     } catch (error) {
       console.error('Auth state change error:', error);
       await setSession(null);
-      router.replace('/login');
+      setTimeout(() => router.replace('/login'), 0);
     } finally {
       setIsInitializing(false);
     }
@@ -179,9 +179,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
       const language = await AsyncStorage.getItem('userLanguage');
       if (!language) {
-        router.replace('/language');
+        setTimeout(() => router.replace('/language'), 0);
       } else {
-        router.replace('/(root)');
+        setTimeout(() => router.replace('/(root)'), 0);
       }
       return userCredential;
     } catch (error) {
@@ -204,7 +204,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(null)
       ]);
       setLastAuthCheck(0);
-      router.replace('/login');
+      setTimeout(() => router.replace('/login'), 0);
     } catch (error) {
       console.error('Sign out error:', error);
       await Promise.all([
