@@ -11,10 +11,10 @@ const initialState: TrackState = {
   sleepData: {},
   weightData: {},
   dietData: {},
-  loadingTrackWaterData: false, // Changed initial loading states to false
-  loadingTrackDietData: false,
-  loadingTrackSleepData: false,
-  loadingTrackWeightData: false
+  loadingTrackWaterData: true, // Changed initial loading states to false
+  loadingTrackDietData: true,
+  loadingTrackSleepData: true,
+  loadingTrackWeightData: true
 };
 
 // Fetch.
