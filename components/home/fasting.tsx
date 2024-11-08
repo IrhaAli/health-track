@@ -1,6 +1,6 @@
 import React from "react";
 import { Text } from "react-native-paper";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -9,6 +9,7 @@ import { DietDataState } from "@/types/track";
 export default function FastingChartComponent() {
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const dietData: DietDataState | [] = useSelector((state: RootState) => state.track.dietData);
+  const isLoading = useSelector((state: RootState) => state.track.loadingTrackDietData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
 
   const getChartData = () => {
@@ -59,19 +60,24 @@ export default function FastingChartComponent() {
 
   const chartData = getChartData();
 
-  if (chartData.length === 0) {
+  if (isLoading) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text>No fasting data available for this month</Text>
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }
+
+  const emptyChartData = [
+    { value: 0, label: '', frontColor: 'transparent' },
+    { value: 0, label: '', frontColor: 'transparent' }
+  ];
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Fasting Hours</Text>
       <BarChart
-        data={chartData}
+        data={chartData.length > 0 ? chartData : emptyChartData}
         barWidth={20}
         spacing={10}
         roundedTop
@@ -91,13 +97,16 @@ export default function FastingChartComponent() {
           alignSelf: 'center'
         }}
         noOfSections={4}
-        maxValue={Math.max(...chartData.map(item => item.value)) + 2}
+        maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 2 : 24}
         isAnimated
         animationDuration={500}
         barBorderRadius={4}
         gradientColor={'#E8F5E9'}
         backgroundColor={'#fff'}
       />
+      {chartData.length === 0 && (
+        <Text style={styles.noDataText}>No fasting data available for this month</Text>
+      )}
     </View>
   );
 }
@@ -117,6 +126,11 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  loadingContainer: {
+    minHeight: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -128,5 +142,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: 16,
   }
 });

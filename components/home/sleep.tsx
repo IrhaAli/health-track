@@ -1,6 +1,6 @@
 import React from "react";
 import { Text } from "react-native-paper";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
@@ -9,6 +9,7 @@ import { SleepDataState } from "@/types/track";
 export default function SleepChartComponent() {
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
+  const isLoading = useSelector((state: RootState) => state.track.loadingTrackSleepData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
 
   const getChartData = () => {
@@ -47,19 +48,24 @@ export default function SleepChartComponent() {
 
   const chartData = getChartData();
 
-  if (chartData.length === 0) {
+  if (isLoading) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text>No sleep data available for this month</Text>
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#673AB7" />
       </View>
     );
   }
+
+  const emptyChartData = [
+    { value: 0, label: '', frontColor: 'transparent' },
+    { value: 0, label: '', frontColor: 'transparent' }
+  ];
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Sleep Duration (Hours)</Text>
       <BarChart
-        data={chartData}
+        data={chartData.length > 0 ? chartData : emptyChartData}
         barWidth={20}
         spacing={10}
         roundedTop
@@ -79,12 +85,15 @@ export default function SleepChartComponent() {
           alignSelf: 'center'
         }}
         noOfSections={4}
-        maxValue={Math.max(...chartData.map(item => item.value)) + 2}
+        maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 2 : 24}
         isAnimated
         animationDuration={500}
         barBorderRadius={4}
         backgroundColor={'#fff'}
       />
+      {chartData.length === 0 && (
+        <Text style={styles.noDataText}>No sleep data available for this month</Text>
+      )}
     </View>
   );
 }
@@ -111,9 +120,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  emptyContainer: {
-    padding: 16,
+  loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 200,
+  },
+  noDataText: {
+    textAlign: 'center',
+    marginTop: 16,
+    color: '#666'
   }
 });
