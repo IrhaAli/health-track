@@ -30,7 +30,7 @@ export const unstable_settings = {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { session, isLoading } = useSession();
+  const { session, isLoading, isFirstLaunch } = useSession();
   const [index, setIndex] = React.useState(0);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -55,6 +55,11 @@ export default function TabLayout() {
         <Text variant="displayLarge">Loading...</Text>
       </View>
     );
+  }
+
+  // Check for first launch
+  if (isFirstLaunch) {
+    return <Redirect href="/language" />;
   }
 
   // Only redirect if we're definitely not logged in
