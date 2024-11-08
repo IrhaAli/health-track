@@ -6,6 +6,7 @@ import { getAuth } from "firebase/auth";
 import { BottomNavigation, Text } from 'react-native-paper';
 import { StatusBar, View } from 'react-native';
 import { useSession } from '../../ctx';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screen Imports Start. 
 import HomeScreen from "./index";
@@ -19,7 +20,7 @@ import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 
 // Routes.
 const HomeRoute = () => <HomeScreen />;
-const TrackRoute = () => < TrackScreen />;
+const TrackRoute = () => <TrackScreen />;
 const MediaRoute = () => <MediaScreen />;
 const ProfileRoute = () => <ProfileScreen />;
 // Routes.
@@ -33,6 +34,29 @@ export default function TabLayout() {
   const { session, isLoading, isFirstLaunch } = useSession();
   const [index, setIndex] = React.useState(0);
   const dispatch = useDispatch<AppDispatch>();
+  const [hasCheckedStorage, setHasCheckedStorage] = React.useState(false);
+  const [shouldRedirect, setShouldRedirect] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    const checkStorageState = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        const savedSession = await AsyncStorage.getItem('session');
+
+        if (!language && !isFirstLaunch) {
+          router.replace('/language');
+        } else if (!savedSession && !session) {
+          router.replace('/login');
+        }
+        setHasCheckedStorage(true);
+      } catch (error) {
+        console.error('Error checking storage state:', error);
+        setHasCheckedStorage(true);
+      }
+    };
+
+    checkStorageState();
+  }, [session, isFirstLaunch]);
 
   const [routes] = React.useState([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home' },
@@ -48,8 +72,8 @@ export default function TabLayout() {
     profile: ProfileRoute,
   });
 
-  // Add loading state to prevent flash
-  if (isLoading) {
+  // Wait for both loading states before rendering
+  if (isLoading || !hasCheckedStorage) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text variant="displayLarge">Loading...</Text>
@@ -57,14 +81,9 @@ export default function TabLayout() {
     );
   }
 
-  // Check for first launch
-  if (isFirstLaunch) {
-    return <Redirect href="/language" />;
-  }
-
-  // Only redirect if we're definitely not logged in
-  if (session === null) {
-    return <Redirect href="/login" />;
+  // Check if user is authenticated
+  if (!session) {
+    return null; // Return null to prevent rendering while redirecting
   }
 
   const handleIndexChange = (newIndex: number) => {
