@@ -60,52 +60,50 @@ export default function FastingChartComponent() {
 
   const chartData = getChartData();
 
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-    );
-  }
-
-  const emptyChartData = [
-    { value: 0, label: '', frontColor: 'transparent' },
-    { value: 0, label: '', frontColor: 'transparent' }
-  ];
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Fasting Hours</Text>
-      <BarChart
-        data={chartData.length > 0 ? chartData : emptyChartData}
-        barWidth={20}
-        spacing={10}
-        roundedTop
-        roundedBottom
-        hideRules
-        xAxisThickness={0.5}
-        yAxisThickness={0.5}
-        yAxisTextStyle={{ color: '#666', fontSize: 10 }}
-        xAxisLabelTextStyle={{ 
-          color: '#666', 
-          fontSize: 10,
-          transform: [{rotate: '-90deg'}],
-          marginTop: 5,
-          width: 45,
-          height: 14,
-          textAlign: 'center',
-          alignSelf: 'center'
-        }}
-        noOfSections={4}
-        maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 2 : 24}
-        isAnimated
-        animationDuration={500}
-        barBorderRadius={4}
-        gradientColor={'#E8F5E9'}
-        backgroundColor={'#fff'}
-      />
-      {chartData.length === 0 && (
-        <Text style={styles.noDataText}>No fasting data available for this month</Text>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+        </View>
+      ) : (
+        <>
+          <BarChart
+            data={chartData.length > 0 ? chartData : [
+              { value: 0, label: '', frontColor: 'transparent' },
+              { value: 0, label: '', frontColor: 'transparent' }
+            ]}
+            barWidth={20}
+            spacing={10}
+            roundedTop
+            roundedBottom
+            hideRules
+            xAxisThickness={0.5}
+            yAxisThickness={0.5}
+            yAxisTextStyle={{ color: '#666', fontSize: 10 }}
+            xAxisLabelTextStyle={{ 
+              color: '#666', 
+              fontSize: 10,
+              transform: [{rotate: '-90deg'}],
+              marginTop: 5,
+              width: 45,
+              height: 14,
+              textAlign: 'center',
+              alignSelf: 'center'
+            }}
+            noOfSections={4}
+            maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 2 : 24}
+            isAnimated
+            animationDuration={500}
+            barBorderRadius={4}
+            gradientColor={'#E8F5E9'}
+            backgroundColor={'#fff'}
+          />
+          {chartData.length === 0 && !isLoading && (
+            <Text style={styles.noDataText}>No fasting data available for this month</Text>
+          )}
+        </>
       )}
     </View>
   );

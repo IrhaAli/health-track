@@ -21,7 +21,7 @@ export default function MealChartComponent() {
     const dailyMealCounts = [...dietData[formattedMonth]].reduce((acc: {[key: string]: number}, meal) => {
       const date = new Date(meal.date);
       const day = String(date.getDate()).padStart(2, '0');
-      const month = date.toLocaleString('default', { month: 'short' }).toLowerCase(); // Changed to short month name
+      const month = date.toLocaleString('default', { month: 'short' }).toLowerCase();
       const dateLabel = `${day} ${month}`;
       acc[dateLabel] = (acc[dateLabel] || 0) + 1;
       return acc;
@@ -46,14 +46,6 @@ export default function MealChartComponent() {
 
   const chartData = getChartData();
 
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#FF9800" />
-      </View>
-    );
-  }
-
   const emptyChartData = [
     { value: 0, label: '', frontColor: 'transparent' },
     { value: 0, label: '', frontColor: 'transparent' }
@@ -62,36 +54,44 @@ export default function MealChartComponent() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Daily Meal Count</Text>
-      <BarChart
-        data={chartData.length > 0 ? chartData : emptyChartData}
-        barWidth={20}
-        spacing={10} // Increased spacing to accommodate rotated labels
-        roundedTop
-        roundedBottom
-        hideRules
-        xAxisThickness={0.5}
-        yAxisThickness={0.5}
-        yAxisTextStyle={{ color: '#666', fontSize: 10 }}
-        xAxisLabelTextStyle={{ 
-          color: '#666', 
-          fontSize: 10,
-          transform: [{rotate: '-90deg'}],
-          marginTop: 5,
-          width: 45,
-          height: 14,
-          textAlign: 'center', // Add text alignment
-          alignSelf: 'center' // Center the text container
-        }}
-        noOfSections={4}
-        maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 1 : 5}
-        isAnimated
-        animationDuration={500}
-        barBorderRadius={4}
-        gradientColor={'#FFF3E0'}
-        backgroundColor={'#fff'}
-      />
-      {chartData.length === 0 && (
-        <Text style={styles.noDataText}>No meal data available for this month</Text>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF9800" />
+        </View>
+      ) : (
+        <>
+          <BarChart
+            data={chartData.length > 0 ? chartData : emptyChartData}
+            barWidth={20}
+            spacing={10}
+            roundedTop
+            roundedBottom
+            hideRules
+            xAxisThickness={0.5}
+            yAxisThickness={0.5}
+            yAxisTextStyle={{ color: '#666', fontSize: 10 }}
+            xAxisLabelTextStyle={{ 
+              color: '#666', 
+              fontSize: 10,
+              transform: [{rotate: '-90deg'}],
+              marginTop: 5,
+              width: 45,
+              height: 14,
+              textAlign: 'center',
+              alignSelf: 'center'
+            }}
+            noOfSections={4}
+            maxValue={chartData.length > 0 ? Math.max(...chartData.map(item => item.value)) + 1 : 5}
+            isAnimated
+            animationDuration={500}
+            barBorderRadius={4}
+            gradientColor={'#FFF3E0'}
+            backgroundColor={'#fff'}
+          />
+          {chartData.length === 0 && !isLoading && (
+            <Text style={styles.noDataText}>No meal data available for this month</Text>
+          )}
+        </>
       )}
     </View>
   );
