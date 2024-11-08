@@ -38,50 +38,48 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(true);
+  const [initialRoute, setInitialRoute] = React.useState<string | null>(null);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        console.log('Starting app initialization...');
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
+        console.log('Has launched:', hasLaunched);
         const language = await AsyncStorage.getItem('userLanguage');
+        console.log('User language:', language);
         const savedSession = await AsyncStorage.getItem('session');
+        console.log('Saved session:', savedSession);
 
-        // Clear first launch state for testing
-        if (__DEV__) {
-          await AsyncStorage.removeItem('hasLaunched');
-          await AsyncStorage.removeItem('userLanguage');
-        }
-
-        if (!hasLaunched || !language) {
+        if (!hasLaunched) {
+          console.log('First launch detected');
           setIsFirstLaunch(true);
           await AsyncStorage.setItem('hasLaunched', 'true');
-          // Delay navigation until after initial render
-          setTimeout(() => {
-            router.replace('/language');
-          }, 0);
+          setInitialRoute('/language');
         } else {
+          console.log('Not first launch');
           setIsFirstLaunch(false);
           if (savedSession) {
+            console.log('Found saved session, setting session');
             await setSession(savedSession);
-            // Delay navigation until after initial render
-            setTimeout(() => {
-              router.replace('/(tabs)');
-            }, 0);
+            if (!language) {
+              console.log('No language set, routing to language selection');
+              setInitialRoute('/language');
+            } else {
+              console.log('Language found, routing to root');
+              setInitialRoute('/(root)');
+            }
           } else {
-            // Delay navigation until after initial render
-            setTimeout(() => {
-              router.replace('/login');
-            }, 0);
+            console.log('No saved session found, routing to login');
+            setInitialRoute('/login');
           }
         }
       } catch (error) {
         console.error('Error initializing app:', error);
         setIsFirstLaunch(false);
-        // Delay navigation until after initial render
-        setTimeout(() => {
-          router.replace('/login');
-        }, 0);
+        setInitialRoute('/login');
       } finally {
+        console.log('App initialization complete');
         setIsInitializing(false);
       }
     };
@@ -90,62 +88,48 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    // Only proceed with session check if not first launch
-    if (isFirstLaunch === null || isFirstLaunch) {
-      return;
+    console.log('Route effect triggered:', { initialRoute, isInitializing });
+    if (initialRoute && !isInitializing) {
+      console.log('Replacing route with:', initialRoute);
+      router.replace(initialRoute);
     }
+  }, [initialRoute, isInitializing]);
 
-    const checkInitialSession = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const userData = {
-            uid: currentUser.uid,
-            email: currentUser.email,
-            displayName: currentUser.displayName,
-          };
-          const userString = JSON.stringify(userData);
-          await AsyncStorage.setItem('session', userString);
-          await setSession(userString);
+  const onAuthStateChange = async (user: any) => {
+    try {
+      const language = await AsyncStorage.getItem('userLanguage');
+
+      if (user) {
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+        };
+        const userString = JSON.stringify(userData);
+        await AsyncStorage.setItem('session', userString);
+        await setSession(userString);
+
+        if (!language) {
+          setInitialRoute('/language');
         } else {
-          const savedSession = await AsyncStorage.getItem('session');
-          if (savedSession) {
-            await setSession(savedSession);
-          } else {
-            await setSession(null);
-          }
+          setInitialRoute('/(root)');
         }
-      } catch (error) {
-        console.error('Initial session check error:', error);
+      } else {
+        await AsyncStorage.removeItem('session');
         await setSession(null);
+        setInitialRoute('/login');
       }
-    };
-    
-    checkInitialSession();
+    } catch (error) {
+      console.error('Auth state change error:', error);
+      await setSession(null);
+      setInitialRoute('/login');
+    }
+  };
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          const userData = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-          };
-          const userString = JSON.stringify(userData);
-          await AsyncStorage.setItem('session', userString);
-          await setSession(userString);
-        } else {
-          await AsyncStorage.removeItem('session');
-          await setSession(null);
-        }
-      } catch (error) {
-        console.error('Auth state change error:', error);
-        await setSession(null);
-      }
-    });
-
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, onAuthStateChange);
     return () => unsubscribe();
-  }, [isFirstLaunch]);
+  }, []);
 
   const handleSignIn = async (email: string, password: string): Promise<any> => {
     try {
@@ -162,11 +146,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const userString = JSON.stringify(userData);
       await AsyncStorage.setItem('session', userString);
       await setSession(userString);
-      
-      if (!auth.currentUser) {
-        throw new Error('Login failed - user not properly authenticated');
+
+      const language = await AsyncStorage.getItem('userLanguage');
+      if (!language) {
+        setInitialRoute('/language');
+      } else {
+        setInitialRoute('/(root)');
       }
-      
       return userCredential;
     } catch (error) {
       console.error('Sign in error:', error);
@@ -181,6 +167,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       await auth.signOut();
       await AsyncStorage.removeItem('session');
       await setSession(null);
+      setInitialRoute('/login');
     } catch (error) {
       console.error('Sign out error:', error);
       await AsyncStorage.removeItem('session');
