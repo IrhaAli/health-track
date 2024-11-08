@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Dimensions } from 'react-native';
 import { Button, Surface, Text, useTheme } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,23 @@ const LanguageSelection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
+  const [displayedTextIndex, setDisplayedTextIndex] = useState(0);
+
+  const welcomeTexts = [
+    { welcome: 'Welcome!', choose: 'Choose Your Language' },
+    { welcome: 'Bienvenue!', choose: 'Choisissez Votre Langue' },
+    { welcome: 'مرحباً!', choose: 'اختر لغتك' }
+  ];
+
+  useEffect(() => {
+    const changeText = () => {
+      setDisplayedTextIndex((prevIndex) => (prevIndex + 1) % welcomeTexts.length);
+    };
+
+    const textChangeInterval = setInterval(changeText, 3000);
+
+    return () => clearInterval(textChangeInterval);
+  }, []);
 
   React.useEffect(() => {
     const checkLanguage = async () => {
@@ -45,16 +62,18 @@ const LanguageSelection = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
           <Surface style={styles.formContainer} elevation={4}>
-            <Text
-              variant="displaySmall"
-              style={[styles.title, { color: theme.colors.primary }]}
-            >
-              Welcome!
-            </Text>
-            
-            <Text variant="headlineSmall" style={styles.subtitle}>
-              Choose Your Language
-            </Text>
+            <View>
+              <Text
+                variant="displaySmall"
+                style={[styles.title, { color: theme.colors.primary }]}
+              >
+                {welcomeTexts[displayedTextIndex].welcome}
+              </Text>
+              
+              <Text variant="headlineSmall" style={styles.subtitle}>
+                {welcomeTexts[displayedTextIndex].choose}
+              </Text>
+            </View>
 
             <View style={styles.buttonContainer}>
               <Button
