@@ -1,8 +1,8 @@
 import { AppDispatch, RootState } from "../../store/store";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Divider, SegmentedButtons, Text } from "react-native-paper";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, InteractionManager } from "react-native";
 import { fetchDietData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
 import AppMediaMealComponent from "./meal";
 import AppMediaWeightComponent from "./weight";
@@ -22,10 +22,17 @@ export default function AppMediaNavitaionComponent() {
     const [disablePrevButton, setDisablePrevButton] = useState(false);
     const [disableNextButton, setDisableNextButton] = useState(true);
     const [mediaTab, setMediaTab] = useState(MediaTabEnum.MEAL);
+    const [isReady, setIsReady] = useState(false);
 
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const dispatch = useDispatch<AppDispatch>();
     const user = getAuth()?.currentUser;
+
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            setIsReady(true);
+        });
+    }, []);
 
     const { month, year, todayMonth, todayYear } = useMemo(() => {
         const today = new Date();
@@ -95,6 +102,10 @@ export default function AppMediaNavitaionComponent() {
         </Button>
     );
 
+    const MemoizedContent = useCallback(() => {
+        return mediaTab === MediaTabEnum.MEAL ? <AppMediaMealComponent /> : <AppMediaWeightComponent />;
+    }, [mediaTab]);
+
     return (
         <>
             <View style={styles.mediaTabParent}>
@@ -115,7 +126,7 @@ export default function AppMediaNavitaionComponent() {
             </View>
             <Divider style={styles.divider} />
 
-            {mediaTab === MediaTabEnum.MEAL ? <AppMediaMealComponent /> : <AppMediaWeightComponent />}
+            {isReady && <MemoizedContent />}
         </>
     );
 }
