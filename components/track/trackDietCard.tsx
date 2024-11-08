@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Button, Text, Avatar, Divider, Surface } from 'react-native-paper';
+import React, { useMemo, useState } from "react";
+import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { DietDataEntry, DietDataState } from "../../types/track";
@@ -12,6 +12,8 @@ export default function TrackDietCard() {
     const { currentMonth, dietData, currentDate } = useSelector((state: RootState) => state.track);
     const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
+    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+    const [selectedDietId, setSelectedDietId] = useState<string | null>(null);
 
     React.useEffect(() => {
         fadeAnim.setValue(0);
@@ -31,10 +33,35 @@ export default function TrackDietCard() {
         return [];
     }, [dietData, formattedMonth, currentDate]);
 
+    const handleDeletePress = (dietId: string) => {
+        setSelectedDietId(dietId);
+        setDeleteDialogVisible(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (selectedDietId) {
+            dispatch(deleteDietData({ currentDate, docId: selectedDietId }));
+        }
+        setDeleteDialogVisible(false);
+    };
+
     if (!dietEntries.length) return null;
 
     return (
         <View>
+            <Portal>
+                <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
+                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Are you sure you want to delete this meal entry?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
+                        <Button mode="contained" onPress={handleConfirmDelete}>Confirm</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
             {dietEntries.map((diet: DietDataEntry, index: number) => (
                 <Animated.View
                     key={diet.id || index}
@@ -88,7 +115,7 @@ export default function TrackDietCard() {
                                 <Button
                                     mode="contained-tonal"
                                     icon="delete"
-                                    onPress={() => diet.id && dispatch(deleteDietData({ currentDate, docId: diet.id }))}
+                                    onPress={() => diet.id && handleDeletePress(diet.id)}
                                     style={styles.button}
                                 >
                                     Delete

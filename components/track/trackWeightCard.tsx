@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Button, Text, Avatar, Divider, Surface } from 'react-native-paper';
+import React, { useMemo, useState } from "react";
+import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWeightData } from "@/store/trackSlice";
@@ -12,6 +12,8 @@ export default function TrackWeightCard() {
     const { currentMonth, weightData, currentDate } = useSelector((state: RootState) => state.track);
     const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
+    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+    const [selectedWeightId, setSelectedWeightId] = useState<string | null>(null);
 
     React.useEffect(() => {
         fadeAnim.setValue(0);
@@ -24,17 +26,54 @@ export default function TrackWeightCard() {
 
     const weightEntries = useMemo(() => {
         if (!Array.isArray(weightData) && weightData[formattedMonth]?.length > 0) {
-            return weightData[formattedMonth].filter((entry: WeightDataEntry) =>
-                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-            );
+            return weightData[formattedMonth].filter((entry: WeightDataEntry) => {
+                // Create date object in user's timezone
+                const entryDate = new Date(entry.date);
+                // Get user's locale and timezone
+                const userLocale = Intl.DateTimeFormat().resolvedOptions().locale;
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                // Format date in ISO format YYYY-MM-DD in user's timezone
+                const localDate = entryDate.toLocaleDateString(userLocale, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    timeZone: userTimezone
+                }).split('/').reverse().join('-');
+                return localDate === currentDate;
+            });
         }
         return [];
     }, [weightData, formattedMonth, currentDate]);
+
+    const handleDeletePress = (weightId: string) => {
+        setSelectedWeightId(weightId);
+        setDeleteDialogVisible(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (selectedWeightId) {
+            dispatch(deleteWeightData({ currentDate, docId: selectedWeightId }));
+        }
+        setDeleteDialogVisible(false);
+    };
 
     if (!weightEntries.length) return null;
 
     return (
         <View>
+            <Portal>
+                <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
+                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Are you sure you want to delete this weight entry?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
+                        <Button mode="contained" onPress={handleConfirmDelete}>Confirm</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
             {weightEntries.map((weight: WeightDataEntry, index: number) => (
                 <Animated.View
                     key={weight.id || index}
@@ -88,7 +127,7 @@ export default function TrackWeightCard() {
                                 <Button
                                     mode="contained-tonal"
                                     icon="delete"
-                                    onPress={() => weight.id && dispatch(deleteWeightData({ currentDate, docId: weight.id }))}
+                                    onPress={() => weight.id && handleDeletePress(weight.id)}
                                     style={styles.button}
                                 >
                                     Delete

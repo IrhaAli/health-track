@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Button, Text, Avatar, Divider, Surface } from 'react-native-paper';
+import React, { useMemo, useState } from "react";
+import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWaterData } from "@/store/trackSlice";
@@ -12,6 +12,8 @@ export default function TrackWaterCard() {
     const { currentMonth, waterData, currentDate } = useSelector((state: RootState) => state.track);
     const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
     const fadeAnim = React.useRef(new Animated.Value(1)).current;
+    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+    const [selectedWaterId, setSelectedWaterId] = useState<string | null>(null);
 
     React.useEffect(() => {
         fadeAnim.setValue(0);
@@ -24,17 +26,54 @@ export default function TrackWaterCard() {
 
     const waterEntries = useMemo(() => {
         if (!Array.isArray(waterData) && waterData[formattedMonth]?.length > 0) {
-            return waterData[formattedMonth].filter((entry: WaterDataEntry) =>
-                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-            );
+            return waterData[formattedMonth].filter((entry: WaterDataEntry) => {
+                // Create date object in user's timezone
+                const entryDate = new Date(entry.date);
+                // Get user's locale and timezone
+                const userLocale = Intl.DateTimeFormat().resolvedOptions().locale;
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                // Format date in ISO format YYYY-MM-DD in user's timezone
+                const localDate = entryDate.toLocaleDateString(userLocale, {
+                    year: 'numeric',
+                    month: '2-digit', 
+                    day: '2-digit',
+                    timeZone: userTimezone
+                }).split('/').reverse().join('-');
+                return localDate === currentDate;
+            });
         }
         return [];
     }, [waterData, formattedMonth, currentDate]);
+
+    const handleDeletePress = (waterId: string) => {
+        setSelectedWaterId(waterId);
+        setDeleteDialogVisible(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (selectedWaterId) {
+            dispatch(deleteWaterData({ currentDate, docId: selectedWaterId }));
+        }
+        setDeleteDialogVisible(false);
+    };
 
     if (!waterEntries.length) return null;
 
     return (
         <View>
+            <Portal>
+                <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
+                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>Are you sure you want to delete this water entry?</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
+                        <Button mode="contained" onPress={handleConfirmDelete}>Confirm</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
             {waterEntries.map((water: WaterDataEntry, index: number) => (
                 <Animated.View
                     key={water.id || index}
@@ -67,7 +106,7 @@ export default function TrackWaterCard() {
                                 <Button
                                     mode="contained-tonal"
                                     icon="delete"
-                                    onPress={() => water.id && dispatch(deleteWaterData({ currentDate, docId: water.id }))}
+                                    onPress={() => water.id && handleDeletePress(water.id)}
                                     style={styles.button}
                                 >
                                     Delete
