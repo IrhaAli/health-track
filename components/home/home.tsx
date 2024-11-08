@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { Avatar, Button, Divider, Text } from "react-native-paper";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedView } from "@/components/ThemedView";
@@ -8,6 +8,10 @@ import { AppDispatch, RootState } from "../../store/store";
 import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
 import { getAuth } from "firebase/auth";
 import MealChartComponent from "./meal";
+import WaterChartComponent from "./water";
+import SleepChartComponent from "./sleep";
+import WeightChartComponent from "./weight";
+import FastingChartComponent from "./fasting";
 
 const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -93,14 +97,18 @@ export default function HomeComponent() {
     );
 
     return (
-        <View>
+        <ScrollView style={styles.container}>
             <View style={styles.calendarParent}>
                 {renderNavigationButton('chevron-left', navPrev, disablePrevButton)}
                 <Text variant="titleLarge">{MONTH_NAMES[month - 1]} {year}</Text>
                 {renderNavigationButton('chevron-right', navNext, disableNextButton)}
             </View>
             <MealChartComponent></MealChartComponent>
-        </View>
+            <FastingChartComponent></FastingChartComponent>
+            <WaterChartComponent></WaterChartComponent>
+            <SleepChartComponent></SleepChartComponent>
+            <WeightChartComponent></WeightChartComponent>
+        </ScrollView>
     );
 }
 
