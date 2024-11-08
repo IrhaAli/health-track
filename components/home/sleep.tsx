@@ -33,8 +33,8 @@ export default function SleepChartComponent() {
       .map(([dateLabel, duration]) => ({
         value: Number(duration.toFixed(1)), // Round to 1 decimal place
         label: dateLabel,
-        frontColor: '#9C27B0',
-        gradientColor: '#F3E5F5',
+        frontColor: '#673AB7',
+        gradientColor: '#EDE7F6',
       }))
       .sort((a, b) => {
         const [dayA, monthA] = a.label.split(' ');

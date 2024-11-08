@@ -31,8 +31,8 @@ export default function WeightChartComponent() {
       .map(([dateLabel, weight]) => ({
         value: weight,
         label: dateLabel,
-        frontColor: '#FF9800',
-        gradientColor: '#FFF3E0',
+        frontColor: '#9C27B0',
+        gradientColor: '#F3E5F5',
       }))
       .sort((a, b) => {
         const [dayA, monthA] = a.label.split(' ');
@@ -81,7 +81,7 @@ export default function WeightChartComponent() {
         isAnimated
         animationDuration={500}
         barBorderRadius={4}
-        gradientColor={'#FFF3E0'}
+        gradientColor={'#F3E5F5'}
         backgroundColor={'#fff'}
       />
     </View>

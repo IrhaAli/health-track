@@ -31,8 +31,8 @@ export default function WaterChartComponent() {
       .map(([dateLabel, amount]) => ({
         value: amount,
         label: dateLabel,
-        frontColor: '#4FACF7',
-        gradientColor: '#E6F4FF',
+        frontColor: '#2196F3',
+        gradientColor: '#E3F2FD',
       }))
       .sort((a, b) => {
         const [dayA, monthA] = a.label.split(' ');
@@ -81,7 +81,7 @@ export default function WaterChartComponent() {
         isAnimated
         animationDuration={500}
         barBorderRadius={4}
-        gradientColor={'#E6F4FF'}
+        gradientColor={'#E3F2FD'}
         backgroundColor={'#fff'}
       />
     </View>

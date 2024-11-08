@@ -31,8 +31,8 @@ export default function MealChartComponent() {
       .map(([dateLabel, count]) => ({
         value: count,
         label: dateLabel,
-        frontColor: '#FF6B6B',
-        gradientColor: '#FFE8E8',
+        frontColor: '#FF9800',
+        gradientColor: '#FFF3E0',
       }))
       .sort((a, b) => {
         const [dayA, monthA] = a.label.split(' ');
@@ -82,7 +82,7 @@ export default function MealChartComponent() {
         animationDuration={500}
         barBorderRadius={4}
         // showGradient
-        gradientColor={'#FFE8E8'}
+        gradientColor={'#FFF3E0'}
         backgroundColor={'#fff'}
       />
     </View>
