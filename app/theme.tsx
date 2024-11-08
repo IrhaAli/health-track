@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
+import React from 'react';
 
 
 export const themeColor = '#00AAAF';
