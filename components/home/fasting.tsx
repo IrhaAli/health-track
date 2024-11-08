@@ -1,7 +1,7 @@
 import React from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet, View } from "react-native";
-import { BarChart, barDataItem } from "react-native-gifted-charts";
+import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { DietDataState } from "@/types/track";
@@ -16,51 +16,41 @@ export default function FastingChartComponent() {
       return [];
     }
 
-    // Group meals by day
-    const mealsByDay: { [key: string]: Date[] } = {};
-    [...dietData[formattedMonth]].forEach(meal => {
-      const date = new Date(meal.date);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = date.toLocaleString('default', { month: 'short' }).toLowerCase();
-      const dateLabel = `${day} ${month}`;
+    // Sort meals by date
+    const sortedMeals = [...dietData[formattedMonth]].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    // Calculate fasting hours between meals
+    const fastingHours: {[key: string]: number} = {};
+    
+    for (let i = 1; i < sortedMeals.length; i++) {
+      const prevMealDate = new Date(sortedMeals[i-1].date);
+      const currentMealDate = new Date(sortedMeals[i].date);
       
-      if (!mealsByDay[dateLabel]) {
-        mealsByDay[dateLabel] = [];
-      }
-      mealsByDay[dateLabel].push(date);
-    });
-
-    // Calculate fasting periods for each day
-    return Object.entries(mealsByDay)
-      .map(([dateLabel, dates]) => {
-        // Sort meals chronologically
-        dates.sort((a, b) => a.getTime() - b.getTime());
+      // Only calculate if meals are on different days
+      if (prevMealDate.getDate() !== currentMealDate.getDate()) {
+        const hours = (currentMealDate.getTime() - prevMealDate.getTime()) / (1000 * 60 * 60);
         
-        if (dates.length < 2) return null;
+        const day = String(currentMealDate.getDate()).padStart(2, '0');
+        const month = currentMealDate.toLocaleString('default', { month: 'short' }).toLowerCase();
+        const dateLabel = `${day} ${month}`;
+        
+        fastingHours[dateLabel] = hours;
+      }
+    }
 
-        // Calculate fasting period between last meal of current day and first meal of next day
-        const fastingHours = dates.reduce((maxFasting, curr, idx, arr) => {
-          if (idx === 0) return maxFasting;
-          
-          const prevMeal = arr[idx - 1];
-          const diff = (curr.getTime() - prevMeal.getTime()) / (1000 * 60 * 60); // Convert to hours
-          
-          return diff > maxFasting && diff < 24 ? diff : maxFasting;
-        }, 0);
-
-        if (fastingHours === 0) return null;
-
-        return {
-          value: Number(fastingHours.toFixed(1)),
-          label: dateLabel,
-          frontColor: '#4CAF50',
-          gradientColor: '#E8F5E9',
-        };
-      })
-      .filter((item): item is { value: number; label: string; frontColor: string; gradientColor: string; } => item !== null)
+    // Convert to chart data format and sort by date
+    return Object.entries(fastingHours)
+      .map(([dateLabel, hours]) => ({
+        value: Math.round(hours * 10) / 10, // Round to 1 decimal place
+        label: dateLabel,
+        frontColor: '#4CAF50',
+        gradientColor: '#E8F5E9',
+      }))
       .sort((a, b) => {
         const [dayA, monthA] = a.label.split(' ');
-        const [dayB, monthB] = b.label.split(' '); 
+        const [dayB, monthB] = b.label.split(' ');
         const dateA = new Date(`${monthA} ${dayA}, ${currentMonth.year}`);
         const dateB = new Date(`${monthB} ${dayB}, ${currentMonth.year}`);
         return dateA.getTime() - dateB.getTime();
@@ -79,9 +69,9 @@ export default function FastingChartComponent() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Maximum Fasting Duration Per Day (Hours)</Text>
+      <Text style={styles.title}>Daily Fasting Hours</Text>
       <BarChart
-        data={chartData as barDataItem[]}
+        data={chartData}
         barWidth={20}
         spacing={10}
         roundedTop
@@ -101,7 +91,7 @@ export default function FastingChartComponent() {
           alignSelf: 'center'
         }}
         noOfSections={4}
-        maxValue={Math.max(...chartData.map((item: barDataItem) => item.value)) + 2}
+        maxValue={Math.max(...chartData.map(item => item.value)) + 2}
         isAnimated
         animationDuration={500}
         barBorderRadius={4}
