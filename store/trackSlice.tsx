@@ -11,7 +11,7 @@ const initialState: TrackState = {
   sleepData: {},
   weightData: {},
   dietData: {},
-  loadingTrackWaterData: false,
+  loadingTrackWaterData: false, // Changed initial loading states to false
   loadingTrackDietData: false,
   loadingTrackSleepData: false,
   loadingTrackWeightData: false
@@ -639,9 +639,6 @@ const trackSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch
-      .addCase(fetchWaterData.pending, (state) => {
-        state.loadingTrackWaterData = true;
-      })
       .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -651,8 +648,8 @@ const trackSlice = createSlice({
         console.error('Error fetching water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
-      .addCase(fetchSleepData.pending, (state) => {
-        state.loadingTrackSleepData = true;
+      .addCase(fetchWaterData.pending, (state) => {
+        state.loadingTrackWaterData = true;
       })
       .addCase(fetchSleepData.fulfilled, (state, action) => {   // Fetch Sleep Data
         const { formattedMonth, docData } = action.payload;
@@ -663,8 +660,8 @@ const trackSlice = createSlice({
         console.error('Error fetching sleep data:', action.payload);
         state.loadingTrackSleepData = false;
       })
-      .addCase(fetchWeightData.pending, (state) => {
-        state.loadingTrackWeightData = true;
+      .addCase(fetchSleepData.pending, (state) => {
+        state.loadingTrackSleepData = true;
       })
       .addCase(fetchWeightData.fulfilled, (state, action) => {   // Fetch Weight Data
         const { formattedMonth, docData } = action.payload;
@@ -675,8 +672,8 @@ const trackSlice = createSlice({
         console.error('Error fetching weight data:', action.payload);
         state.loadingTrackWeightData = false;
       })
-      .addCase(fetchDietData.pending, (state) => {
-        state.loadingTrackDietData = true;
+      .addCase(fetchWeightData.pending, (state) => {
+        state.loadingTrackWeightData = true;
       })
       .addCase(fetchDietData.fulfilled, (state, action) => {   // Fetch Diet Data
         const { formattedMonth, docData } = action.payload;
@@ -686,6 +683,9 @@ const trackSlice = createSlice({
       .addCase(fetchDietData.rejected, (state, action) => {    // Fetch Diet Data - Error
         console.error('Error fetching diet data:', action.payload);
         state.loadingTrackDietData = false;
+      })
+      .addCase(fetchDietData.pending, (state) => {
+        state.loadingTrackDietData = true;
       })
       // Fetch
 
