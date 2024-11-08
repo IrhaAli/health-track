@@ -59,29 +59,34 @@ export function SessionProvider({ children }: PropsWithChildren) {
         if (!hasLaunched) {
           setIsFirstLaunch(true);
           await AsyncStorage.setItem('hasLaunched', 'true');
-          setInitialRoute('/language');
+          router.replace('/language');
         } else {
           setIsFirstLaunch(false);
           if (savedSession) {
             await setSession(savedSession);
             if (!language) {
-              setInitialRoute('/language');
+              router.replace('/language');
             } else {
-              setInitialRoute('/(root)');
+              router.replace('/(root)');
             }
           } else {
-            setInitialRoute('/login');
+            router.replace('/login');
           }
         }
       } catch (error) {
+        console.error('Initialization error:', error);
         setIsFirstLaunch(false);
-        setInitialRoute('/login');
+        router.replace('/login');
       } finally {
         setIsInitializing(false);
       }
     };
 
+    // Check auth state immediately on mount
+    const unsubscribe = onAuthStateChanged(auth, onAuthStateChange);
     initializeApp();
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -91,6 +96,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
       const currentTime = Date.now();
       if (currentTime - lastAuthCheck >= ONE_HOUR) {
         unsubscribe = onAuthStateChanged(auth, onAuthStateChange);
+        setLastAuthCheck(currentTime);
+        await AsyncStorage.setItem('lastAuthCheck', currentTime.toString());
       }
     };
 
@@ -125,7 +132,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
         ]);
         setLastAuthCheck(currentTime);
 
-        setInitialRoute(!language ? '/language' : '/(root)');
+        if (!language) {
+          router.replace('/language');
+        } else {
+          router.replace('/(root)');
+        }
       } else {
         await Promise.all([
           AsyncStorage.removeItem('session'),
@@ -133,11 +144,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(null)
         ]);
         setLastAuthCheck(0);
-        setInitialRoute('/login');
+        router.replace('/login');
       }
     } catch (error) {
+      console.error('Auth state change error:', error);
       await setSession(null);
-      setInitialRoute('/login');
+      router.replace('/login');
     } finally {
       setIsInitializing(false);
     }
@@ -166,7 +178,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
       setLastAuthCheck(currentTime);
 
       const language = await AsyncStorage.getItem('userLanguage');
-      setInitialRoute(!language ? '/language' : '/(root)');
+      if (!language) {
+        router.replace('/language');
+      } else {
+        router.replace('/(root)');
+      }
       return userCredential;
     } catch (error) {
       await Promise.all([
@@ -188,8 +204,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(null)
       ]);
       setLastAuthCheck(0);
-      setInitialRoute('/login');
+      router.replace('/login');
     } catch (error) {
+      console.error('Sign out error:', error);
       await Promise.all([
         AsyncStorage.removeItem('session'),
         AsyncStorage.removeItem('lastAuthCheck'),
