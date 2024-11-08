@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView, StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Link, router } from "expo-router";
 import "../firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { TextInput, Button, Text, Surface, useTheme, HelperText } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/auth.json';
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +17,24 @@ const SignupForm = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [currentLanguage, setCurrentLanguage] = useState("en");
   const theme = useTheme();
+
+  useEffect(() => {
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+    getLanguage();
+  }, []);
+
+  const t = translations[currentLanguage as keyof typeof translations];
 
   const onSubmit = () => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -24,16 +43,16 @@ const SignupForm = () => {
     setConfirmPasswordError("");
 
     if (email.length === 0) {
-      setEmailError("Email field is empty.");
+      setEmailError(t.emailEmpty);
       return;
     } else if (reg.test(email) === false) {
-      setEmailError("This is not a valid email.");
+      setEmailError(t.emailInvalid);
       return;
     } else if (password.length === 0) {
-      setPasswordError("Password field is empty.");
+      setPasswordError(t.passwordEmpty);
       return;
     } else if (password !== confirmPassword) {
-      setConfirmPasswordError("The password does not match.");
+      setConfirmPasswordError(t.passwordsDoNotMatch);
       return;
     }
 
@@ -78,20 +97,20 @@ const SignupForm = () => {
                 variant="displaySmall"
                 style={[styles.title, { color: theme.colors.primary }]}
               >
-                Create Account
+                {t.createAccount}
               </Text>
 
               <View style={styles.inputView}>
                 <TextInput
                   mode="outlined"
-                  label="Email"
+                  label={t.email}
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
                     setEmailError("");
                   }}
                   autoCorrect={false}
-                  placeholder="name@email.com"
+                  placeholder={t.emailPlaceholder}
                   editable={!loading}
                   autoCapitalize="none"
                   left={<TextInput.Icon icon="email" />}
@@ -107,8 +126,8 @@ const SignupForm = () => {
               <View style={styles.inputView}>
                 <TextInput
                   mode="outlined"
-                  label="Password"
-                  placeholder="Password"
+                  label={t.password}
+                  placeholder={t.passwordPlaceholder}
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
@@ -137,8 +156,8 @@ const SignupForm = () => {
               <View style={styles.inputView}>
                 <TextInput
                   mode="outlined"
-                  label="Confirm Password"
-                  placeholder="Confirm Password"
+                  label={t.confirmPassword}
+                  placeholder={t.confirmPasswordPlaceholder}
                   value={confirmPassword}
                   onChangeText={(text) => {
                     setConfirmPassword(text);
@@ -173,19 +192,19 @@ const SignupForm = () => {
                 labelStyle={{ fontSize: 16 }}
                 contentStyle={styles.buttonContent}
               >
-                Sign Up
+                {t.signUp}
               </Button>
 
               <View style={styles.divider}>
                 <View style={styles.line} />
                 <Text variant="bodySmall" style={styles.orText}>
-                  OR
+                  {t.or}
                 </Text>
                 <View style={styles.line} />
               </View>
 
               <View style={styles.signInContainer}>
-                <Text variant="bodyMedium">Already have an account?</Text>
+                <Text variant="bodyMedium">{t.haveAccount}</Text>
               </View>
 
               <Link href="/login" asChild>
@@ -195,7 +214,7 @@ const SignupForm = () => {
                   labelStyle={{ fontSize: 16 }}
                   contentStyle={styles.buttonContentSignIn}
                 >
-                  Sign In
+                  {t.signIn}
                 </Button>
               </Link>
 
@@ -206,7 +225,7 @@ const SignupForm = () => {
                 onPress={onTestUser}
                 style={styles.testButton}
               >
-                Test User
+                {t.testUser}
               </Button>
             </Surface>
           </View>
