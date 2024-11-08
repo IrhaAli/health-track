@@ -1,13 +1,7 @@
 import { getAuth } from "firebase/auth";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Linking,
-  TouchableOpacity,
-} from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import AlertAsync from "react-native-alert-async";
-import { Button } from "react-native-paper";
+import { Button, Surface, Text, useTheme, Divider } from "react-native-paper";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
@@ -15,10 +9,12 @@ import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
+import React from "react";
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
   const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
+  const theme = useTheme();
 
   const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
@@ -56,80 +52,79 @@ export default function ProfileFooterLinks() {
   };
 
   return (
-    <>
-      <Button mode="contained" onPress={onLogout}>
+    <Surface style={styles.container} elevation={1}>
+      <Button
+        mode="contained"
+        onPress={onLogout}
+        style={styles.logoutButton}
+        contentStyle={styles.buttonContent}
+        labelStyle={styles.buttonLabel}
+        icon="logout"
+      >
         Logout
       </Button>
+
+      <Divider style={styles.divider} />
+
       <View style={styles.links}>
-        <Text style={styles.buttonTextRed} onPress={onAccountDelete}>
+        <Button
+          mode="text"
+          onPress={onAccountDelete}
+          textColor={theme.colors.error}
+          icon="account-remove"
+          style={styles.linkButton}
+        >
           Delete My Account
-        </Text>
-        <TouchableOpacity onPress={() => Linking.openURL("https://google.com")}>
-          <Text style={styles.buttonTextBlue}>Privacy Policy</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => Linking.openURL("https://google.com")}>
-          <Text style={styles.buttonTextBlue}>Terms and Conditions</Text>
-        </TouchableOpacity>
+        </Button>
+
+        <Button
+          mode="text"
+          onPress={() => Linking.openURL("https://google.com")}
+          icon="shield-account"
+          style={styles.linkButton}
+        >
+          Privacy Policy
+        </Button>
+
+        <Button
+          mode="text"
+          onPress={() => Linking.openURL("https://google.com")}
+          icon="file-document"
+          style={styles.linkButton}
+        >
+          Terms and Conditions
+        </Button>
       </View>
-    </>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    borderRadius: 12,
+    marginVertical: 8,
+  },
+  logoutButton: {
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    height: 48,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  divider: {
+    marginVertical: 16,
+  },
   links: {
     display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: "column",
+    gap: 8,
   },
-  appLogo: {
-    height: 250,
-    width: 400,
-  },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "tomato",
-    borderWidth: 1,
-    borderRadius: 7,
-  },
-  subjectInput: {
-    height: 40,
-    paddingHorizontal: 20,
-    borderColor: "tomato",
-    borderWidth: 1,
-    borderRadius: 7,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
-  },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonTextRed: {
-    color: "red",
-  },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
-  },
+  linkButton: {
+    justifyContent: "flex-start",
+  }
 });

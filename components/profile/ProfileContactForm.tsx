@@ -1,12 +1,15 @@
-import { StyleSheet, TextInput, Text, Alert } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useState } from "react";
-import { Button } from "react-native-paper";
+import { Button, Surface, TextInput, Text, useTheme } from "react-native-paper";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { getAuth } from "firebase/auth";
+import React from "react";
+import { Alert } from "react-native";
 
 export default function ProfileContactForm() {
   const auth = getAuth();
+  const theme = useTheme();
 
   const [contactUs, setContactUs] = useState({
     subject: "",
@@ -15,6 +18,7 @@ export default function ProfileContactForm() {
 
   const onContactSend = async () => {
     if (!contactUs.subject || !contactUs.text) {
+      // Using Snackbar would be better but keeping Alert for now
       Alert.alert("Please fill the form before submitting.");
     } else {
       await addDoc(collection(db, "contacts"), {
@@ -22,97 +26,75 @@ export default function ProfileContactForm() {
         ...contactUs,
         date: new Date(),
       });
+      setContactUs({ subject: "", text: "" });
     }
-    setContactUs({ subject: "", text: "" });
   };
 
   return (
-    <>
-      <Text>Contact Us</Text>
+    <Surface style={styles.container} elevation={1}>
+      <Text variant="titleLarge" style={styles.title}>Contact Us</Text>
+      
       <TextInput
-        style={styles.subjectInput}
-        placeholder="Subject"
+        mode="outlined"
+        label="Subject"
         value={contactUs.subject}
         onChangeText={(item: string) => {
           setContactUs((prev) => ({ ...prev, subject: item }));
         }}
         autoCorrect={false}
         autoCapitalize="words"
+        style={styles.subjectInput}
+        outlineColor={theme.colors.primary}
+        activeOutlineColor={theme.colors.primary}
       />
+
       <TextInput
-        style={styles.input}
+        mode="outlined"
+        label="Message"
         multiline
         numberOfLines={5}
-        placeholder="Contact us here..."
         value={contactUs.text}
         onChangeText={(item: string) => {
           setContactUs((prev) => ({ ...prev, text: item }));
         }}
         autoCorrect={false}
         autoCapitalize="sentences"
+        style={styles.messageInput}
+        outlineColor={theme.colors.primary}
+        activeOutlineColor={theme.colors.primary}
       />
-      <Button mode="contained" onPress={onContactSend}>
-        Send
+
+      <Button 
+        mode="contained"
+        onPress={onContactSend}
+        style={styles.button}
+        icon="send"
+      >
+        Send Message
       </Button>
-    </>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
-  links: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  appLogo: {
-    height: 250,
-    width: 400,
-  },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "tomato",
-    borderWidth: 1,
-    borderRadius: 7,
-  },
-  subjectInput: {
-    height: 40,
-    paddingHorizontal: 20,
-    borderColor: "tomato",
-    borderWidth: 1,
-    borderRadius: 7,
+  container: {
+    padding: 16,
+    borderRadius: 12,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+    marginBottom: 16,
+    fontWeight: 'bold',
   },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
+  subjectInput: {
+    marginBottom: 16,
+    backgroundColor: 'transparent',
+  },
+  messageInput: {
+    marginBottom: 16,
+    backgroundColor: 'transparent',
   },
   button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonTextRed: {
-    color: "red",
-  },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
-  },
+    borderRadius: 8,
+    paddingVertical: 6,
+  }
 });
