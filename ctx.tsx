@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 
 interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
@@ -36,36 +37,64 @@ export function useSession() {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
+  const [isInitializing, setIsInitializing] = React.useState(true);
 
   useEffect(() => {
-    const checkFirstLaunch = async () => {
+    const initializeApp = async () => {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
         const language = await AsyncStorage.getItem('userLanguage');
         const savedSession = await AsyncStorage.getItem('session');
-        
-        if (hasLaunched === null || language === null) {
-          await AsyncStorage.setItem('hasLaunched', 'true');
+
+        // Clear first launch state for testing
+        if (__DEV__) {
+          await AsyncStorage.removeItem('hasLaunched');
+          await AsyncStorage.removeItem('userLanguage');
+        }
+
+        if (!hasLaunched || !language) {
           setIsFirstLaunch(true);
-          if (!language) {
+          await AsyncStorage.setItem('hasLaunched', 'true');
+          // Delay navigation until after initial render
+          setTimeout(() => {
             router.replace('/language');
-          }
+          }, 0);
         } else {
           setIsFirstLaunch(false);
           if (savedSession) {
             await setSession(savedSession);
+            // Delay navigation until after initial render
+            setTimeout(() => {
+              router.replace('/(tabs)');
+            }, 0);
+          } else {
+            // Delay navigation until after initial render
+            setTimeout(() => {
+              router.replace('/login');
+            }, 0);
           }
         }
       } catch (error) {
-        console.error('Error checking first launch:', error);
+        console.error('Error initializing app:', error);
         setIsFirstLaunch(false);
+        // Delay navigation until after initial render
+        setTimeout(() => {
+          router.replace('/login');
+        }, 0);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
-    checkFirstLaunch();
+    initializeApp();
   }, []);
 
   useEffect(() => {
+    // Only proceed with session check if not first launch
+    if (isFirstLaunch === null || isFirstLaunch) {
+      return;
+    }
+
     const checkInitialSession = async () => {
       try {
         const currentUser = auth.currentUser;
@@ -116,7 +145,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isFirstLaunch]);
 
   const handleSignIn = async (email: string, password: string): Promise<any> => {
     try {
@@ -158,6 +187,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
       await setSession(null);
     }
   };
+
+  if (isInitializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <AuthContext.Provider
