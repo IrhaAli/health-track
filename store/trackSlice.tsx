@@ -11,10 +11,10 @@ const initialState: TrackState = {
   sleepData: {},
   weightData: {},
   dietData: {},
-  loadingTrackWaterData: true,
-  loadingTrackDietData: true,
-  loadingTrackSleepData: true,
-  loadingTrackWeightData: true
+  loadingTrackWaterData: false,
+  loadingTrackDietData: false,
+  loadingTrackSleepData: false,
+  loadingTrackWeightData: false
 };
 
 // Fetch.
@@ -634,23 +634,14 @@ const trackSlice = createSlice({
     },
     setCurrentMonth: (state: TrackState, action: PayloadAction<{ month: string; year: string }>) => {
       state.currentMonth = action.payload;
-    },
-    setLoadingTrackWaterData: (state: TrackState, action: PayloadAction<boolean>) => {
-      state.loadingTrackWaterData = action.payload;
-    },
-    setLoadingTrackDietData: (state: TrackState, action: PayloadAction<boolean>) => {
-      state.loadingTrackDietData = action.payload;
-    },
-    setLoadingTrackSleepData: (state: TrackState, action: PayloadAction<boolean>) => {
-      state.loadingTrackSleepData = action.payload;
-    },
-    setLoadingTrackWeightData: (state: TrackState, action: PayloadAction<boolean>) => {
-      state.loadingTrackWeightData = action.payload;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
       // Fetch
+      .addCase(fetchWaterData.pending, (state) => {
+        state.loadingTrackWaterData = true;
+      })
       .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -659,6 +650,9 @@ const trackSlice = createSlice({
       .addCase(fetchWaterData.rejected, (state, action) => {    // Fetch Water Data - Error
         console.error('Error fetching water data:', action.payload);
         state.loadingTrackWaterData = false;
+      })
+      .addCase(fetchSleepData.pending, (state) => {
+        state.loadingTrackSleepData = true;
       })
       .addCase(fetchSleepData.fulfilled, (state, action) => {   // Fetch Sleep Data
         const { formattedMonth, docData } = action.payload;
@@ -669,14 +663,20 @@ const trackSlice = createSlice({
         console.error('Error fetching sleep data:', action.payload);
         state.loadingTrackSleepData = false;
       })
+      .addCase(fetchWeightData.pending, (state) => {
+        state.loadingTrackWeightData = true;
+      })
       .addCase(fetchWeightData.fulfilled, (state, action) => {   // Fetch Weight Data
         const { formattedMonth, docData } = action.payload;
         state.weightData[formattedMonth] = docData;
         state.loadingTrackWeightData = false;
       })
       .addCase(fetchWeightData.rejected, (state, action) => {    // Fetch Weight Data - Error
-        console.error('Error fetching sleep data:', action.payload);
+        console.error('Error fetching weight data:', action.payload);
         state.loadingTrackWeightData = false;
+      })
+      .addCase(fetchDietData.pending, (state) => {
+        state.loadingTrackDietData = true;
       })
       .addCase(fetchDietData.fulfilled, (state, action) => {   // Fetch Diet Data
         const { formattedMonth, docData } = action.payload;
@@ -684,12 +684,15 @@ const trackSlice = createSlice({
         state.loadingTrackDietData = false;
       })
       .addCase(fetchDietData.rejected, (state, action) => {    // Fetch Diet Data - Error
-        console.error('Error fetching sleep data:', action.payload);
+        console.error('Error fetching diet data:', action.payload);
         state.loadingTrackDietData = false;
       })
       // Fetch
 
       // Delete
+      .addCase(deleteWaterData.pending, (state) => {
+        state.loadingTrackWaterData = true;
+      })
       .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -699,14 +702,20 @@ const trackSlice = createSlice({
         console.error('Error deleting water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
+      .addCase(deleteSleepData.pending, (state) => {
+        state.loadingTrackSleepData = true;
+      })
       .addCase(deleteSleepData.fulfilled, (state, action) => {  // Delete Sleep Data
         const { formattedMonth, docData } = action.payload;
         state.sleepData[formattedMonth] = docData;
         state.loadingTrackSleepData = false;
       })
       .addCase(deleteSleepData.rejected, (state, action) => {   // Delete Sleep Data - Error
-        console.error('Error deleting water data:', action.payload);
+        console.error('Error deleting sleep data:', action.payload);
         state.loadingTrackSleepData = false;
+      })
+      .addCase(deleteWeightData.pending, (state) => {
+        state.loadingTrackWeightData = true;
       })
       .addCase(deleteWeightData.fulfilled, (state, action) => {  // Delete Weight Data
         const { formattedMonth, docData } = action.payload;
@@ -714,8 +723,11 @@ const trackSlice = createSlice({
         state.loadingTrackWeightData = false;
       })
       .addCase(deleteWeightData.rejected, (state, action) => {   // Delete Weight Data - Error
-        console.error('Error deleting water data:', action.payload);
+        console.error('Error deleting weight data:', action.payload);
         state.loadingTrackWeightData = false;
+      })
+      .addCase(deleteDietData.pending, (state) => {
+        state.loadingTrackDietData = true;
       })
       .addCase(deleteDietData.fulfilled, (state, action) => {  // Delete Diet Data
         const { formattedMonth, docData } = action.payload;
@@ -723,12 +735,15 @@ const trackSlice = createSlice({
         state.loadingTrackDietData = false;
       })
       .addCase(deleteDietData.rejected, (state, action) => {   // Delete Diet Data - Error
-        console.error('Error deleting water data:', action.payload);
+        console.error('Error deleting diet data:', action.payload);
         state.loadingTrackDietData = false;
       })
       // Delete
 
       // Add
+      .addCase(addWaterData.pending, (state) => {
+        state.loadingTrackWaterData = true;
+      })
       .addCase(addWaterData.fulfilled, (state, action) => {  // Add Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -738,14 +753,20 @@ const trackSlice = createSlice({
         console.error('Error adding water data:', action.payload);
         state.loadingTrackWaterData = false;
       })
+      .addCase(addSleepData.pending, (state) => {
+        state.loadingTrackSleepData = true;
+      })
       .addCase(addSleepData.fulfilled, (state, action) => {  // Add Sleep Data
         const { formattedMonth, docData } = action.payload;
         state.sleepData[formattedMonth] = docData;
         state.loadingTrackSleepData = false;
       })
       .addCase(addSleepData.rejected, (state, action) => {   // Add Sleep Data - Error
-        console.error('Error adding water data:', action.payload);
+        console.error('Error adding sleep data:', action.payload);
         state.loadingTrackSleepData = false;
+      })
+      .addCase(addWeightData.pending, (state) => {
+        state.loadingTrackWeightData = true;
       })
       .addCase(addWeightData.fulfilled, (state, action) => {  // Add Weight Data
         const { formattedMonth, docData } = action.payload;
@@ -753,8 +774,11 @@ const trackSlice = createSlice({
         state.loadingTrackWeightData = false;
       })
       .addCase(addWeightData.rejected, (state, action) => {   // Add Weight Data - Error
-        console.error('Error adding water data:', action.payload);
+        console.error('Error adding weight data:', action.payload);
         state.loadingTrackWeightData = false;
+      })
+      .addCase(addDietData.pending, (state) => {
+        state.loadingTrackDietData = true;
       })
       .addCase(addDietData.fulfilled, (state, action) => {  // Add Diet Data
         const { formattedMonth, docData } = action.payload;
@@ -762,12 +786,15 @@ const trackSlice = createSlice({
         state.loadingTrackDietData = false;
       })
       .addCase(addDietData.rejected, (state, action) => {   // Add Diet Data - Error
-        console.error('Error adding water data:', action.payload);
+        console.error('Error adding diet data:', action.payload);
         state.loadingTrackDietData = false;
       })
       // Add
 
       // Update
+      .addCase(updateWaterData.pending, (state) => {
+        state.loadingTrackWaterData = true;
+      })
       .addCase(updateWaterData.fulfilled, (state, action) => {  // Update Water Data
         const { formattedMonth, docData } = action.payload;
         state.waterData[formattedMonth] = docData;
@@ -776,6 +803,9 @@ const trackSlice = createSlice({
       .addCase(updateWaterData.rejected, (state, action) => {   // Update Water Data - Error
         console.error('Error updating water data:', action.payload);
         state.loadingTrackWaterData = false;
+      })
+      .addCase(updateWeightData.pending, (state) => {
+        state.loadingTrackWeightData = true;
       })
       .addCase(updateWeightData.fulfilled, (state, action) => {  // Update Weight Data
         const { formattedMonth, docData } = action.payload;
@@ -786,14 +816,20 @@ const trackSlice = createSlice({
         console.error('Error updating weight data:', action.payload);
         state.loadingTrackWeightData = false;
       })
-      .addCase(updateDietData.fulfilled, (state, action) => {  // Update Weight Data
+      .addCase(updateDietData.pending, (state) => {
+        state.loadingTrackDietData = true;
+      })
+      .addCase(updateDietData.fulfilled, (state, action) => {  // Update Diet Data
         const { formattedMonth, docData } = action.payload;
         state.dietData[formattedMonth] = docData;
         state.loadingTrackDietData = false;
       })
-      .addCase(updateDietData.rejected, (state, action) => {   // Update Weight Data - Error
+      .addCase(updateDietData.rejected, (state, action) => {   // Update Diet Data - Error
         console.error('Error updating diet data:', action.payload);
         state.loadingTrackDietData = false;
+      })
+      .addCase(updateSleepData.pending, (state) => {
+        state.loadingTrackSleepData = true;
       })
       .addCase(updateSleepData.fulfilled, (state, action) => {  // Update Sleep Data
         const { formattedMonth, docData } = action.payload;
@@ -801,7 +837,7 @@ const trackSlice = createSlice({
         state.loadingTrackSleepData = false;
       })
       .addCase(updateSleepData.rejected, (state, action) => {   // Update Sleep Data - Error
-        console.error('Error updating diet data:', action.payload);
+        console.error('Error updating sleep data:', action.payload);
         state.loadingTrackSleepData = false;
       })
     // Update
