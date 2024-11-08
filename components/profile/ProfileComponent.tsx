@@ -9,13 +9,20 @@ import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/userSlice";
 import { AppDispatch } from "@/store/store";
-import { View, StyleSheet, ScrollView } from "react-native";
-import React, { useEffect } from "react";
+import { View, StyleSheet, ScrollView, InteractionManager } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
 
 export default function ProfileComponent() {
+  const [isReady, setIsReady] = useState(false);
   const auth = getAuth();
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
+
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      setIsReady(true);
+    });
+  }, []);
 
   const getUserData = async () => {
     try {
@@ -67,6 +74,28 @@ export default function ProfileComponent() {
     }
   ];
 
+  const MemoizedMenuItems = useCallback(() => {
+    return (
+      <View style={styles.menuContainer}>
+        {menuItems.map((item, index) => (
+          <Link key={index} href={item.href} style={styles.menuLink}>
+            <Button
+              mode="text"
+              icon={item.icon}
+              contentStyle={styles.buttonContent}
+              style={styles.menuButton}
+              labelStyle={styles.buttonLabel}
+              uppercase={false}
+              rippleColor={theme.colors.primary}
+            >
+              {item.title}
+            </Button>
+          </Link>
+        ))}
+      </View>
+    );
+  }, [theme.colors.primary]);
+
   return (
     <ScrollView style={styles.scrollView}>
       <Surface style={styles.container}>
@@ -74,23 +103,7 @@ export default function ProfileComponent() {
           <ProfileHeader />
         </View>
         
-        <View style={styles.menuContainer}>
-          {menuItems.map((item, index) => (
-            <Link key={index} href={item.href} style={styles.menuLink}>
-              <Button
-                mode="text"
-                icon={item.icon}
-                contentStyle={styles.buttonContent}
-                style={styles.menuButton}
-                labelStyle={styles.buttonLabel}
-                uppercase={false}
-                rippleColor={theme.colors.primary}
-              >
-                {item.title}
-              </Button>
-            </Link>
-          ))}
-        </View>
+        {isReady && <MemoizedMenuItems />}
 
         <View style={styles.formContainer}>
           <ProfileContactForm />
