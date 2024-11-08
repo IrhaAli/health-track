@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { ActivityIndicator, View, InteractionManager } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
 interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
@@ -39,20 +39,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(true);
   const [initialRoute, setInitialRoute] = React.useState<string | null>(null);
-  const [isReady, setIsReady] = React.useState(false);
-
-  useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      setIsReady(true);
-    });
-  }, []);
+  const [lastAuthCheck, setLastAuthCheck] = React.useState<number>(0);
+  const ONE_HOUR = 3600000; // 1 hour in milliseconds
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const hasLaunched = await AsyncStorage.getItem('hasLaunched');
-        const language = await AsyncStorage.getItem('userLanguage');
-        const savedSession = await AsyncStorage.getItem('session');
+        const [hasLaunched, language, savedSession, lastCheck] = await Promise.all([
+          AsyncStorage.getItem('hasLaunched'),
+          AsyncStorage.getItem('userLanguage'),
+          AsyncStorage.getItem('session'),
+          AsyncStorage.getItem('lastAuthCheck')
+        ]);
+
+        if (lastCheck) {
+          setLastAuthCheck(parseInt(lastCheck));
+        }
 
         if (!hasLaunched) {
           setIsFirstLaunch(true);
@@ -79,22 +81,35 @@ export function SessionProvider({ children }: PropsWithChildren) {
       }
     };
 
-    InteractionManager.runAfterInteractions(() => {
-      initializeApp();
-    });
+    initializeApp();
   }, []);
 
   useEffect(() => {
-    if (initialRoute && !isInitializing) {
-      InteractionManager.runAfterInteractions(() => {
-        router.replace(initialRoute);
-      });
-    }
-  }, [initialRoute, isInitializing]);
+    let unsubscribe: () => void;
+    
+    const checkAuth = async () => {
+      const currentTime = Date.now();
+      if (currentTime - lastAuthCheck >= ONE_HOUR) {
+        unsubscribe = onAuthStateChanged(auth, onAuthStateChange);
+      }
+    };
+
+    checkAuth();
+
+    const interval = setInterval(checkAuth, ONE_HOUR);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      clearInterval(interval);
+    };
+  }, [lastAuthCheck]);
 
   const onAuthStateChange = async (user: any) => {
     try {
       const language = await AsyncStorage.getItem('userLanguage');
+      const currentTime = Date.now();
 
       if (user) {
         const userData = {
@@ -103,29 +118,30 @@ export function SessionProvider({ children }: PropsWithChildren) {
           displayName: user.displayName,
         };
         const userString = JSON.stringify(userData);
-        await AsyncStorage.setItem('session', userString);
-        await setSession(userString);
+        await Promise.all([
+          AsyncStorage.setItem('session', userString),
+          AsyncStorage.setItem('lastAuthCheck', currentTime.toString()),
+          setSession(userString)
+        ]);
+        setLastAuthCheck(currentTime);
 
-        if (!language) {
-          setInitialRoute('/language');
-        } else {
-          setInitialRoute('/(root)');
-        }
+        setInitialRoute(!language ? '/language' : '/(root)');
       } else {
-        await AsyncStorage.removeItem('session');
-        await setSession(null);
+        await Promise.all([
+          AsyncStorage.removeItem('session'),
+          AsyncStorage.removeItem('lastAuthCheck'),
+          setSession(null)
+        ]);
+        setLastAuthCheck(0);
         setInitialRoute('/login');
       }
     } catch (error) {
       await setSession(null);
       setInitialRoute('/login');
+    } finally {
+      setIsInitializing(false);
     }
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, onAuthStateChange);
-    return () => unsubscribe();
-  }, []);
 
   const handleSignIn = async (email: string, password: string): Promise<any> => {
     try {
@@ -140,38 +156,52 @@ export function SessionProvider({ children }: PropsWithChildren) {
         displayName: userCredential.user.displayName,
       };
       const userString = JSON.stringify(userData);
-      await AsyncStorage.setItem('session', userString);
-      await setSession(userString);
+      const currentTime = Date.now();
+      
+      await Promise.all([
+        AsyncStorage.setItem('session', userString),
+        AsyncStorage.setItem('lastAuthCheck', currentTime.toString()),
+        setSession(userString)
+      ]);
+      setLastAuthCheck(currentTime);
 
       const language = await AsyncStorage.getItem('userLanguage');
-      if (!language) {
-        setInitialRoute('/language');
-      } else {
-        setInitialRoute('/(root)');
-      }
+      setInitialRoute(!language ? '/language' : '/(root)');
       return userCredential;
     } catch (error) {
-      await AsyncStorage.removeItem('session');
-      await setSession(null);
+      await Promise.all([
+        AsyncStorage.removeItem('session'),
+        AsyncStorage.removeItem('lastAuthCheck'),
+        setSession(null)
+      ]);
+      setLastAuthCheck(0);
       throw error;
     }
   };
 
   const handleSignOut = async () => {
     try {
-      await auth.signOut();
-      await AsyncStorage.removeItem('session');
-      await setSession(null);
+      await Promise.all([
+        auth.signOut(),
+        AsyncStorage.removeItem('session'),
+        AsyncStorage.removeItem('lastAuthCheck'),
+        setSession(null)
+      ]);
+      setLastAuthCheck(0);
       setInitialRoute('/login');
     } catch (error) {
-      await AsyncStorage.removeItem('session');
-      await setSession(null);
+      await Promise.all([
+        AsyncStorage.removeItem('session'),
+        AsyncStorage.removeItem('lastAuthCheck'),
+        setSession(null)
+      ]);
+      setLastAuthCheck(0);
     }
   };
 
-  if (isInitializing || !isReady) {
+  if (isInitializing || isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff' }}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
@@ -183,7 +213,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         signIn: handleSignIn,
         signOut: handleSignOut,
         session,
-        isLoading,
+        isLoading: false,
         isFirstLaunch
       }}>
       {children}
