@@ -60,15 +60,17 @@ export default function ProfileHeader() {
 
   return (
     <Surface style={styles.container} elevation={1}>
-      <View style={styles.content}>
+      <View style={[{ flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row' }]}>
         <Avatar.Image
           source={{
             uri: "https://tr.rbxcdn.com/63dc4f38b22fabffccefa6363a33dd06/420/420/Hat/Webp",
           }}
-          size={80}
+          size={60}
           style={styles.avatar}
         />
-        <View style={styles.textContainer}>
+        <View style={[styles.textContainer, {
+          alignItems: currentLanguage === 'ar' ? 'flex-end' : 'flex-start'
+        }]}>
           <Text variant="titleMedium" style={styles.greeting}>
             {t.greeting} {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
           </Text>
@@ -90,16 +92,12 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 25
   },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   avatar: {
-    marginRight: 16,
   },
   textContainer: {
     flex: 1,
     justifyContent: "center",
+    marginHorizontal: 16
   },
   greeting: {
     fontWeight: "bold",
