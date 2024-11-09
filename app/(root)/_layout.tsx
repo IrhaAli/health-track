@@ -33,51 +33,36 @@ export default function TabLayout() {
   const { isLoading } = useSession();
   const [index, setIndex] = React.useState(0);
   const dispatch = useDispatch<AppDispatch>();
-  const [currentLanguage, setCurrentLanguage] = React.useState("en");
+  const [currentLanguage, setCurrentLanguage] = React.useState<string>('en');
+  const [isLanguageLoaded, setIsLanguageLoaded] = React.useState(false);
 
-  // Add language change listener
+  // Initialize language once on mount
   useEffect(() => {
-    const getLanguage = async () => {
+    const initLanguage = async () => {
       try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
+        const savedLanguage = await AsyncStorage.getItem('userLanguage');
+        if (savedLanguage) {
+          setCurrentLanguage(savedLanguage);
         }
       } catch (error) {
         console.error('Error getting language:', error);
+      } finally {
+        setIsLanguageLoaded(true);
       }
     };
-    getLanguage();
+    initLanguage();
+  }, []);
 
-    // Poll for language changes instead of using addListener
-    const interval = setInterval(async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-        }
-      } catch (error) {
-        console.error('Error checking language:', error);
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
+  const t = useMemo(() => {
+    return translations[currentLanguage as keyof typeof translations] || translations.en;
   }, [currentLanguage]);
 
-  const t = translations[currentLanguage as keyof typeof translations];
-
-  const baseRoutes = [
+  const routes = useMemo(() => [
     { key: 'home', title: t.home, focusedIcon: 'home', unfocusedIcon: 'home' },
     { key: 'track', title: t.track, focusedIcon: 'clock', unfocusedIcon: 'clock' },
     { key: 'media', title: t.media, focusedIcon: 'image', unfocusedIcon: 'image' },
     { key: 'profile', title: t.profile, focusedIcon: 'account', unfocusedIcon: 'account' },
-  ];
-
-  const routes = useMemo(() => {
-    return currentLanguage === 'ar' ? [...baseRoutes].reverse() : baseRoutes;
-  }, [t, currentLanguage]);
+  ], [t]);
 
   // Pre-render all scenes to avoid lazy loading
   const scenes = useMemo(() => ({
@@ -93,10 +78,7 @@ export default function TabLayout() {
   }, [scenes]);
 
   const handleIndexChange = useCallback((newIndex: number) => {
-    // Update index immediately for UI responsiveness
     setIndex(newIndex);
-
-    // Handle date updates in the next tick to prioritize navigation
     setTimeout(() => {
       const now = new Date();
       dispatch(setCurrentMonth({
@@ -108,6 +90,10 @@ export default function TabLayout() {
       ));
     }, 0);
   }, [dispatch]);
+
+  if (!isLanguageLoaded) {
+    return null;
+  }
 
   return (
     <>
