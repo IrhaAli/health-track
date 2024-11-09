@@ -14,12 +14,15 @@ import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { db } from "../../firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileMedicalHistory() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
 
   useEffect(() => {
     const getUser = async () => {
@@ -29,8 +32,40 @@ export default function ProfileMedicalHistory() {
         setCurrentUser(user);
       }
     };
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
     getUser();
+    getLanguage();
   }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
@@ -52,6 +87,7 @@ export default function ProfileMedicalHistory() {
     });
     return collectionName === "medical_history" ? docData : docData[0];
   };
+
   useEffect(() => {
     const getData = async () => {
       const medicalInfo = await fetchData("medical_history");
@@ -94,10 +130,10 @@ export default function ProfileMedicalHistory() {
             pointerEvents={isDisabled ? "none" : "auto"}
           >
             <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>Submit</Text>
+              <Text style={styles.buttonText}>{t.submit}</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t.cancel}</Text>
             </Pressable>
           </View>
           <MedicalHistory
@@ -109,10 +145,10 @@ export default function ProfileMedicalHistory() {
         <>
           <View style={styles.buttonView}>
             <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>Edit</Text>
+              <Text style={styles.buttonText}>{t.edit}</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Medical History</Text>
+          <Text style={styles.title}>{t.medicalHistory}</Text>
           {medicalHistory.length > 0 ? (
             medicalHistory.map((item: any, index: number) => {
               return (
@@ -127,7 +163,7 @@ export default function ProfileMedicalHistory() {
               );
             })
           ) : (
-            <Text>No Medical History</Text>
+            <Text>{t.noMedicalHistory}</Text>
           )}
         </>
       )}

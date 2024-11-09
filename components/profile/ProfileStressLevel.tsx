@@ -12,11 +12,14 @@ import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileStressLevel() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
   const [stressLevel, setStressLevel] = useState({
     docId: null,
     stressLevel: 0,
@@ -31,8 +34,40 @@ export default function ProfileStressLevel() {
         setCurrentUser(user);
       }
     };
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
     getUser();
+    getLanguage();
   }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
@@ -93,10 +128,10 @@ export default function ProfileStressLevel() {
             pointerEvents={isDisabled ? "none" : "auto"}
           >
             <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>Submit</Text>
+              <Text style={styles.buttonText}>{t.submit}</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t.cancel}</Text>
             </Pressable>
           </View>
           <StressLevel
@@ -108,12 +143,12 @@ export default function ProfileStressLevel() {
         <>
           <View style={styles.buttonView}>
             <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>Edit</Text>
+              <Text style={styles.buttonText}>{t.edit}</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Stress Level</Text>
-          <Text>Stress Level: {stressLevel.stressLevel}</Text>
-          <Text>Notes: {stressLevel.notes}</Text>
+          <Text style={styles.title}>{t.stressLevel}</Text>
+          <Text>{t.stressLevel}: {stressLevel.stressLevel}</Text>
+          <Text>{t.notes}: {stressLevel.notes}</Text>
         </>
       )}
     </>

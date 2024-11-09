@@ -2,10 +2,13 @@ import { StyleSheet, View } from "react-native";
 import { Avatar, Surface, Text, useTheme } from "react-native-paper";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
+import translations from '@/translations/profile.json';
 
 export default function ProfileHeader() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
   const theme = useTheme();
 
   useEffect(() => {
@@ -20,10 +23,41 @@ export default function ProfileHeader() {
       }
     };
 
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
     getUserData();
+    getLanguage();
   }, []);
 
-  const displayName = userName || userEmail || 'Guest';
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
+
+  const displayName = userName || userEmail || t.guest;
 
   return (
     <Surface style={styles.container} elevation={1}>
@@ -37,7 +71,7 @@ export default function ProfileHeader() {
         />
         <View style={styles.textContainer}>
           <Text variant="titleMedium" style={styles.greeting}>
-            Hi, {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
+            {t.greeting} {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
           </Text>
           {userName && userEmail && (
             <Text variant="bodyMedium" style={styles.email}>

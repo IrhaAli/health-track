@@ -12,11 +12,14 @@ import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileUserDetails() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
   const [userDetails, setUserDetails] = useState<{
     docId: string | null;
     gender: string | null;
@@ -49,8 +52,40 @@ export default function ProfileUserDetails() {
         setCurrentUser(user);
       }
     };
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
     getUser();
+    getLanguage();
   }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     try {
@@ -127,10 +162,10 @@ export default function ProfileUserDetails() {
             pointerEvents={isDisabled ? "none" : "auto"}
           >
             <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>Submit</Text>
+              <Text style={styles.buttonText}>{t.submit}</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t.cancel}</Text>
             </Pressable>
           </View>
           <UserDetails
@@ -143,19 +178,19 @@ export default function ProfileUserDetails() {
         <>
           <View style={styles.buttonView}>
             <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>Edit</Text>
+              <Text style={styles.buttonText}>{t.edit}</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Background Information</Text>
-          <Text>Date of Birth: {`${userDetails.dob}`}</Text>
-          <Text>Gender: {userDetails.gender}</Text>
-          <Text>Height: {userDetails.height}</Text>
-          <Text>Weight: {userDetails.weight}</Text>
-          <Text>Body Type: {userDetails.bodyType}</Text>
-          <Text>Activity Type: {userDetails.activityType}</Text>
-          <Text>Wakeup Time: {`${userDetails.wakeupTime}`}</Text>
-          <Text>Sleep Time: {`${userDetails.sleepTime}`}</Text>
-          <Text>Health Goal: {userDetails.healthGoal}</Text>
+          <Text style={styles.title}>{t.backgroundInformation}</Text>
+          <Text>{t.dateOfBirth}: {`${userDetails.dob}`}</Text>
+          <Text>{t.gender}: {userDetails.gender}</Text>
+          <Text>{t.height}: {userDetails.height}</Text>
+          <Text>{t.weight}: {userDetails.weight}</Text>
+          <Text>{t.bodyType}: {userDetails.bodyType}</Text>
+          <Text>{t.activityType}: {userDetails.activityType}</Text>
+          <Text>{t.wakeupTime}: {`${userDetails.wakeupTime}`}</Text>
+          <Text>{t.sleepTime}: {`${userDetails.sleepTime}`}</Text>
+          <Text>{t.healthGoal}: {userDetails.healthGoal}</Text>
         </>
       )}
     </View>

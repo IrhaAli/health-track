@@ -11,10 +11,13 @@ import { AppDispatch } from "@/store/store";
 import { View, StyleSheet, ScrollView, InteractionManager } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileComponent() {
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
@@ -32,8 +35,40 @@ export default function ProfileComponent() {
         setCurrentUser(user);
       }
     };
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
     getUser();
+    getLanguage();
   }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
   const getUserData = async () => {
     try {
@@ -64,22 +99,22 @@ export default function ProfileComponent() {
 
   const menuItems = [
     {
-      title: "Background Information",
+      title: t.backgroundInformation,
       icon: "account-details", 
       href: "/(profile)/background_information"
     },
     {
-      title: "Dietary Preferences",
+      title: t.dietaryPreferences.title,
       icon: "food-apple",
       href: "/(profile)/dietary_preferences"
     },
     {
-      title: "Medical History",
+      title: t.medicalHistory,
       icon: "medical-bag",
       href: "/(profile)/medical_history"
     },
     {
-      title: "Stress Level",
+      title: t.stressLevel,
       icon: "brain",
       href: "/(profile)/stress_level"
     }
@@ -105,7 +140,7 @@ export default function ProfileComponent() {
         ))}
       </View>
     );
-  }, [theme.colors.primary]);
+  }, [theme.colors.primary, t]);
 
   return (
     <ScrollView style={styles.scrollView}>

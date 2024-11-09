@@ -1,6 +1,6 @@
 import { Linking, StyleSheet, View } from "react-native";
 import AlertAsync from "react-native-alert-async";
-import { Button, Surface, Text, useTheme, Divider } from "react-native-paper";
+import { Button, Surface, Text, useTheme, Divider, Dialog, Portal } from "react-native-paper";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
@@ -10,12 +10,15 @@ import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
   const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
 
   const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
@@ -29,7 +32,31 @@ export default function ProfileFooterLinks() {
       }
     };
     getUser();
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+    getLanguage();
   }, []);
+
+  const t = translations[currentLanguage as keyof typeof translations];
+
+  const handleLanguageSelect = async (language: string) => {
+    try {
+      await AsyncStorage.setItem('userLanguage', language);
+      setCurrentLanguage(language);
+      setLanguageDialogVisible(false);
+    } catch (error) {
+      console.error('Error saving language:', error);
+    }
+  };
 
   const onLogout = () => {
     dispatch(setUser(null));
@@ -39,11 +66,11 @@ export default function ProfileFooterLinks() {
 
   const onAccountDelete = async () => {
     const choice = await AlertAsync(
-      "Are you sure you want to delete your account?",
-      "Your Account will be deleted permanently",
+      t.deleteAccountTitle,
+      t.deleteAccountMessage,
       [
-        { text: "Yes", onPress: () => true },
-        { text: "No", onPress: () => false },
+        { text: t.yes, onPress: () => true },
+        { text: t.no, onPress: () => false },
       ]
     );
 
@@ -55,7 +82,7 @@ export default function ProfileFooterLinks() {
         is_deleted: true,
       }).then(() => currentUser.delete());
     } catch (error) {
-      console.log("error in delete account", error);
+      console.log(t.deleteAccountError, error);
     }
 
     onLogout();
@@ -71,7 +98,7 @@ export default function ProfileFooterLinks() {
         labelStyle={styles.buttonLabel}
         icon="logout"
       >
-        Logout
+        {t.logout}
       </Button>
 
       <Divider style={styles.divider} />
@@ -84,7 +111,7 @@ export default function ProfileFooterLinks() {
           icon="account-remove"
           style={styles.linkButton}
         >
-          Delete My Account
+          {t.deleteAccount}
         </Button>
 
         <Button
@@ -93,7 +120,7 @@ export default function ProfileFooterLinks() {
           icon="shield-account"
           style={styles.linkButton}
         >
-          Privacy Policy
+          {t.privacyPolicy}
         </Button>
 
         <Button
@@ -102,8 +129,52 @@ export default function ProfileFooterLinks() {
           icon="file-document"
           style={styles.linkButton}
         >
-          Terms and Conditions
+          {t.termsAndConditions}
         </Button>
+
+        <Button
+          mode="text"
+          onPress={() => setLanguageDialogVisible(true)}
+          icon="translate"
+          style={styles.linkButton}
+        >
+          {t.changeLanguage}
+        </Button>
+
+        <Portal>
+          <Dialog visible={languageDialogVisible} onDismiss={() => setLanguageDialogVisible(false)}>
+            <Dialog.Title style={styles.dialogTitle}>{t.selectLanguage}</Dialog.Title>
+            <Dialog.Content style={styles.dialogContent}>
+              <Button
+                mode="contained-tonal"
+                onPress={() => handleLanguageSelect('en')}
+                style={[styles.dialogButton, currentLanguage === 'en' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'en' && styles.selectedLanguageLabel]}
+                icon="check-circle"
+              >
+                English
+              </Button>
+              <Button
+                mode="contained-tonal"
+                onPress={() => handleLanguageSelect('fr')}
+                style={[styles.dialogButton, currentLanguage === 'fr' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'fr' && styles.selectedLanguageLabel]}
+                icon="check-circle"
+              >
+                Français
+              </Button>
+              <Button
+                mode="contained-tonal"
+                onPress={() => handleLanguageSelect('ar')}
+                style={[styles.dialogButton, currentLanguage === 'ar' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'ar' && styles.selectedLanguageLabel]}
+                icon="check-circle"
+              >
+                عربي
+              </Button>
+            </Dialog.Content>
+          </Dialog>
+        </Portal>
       </View>
     </Surface>
   );
@@ -136,5 +207,29 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     justifyContent: "flex-start",
+  },
+  dialogTitle: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  dialogContent: {
+    paddingHorizontal: 10,
+  },
+  dialogButton: {
+    marginVertical: 8,
+    borderRadius: 8,
+    elevation: 2,
+    paddingVertical: 8,
+  },
+  dialogButtonLabel: {
+    fontSize: 16,
+  },
+  selectedLanguage: {
+    backgroundColor: 'tomato',
+  },
+  selectedLanguageLabel: {
+    color: 'white',
   }
 });

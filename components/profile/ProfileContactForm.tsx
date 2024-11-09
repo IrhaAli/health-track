@@ -6,10 +6,13 @@ import { db } from "@/firebaseConfig";
 import React from "react";
 import { Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/profile.json';
 
 export default function ProfileContactForm() {
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState(translations.en);
 
   useEffect(() => {
     const getUser = async () => {
@@ -20,7 +23,39 @@ export default function ProfileContactForm() {
       }
     };
     getUser();
+
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+    getLanguage();
   }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+          setT(translations[language as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+
+    // Set up event listener for AsyncStorage changes
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
   const [contactUs, setContactUs] = useState({
     subject: "",
@@ -29,8 +64,7 @@ export default function ProfileContactForm() {
 
   const onContactSend = async () => {
     if (!contactUs.subject || !contactUs.text) {
-      // Using Snackbar would be better but keeping Alert for now
-      Alert.alert("Please fill the form before submitting.");
+      Alert.alert(t.fillFormError);
     } else {
       await addDoc(collection(db, "contacts"), {
         user_id: currentUser?.uid,
@@ -43,11 +77,11 @@ export default function ProfileContactForm() {
 
   return (
     <Surface style={styles.container} elevation={1}>
-      <Text variant="titleLarge" style={styles.title}>Contact Us</Text>
+      <Text variant="titleLarge" style={styles.title}>{t.title}</Text>
       
       <TextInput
         mode="outlined"
-        label="Subject"
+        label={t.subject}
         value={contactUs.subject}
         onChangeText={(item: string) => {
           setContactUs((prev) => ({ ...prev, subject: item }));
@@ -61,7 +95,7 @@ export default function ProfileContactForm() {
 
       <TextInput
         mode="outlined"
-        label="Message"
+        label={t.message}
         multiline
         numberOfLines={5}
         value={contactUs.text}
@@ -81,7 +115,7 @@ export default function ProfileContactForm() {
         style={styles.button}
         icon="send"
       >
-        Send Message
+        {t.sendMessage}
       </Button>
     </Surface>
   );
