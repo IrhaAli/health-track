@@ -25,11 +25,18 @@ export default function TrackDialog() {
     const [currentSleepData, setCurrentSleepData] = useState<SleepDataEntry | {}>({});
     const [currentDietData, setCurrentDietData] = useState<DietDataEntry | {}>({});
 
-
     const onTabValueChange = (value: string) => {
         const tab = value as DialogTab;
         dispatch(setTab(tab));
         dispatch(clearImageURI());
+    }
+
+    // Helper function to convert date to user's local timezone
+    const convertToLocalDate = (date: string | Date): string => {
+        const d = new Date(date);
+        return new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
+            .toISOString()
+            .split('T')[0];
     }
 
     const getWaterDataObject = (): WaterDataEntry | {} => {
@@ -39,12 +46,14 @@ export default function TrackDialog() {
         if (!Array.isArray(waterData)) {
             if (formattedMonth in waterData) {
                 if (waterData[formattedMonth] && waterData[formattedMonth].length > 0) {
-                    const entry = waterData[formattedMonth].find((entry: WaterDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    const entry = waterData[formattedMonth].find((entry: WaterDataEntry) => 
+                        convertToLocalDate(entry.date) === currentDate
+                    );
                     if (entry) { return entry; }
                 }
             }
         }
-        return {}; // Return an empty object if conditions are not met
+        return {};
     };
 
     const getWeightDataObject = (): WeightDataEntry | {} => {
@@ -54,12 +63,14 @@ export default function TrackDialog() {
         if (!Array.isArray(weightData)) {
             if (formattedMonth in weightData) {
                 if (weightData[formattedMonth] && weightData[formattedMonth].length > 0) {
-                    const entry = weightData[formattedMonth].find((entry: WeightDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    const entry = weightData[formattedMonth].find((entry: WeightDataEntry) => 
+                        convertToLocalDate(entry.date) === currentDate
+                    );
                     if (entry) { return entry; }
                 }
             }
         }
-        return {}; // Return an empty object if conditions are not met
+        return {};
     };
 
     const getSleepDataObject = (): SleepDataEntry | {} => {
@@ -69,12 +80,14 @@ export default function TrackDialog() {
         if (!Array.isArray(sleepData)) {
             if (formattedMonth in sleepData) {
                 if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
-                    const entry = sleepData[formattedMonth].find((entry: SleepDataEntry) => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    const entry = sleepData[formattedMonth].find((entry: SleepDataEntry) => 
+                        convertToLocalDate(entry.wakeup_time) === currentDate
+                    );
                     if (entry) { return entry; }
                 }
             }
         }
-        return {}; // Return an empty object if conditions are not met
+        return {};
     };
 
     const getDietDataObject = (): DietDataEntry | {} => {
@@ -84,12 +97,14 @@ export default function TrackDialog() {
         if (!Array.isArray(dietData)) {
             if (formattedMonth in dietData) {
                 if (dietData[formattedMonth] && dietData[formattedMonth].length > 0) {
-                    const entry = dietData[formattedMonth].find((entry: DietDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
+                    const entry = dietData[formattedMonth].find((entry: DietDataEntry) => 
+                        convertToLocalDate(entry.date) === currentDate
+                    );
                     if (entry) { return entry; }
                 }
             }
         }
-        return {}; // Return an empty object if conditions are not met
+        return {};
     };
 
     const tabButtons = [
@@ -126,9 +141,7 @@ export default function TrackDialog() {
             else if (!isWeightDataEntry(weightEntry)) { dispatch(setTab(DialogTab.WEIGHT)); } 
             else { dispatch(setTab(DialogTab.DIET)); }
         }
-    }, [currentDate, waterData, weightData, sleepData, dietData, dialogTab]); // Dependencies to re-run the effect
-
-    
+    }, [currentDate, waterData, weightData, sleepData, dietData, dialogTab]);
 
     return (
         <>
@@ -136,7 +149,11 @@ export default function TrackDialog() {
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
-                    <Dialog.Title>{`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleString("default", { month: "short", })}, ${new Date(currentDate).getDate()} 's `}<Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>{` Details`}</Dialog.Title>
+                    <Dialog.Title>
+                        {`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' })}, ${new Date(currentDate).toLocaleDateString(undefined, { day: 'numeric', timeZone: 'UTC' })} 's `}
+                        <Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>
+                        {` Details`}
+                    </Dialog.Title>
                     <Dialog.Content>
                         {dialogType !== DialogType.EDIT && filteredButtons.length > 1 && <>
                             <SegmentedButtons
