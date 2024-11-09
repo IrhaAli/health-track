@@ -320,6 +320,7 @@ export default function TrackWeightForm() {
                         onPress={onSubmit} 
                         disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} 
                         loading={loading}
+                        style={styles.button}
                     >
                         {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
                     </Button>
@@ -404,5 +405,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         gap: 12
+    },
+    button: {
+        borderRadius: 8,
+        minWidth: 100
     }
 })

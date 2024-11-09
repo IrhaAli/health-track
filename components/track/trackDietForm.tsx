@@ -306,6 +306,7 @@ export default function TrackDietForm() {
                     onPress={onSubmit} 
                     disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)} 
                     loading={loading}
+                    style={styles.button}
                 >
                     Submit
                 </Button>
@@ -375,5 +376,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',
         gap: 12
+    },
+    button: {
+        borderRadius: 8,
+        minWidth: 100
     }
 })

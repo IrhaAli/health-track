@@ -335,7 +335,7 @@ export default function TrackSleepForm() {
             <Divider />
             <View style={styles.formSubmission}>
                 <Button 
-                    mode="outlined" 
+                    mode="text" 
                     onPress={() => {
                         dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
                         dispatch(clearImageURI());
@@ -349,6 +349,7 @@ export default function TrackSleepForm() {
                     onPress={onSubmit} 
                     disabled={loading} 
                     loading={loading}
+                    style={styles.button}
                 >
                     {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
                 </Button>
@@ -429,5 +430,9 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         gap: 12,
         paddingTop: 16
+    },
+    button: {
+        borderRadius: 8,
+        minWidth: 100
     }
 });

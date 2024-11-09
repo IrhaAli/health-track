@@ -183,6 +183,8 @@ export default function TrackWaterForm() {
                 </Surface>
             </View>
 
+            <Divider style={styles.divider} />
+
             <View style={styles.formSubmission}>
                 <Button 
                     mode="text" 
@@ -283,5 +285,8 @@ const styles = StyleSheet.create({
     errorText: {
         textAlign: 'center',
         marginTop: 8
+    },
+    divider: {
+        marginVertical: 16
     }
 })
