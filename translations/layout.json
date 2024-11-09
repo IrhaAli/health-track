@@ -1,0 +1,20 @@
+{
+  "en": {
+    "home": "Home",
+    "track": "Track",
+    "media": "Media", 
+    "profile": "Profile"
+  },
+  "fr": {
+    "home": "Accueil",
+    "track": "Suivi",
+    "media": "Médias",
+    "profile": "Profil"
+  },
+  "ar": {
+    "home": "الرئيسية",
+    "track": "تتبع",
+    "media": "الوسائط",
+    "profile": "الملف الشخصي"
+  }
+}

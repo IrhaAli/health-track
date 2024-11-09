@@ -6,6 +6,7 @@ import { BottomNavigation, Text } from 'react-native-paper';
 import { StatusBar, View, Platform } from 'react-native';
 import { useSession } from '../../ctx';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from '@/translations/layout.json';
 
 // Screen Imports Start.
 import HomeScreen from "./index";
@@ -32,13 +33,47 @@ export default function TabLayout() {
   const { isLoading } = useSession();
   const [index, setIndex] = React.useState(0);
   const dispatch = useDispatch<AppDispatch>();
+  const [currentLanguage, setCurrentLanguage] = React.useState("en");
+
+  // Add language change listener
+  useEffect(() => {
+    const getLanguage = async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language) {
+          setCurrentLanguage(language);
+        }
+      } catch (error) {
+        console.error('Error getting language:', error);
+      }
+    };
+    getLanguage();
+
+    // Poll for language changes instead of using addListener
+    const interval = setInterval(async () => {
+      try {
+        const language = await AsyncStorage.getItem('userLanguage');
+        if (language && language !== currentLanguage) {
+          setCurrentLanguage(language);
+        }
+      } catch (error) {
+        console.error('Error checking language:', error);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [currentLanguage]);
+
+  const t = translations[currentLanguage as keyof typeof translations];
 
   const routes = useMemo(() => [
-    { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home' },
-    { key: 'track', title: 'Track', focusedIcon: 'clock', unfocusedIcon: 'clock' },
-    { key: 'media', title: 'Media', focusedIcon: 'image', unfocusedIcon: 'image' },
-    { key: 'profile', title: 'Profile', focusedIcon: 'account', unfocusedIcon: 'account' },
-  ], []);
+    { key: 'home', title: t.home, focusedIcon: 'home', unfocusedIcon: 'home' },
+    { key: 'track', title: t.track, focusedIcon: 'clock', unfocusedIcon: 'clock' },
+    { key: 'media', title: t.media, focusedIcon: 'image', unfocusedIcon: 'image' },
+    { key: 'profile', title: t.profile, focusedIcon: 'account', unfocusedIcon: 'account' },
+  ], [t, currentLanguage]); // Add t as dependency
 
   // Pre-render all scenes to avoid lazy loading
   const scenes = useMemo(() => ({
@@ -56,13 +91,13 @@ export default function TabLayout() {
   const handleIndexChange = useCallback((newIndex: number) => {
     // Update index immediately for UI responsiveness
     setIndex(newIndex);
-    
+
     // Handle date updates in the next tick to prioritize navigation
     setTimeout(() => {
       const now = new Date();
-      dispatch(setCurrentMonth({ 
-        month: String(now.getMonth() + 1).padStart(2, "0"), 
-        year: String(now.getFullYear()) 
+      dispatch(setCurrentMonth({
+        month: String(now.getMonth() + 1).padStart(2, "0"),
+        year: String(now.getFullYear())
       }));
       dispatch(setCurrentDate(
         `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
@@ -71,30 +106,32 @@ export default function TabLayout() {
   }, [dispatch]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar
-        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor={Colors[colorScheme ?? "light"].background}
-        hidden={false}
-      />
-      <BottomNavigation
-        navigationState={{ index, routes }}
-        onIndexChange={handleIndexChange}
-        renderScene={renderScene}
-        barStyle={Platform.select({
-          ios: {
-            backgroundColor: Colors[colorScheme ?? "light"].tint,
-            marginBottom: -10
-          },
-          android: {
-            backgroundColor: Colors[colorScheme ?? "light"].tint,
-            marginBottom: -10,
-            elevation: 8
-          }
-        })}
-        sceneAnimationEnabled={true}
-        shifting={false}
-      />
-    </View>
+    <>
+      <View style={{ flex: 1 }}>
+        <StatusBar
+          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          backgroundColor={Colors[colorScheme ?? "light"].background}
+          hidden={false}
+        />
+        <BottomNavigation
+          navigationState={{ index, routes }}
+          onIndexChange={handleIndexChange}
+          renderScene={renderScene}
+          barStyle={Platform.select({
+            ios: {
+              backgroundColor: Colors[colorScheme ?? "light"].tint,
+              marginBottom: -10
+            },
+            android: {
+              backgroundColor: Colors[colorScheme ?? "light"].tint,
+              marginBottom: -10,
+              elevation: 8
+            }
+          })}
+          sceneAnimationEnabled={true}
+          shifting={false}
+        />
+      </View>
+    </>
   );
 }
