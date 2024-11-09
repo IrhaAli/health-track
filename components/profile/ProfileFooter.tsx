@@ -19,39 +19,41 @@ export default function ProfileFooterLinks() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState<any>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
 
   useEffect(() => {
-    const getUser = async () => {
+    const initialize = async () => {
+      // Get user
       const userString = await AsyncStorage.getItem('session');
       if (userString) {
         const user = JSON.parse(userString);
         setCurrentUser(user);
       }
-    };
-    getUser();
 
-    const getLanguage = async () => {
+      // Get language
       try {
         const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-        }
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
       } catch (error) {
         console.error('Error getting language:', error);
+        setCurrentLanguage('en');
+        setT(translations.en);
       }
     };
-    getLanguage();
-  }, []);
 
-  const t = translations[currentLanguage as keyof typeof translations];
+    initialize();
+  }, []);
 
   const handleLanguageSelect = async (language: string) => {
     try {
       await AsyncStorage.setItem('userLanguage', language);
       setCurrentLanguage(language);
+      setT(translations[language as keyof typeof translations]);
       setLanguageDialogVisible(false);
     } catch (error) {
       console.error('Error saving language:', error);
@@ -65,6 +67,8 @@ export default function ProfileFooterLinks() {
   };
 
   const onAccountDelete = async () => {
+    if (!t) return;
+
     const choice = await AlertAsync(
       t.deleteAccountTitle,
       t.deleteAccountMessage,
@@ -87,6 +91,8 @@ export default function ProfileFooterLinks() {
 
     onLogout();
   };
+
+  if (!t) return null;
 
   return (
     <Surface style={styles.container} elevation={1}>

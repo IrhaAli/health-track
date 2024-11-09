@@ -7,36 +7,33 @@ import translations from '@/translations/profile.json';
 export default function ProfileHeader() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState(translations.en);
+  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
+  const [t, setT] = useState<any>(null);
   const theme = useTheme();
 
   useEffect(() => {
-    const getUserData = async () => {
+    const initialize = async () => {
       try {
+        // Get language first
+        const language = await AsyncStorage.getItem('userLanguage');
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
+
+        // Then get user data
         const name = await AsyncStorage.getItem('userName');
         const email = await AsyncStorage.getItem('userEmail');
         setUserName(name);
         setUserEmail(email);
       } catch (error) {
-        console.log('Error getting user data:', error);
+        console.error('Error initializing:', error);
+        // Fallback to English if there's an error
+        setCurrentLanguage('en');
+        setT(translations.en);
       }
     };
 
-    const getLanguage = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    getUserData();
-    getLanguage();
+    initialize();
   }, []);
 
   // Listen for language changes
@@ -56,6 +53,8 @@ export default function ProfileHeader() {
     const interval = setInterval(languageListener, 1000);
     return () => clearInterval(interval);
   }, [currentLanguage]);
+
+  if (!t) return null; // Don't render until translations are loaded
 
   const displayName = userName || userEmail || t.guest;
 

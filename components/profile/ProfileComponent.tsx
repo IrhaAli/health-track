@@ -17,7 +17,7 @@ export default function ProfileComponent() {
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState(translations.en);
+  const [t, setT] = useState<any>(null);
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
@@ -28,28 +28,28 @@ export default function ProfileComponent() {
   }, []);
 
   useEffect(() => {
-    const getUser = async () => {
-      const userString = await AsyncStorage.getItem('session');
-      if (userString) {
-        const user = JSON.parse(userString);
-        setCurrentUser(user);
-      }
-    };
-
-    const getLanguage = async () => {
+    const initializeUserAndLanguage = async () => {
       try {
+        // Get saved language first
         const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
+
+        // Then get user data
+        const userString = await AsyncStorage.getItem('session');
+        if (userString) {
+          const user = JSON.parse(userString);
+          setCurrentUser(user);
         }
       } catch (error) {
-        console.error('Error getting language:', error);
+        console.error('Error initializing:', error);
+        // Fallback to English if there's an error
+        setT(translations.en);
       }
     };
 
-    getUser();
-    getLanguage();
+    initializeUserAndLanguage();
   }, []);
 
   // Listen for language changes
@@ -97,7 +97,7 @@ export default function ProfileComponent() {
     }
   }, [currentUser]);
 
-  const menuItems = [
+  const menuItems = t ? [
     {
       title: t.backgroundInformation,
       icon: "account-details", 
@@ -118,9 +118,11 @@ export default function ProfileComponent() {
       icon: "brain",
       href: "/(profile)/stress_level"
     }
-  ];
+  ] : [];
 
   const MemoizedMenuItems = useCallback(() => {
+    if (!t) return null;
+    
     return (
       <View style={styles.menuContainer}>
         {menuItems.map((item, index) => (
@@ -141,6 +143,8 @@ export default function ProfileComponent() {
       </View>
     );
   }, [theme.colors.primary, t]);
+
+  if (!t) return null;
 
   return (
     <ScrollView style={styles.scrollView}>

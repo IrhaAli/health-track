@@ -19,6 +19,7 @@ export default function ProfileDietaryPreferences() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [t, setT] = useState<any>(null);
   const [dietaryPreferences, setDietaryPreferences] = useState({
     docId: null,
     is_vegetarian: false,
@@ -125,31 +126,49 @@ export default function ProfileDietaryPreferences() {
   };
 
   useEffect(() => {
-    const getUser = async () => {
-      const userString = await AsyncStorage.getItem('session');
-      if (userString) {
-        const user = JSON.parse(userString);
-        setCurrentUser(user);
+    const initialize = async () => {
+      try {
+        // Get language first
+        const language = await AsyncStorage.getItem('userLanguage');
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(dietaryPreferencesLabels[effectiveLanguage as keyof typeof dietaryPreferencesLabels]);
+
+        // Then get user
+        const userString = await AsyncStorage.getItem('session');
+        if (userString) {
+          const user = JSON.parse(userString);
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Error initializing:', error);
+        // Fallback to English
+        setCurrentLanguage('en');
+        setT(dietaryPreferencesLabels.en);
       }
     };
-    getUser();
 
-    const getLanguage = async () => {
+    initialize();
+  }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const languageListener = async () => {
       try {
         const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
+        if (language && language !== currentLanguage) {
           setCurrentLanguage(language);
+          setT(dietaryPreferencesLabels[language as keyof typeof dietaryPreferencesLabels]);
         }
       } catch (error) {
         console.error('Error getting language:', error);
       }
     };
-    getLanguage();
-  }, []);
 
-  const t = dietaryPreferencesLabels[currentLanguage as keyof typeof dietaryPreferencesLabels];
+    const interval = setInterval(languageListener, 1000);
+    return () => clearInterval(interval);
+  }, [currentLanguage]);
 
-  // Rest of the component code remains the same...
   const fetchData = async (collectionName: string) => {
     try {
       const collectionData = query(
@@ -198,6 +217,8 @@ export default function ProfileDietaryPreferences() {
     }
     setIsDisabled(false);
   };
+
+  if (!t) return null; // Wait for translations to load
 
   return (
     <>

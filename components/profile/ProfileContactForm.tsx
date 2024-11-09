@@ -11,31 +11,34 @@ import translations from '@/translations/profile.json';
 export default function ProfileContactForm() {
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState(translations.en);
+  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
+  const [t, setT] = useState<any>(null);
 
+  // Initialize user and language
   useEffect(() => {
-    const getUser = async () => {
-      const userString = await AsyncStorage.getItem('session');
-      if (userString) {
-        const user = JSON.parse(userString);
-        setCurrentUser(user);
-      }
-    };
-    getUser();
-
-    const getLanguage = async () => {
+    const initialize = async () => {
       try {
+        // Get language first
         const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
+
+        // Then get user
+        const userString = await AsyncStorage.getItem('session');
+        if (userString) {
+          const user = JSON.parse(userString);
+          setCurrentUser(user);
         }
       } catch (error) {
-        console.error('Error getting language:', error);
+        console.error('Error initializing:', error);
+        // Fallback to English if there's an error
+        setCurrentLanguage('en');
+        setT(translations.en);
       }
     };
-    getLanguage();
+
+    initialize();
   }, []);
 
   // Listen for language changes
@@ -63,6 +66,8 @@ export default function ProfileContactForm() {
   });
 
   const onContactSend = async () => {
+    if (!t) return; // Wait for translations to load
+
     if (!contactUs.subject || !contactUs.text) {
       Alert.alert(t.fillFormError);
     } else {
@@ -74,6 +79,8 @@ export default function ProfileContactForm() {
       setContactUs({ subject: "", text: "" });
     }
   };
+
+  if (!t) return null; // Don't render until translations are loaded
 
   return (
     <Surface style={styles.container} elevation={1}>

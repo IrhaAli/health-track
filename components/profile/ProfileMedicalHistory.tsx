@@ -21,32 +21,33 @@ export default function ProfileMedicalHistory() {
   const [isDisabled, setIsDisabled] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState(translations.en);
+  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
+  const [t, setT] = useState<any>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const userString = await AsyncStorage.getItem('session');
-      if (userString) {
-        const user = JSON.parse(userString);
-        setCurrentUser(user);
-      }
-    };
-
-    const getLanguage = async () => {
+    const initialize = async () => {
       try {
+        // Get language first
         const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
+        const effectiveLanguage = language || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
+
+        // Then get user
+        const userString = await AsyncStorage.getItem('session');
+        if (userString) {
+          const user = JSON.parse(userString);
+          setCurrentUser(user);
         }
       } catch (error) {
-        console.error('Error getting language:', error);
+        console.error('Error initializing:', error);
+        // Fallback to English if there's an error
+        setCurrentLanguage('en');
+        setT(translations.en);
       }
     };
 
-    getUser();
-    getLanguage();
+    initialize();
   }, []);
 
   // Listen for language changes
@@ -120,6 +121,8 @@ export default function ProfileMedicalHistory() {
     }
     setIsDisabled(false);
   };
+
+  if (!t) return null; // Don't render until translations are loaded
 
   return (
     <View style={[{ marginTop: 0 }]}>
