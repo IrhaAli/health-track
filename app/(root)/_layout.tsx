@@ -68,12 +68,16 @@ export default function TabLayout() {
 
   const t = translations[currentLanguage as keyof typeof translations];
 
-  const routes = useMemo(() => [
+  const baseRoutes = [
     { key: 'home', title: t.home, focusedIcon: 'home', unfocusedIcon: 'home' },
     { key: 'track', title: t.track, focusedIcon: 'clock', unfocusedIcon: 'clock' },
     { key: 'media', title: t.media, focusedIcon: 'image', unfocusedIcon: 'image' },
     { key: 'profile', title: t.profile, focusedIcon: 'account', unfocusedIcon: 'account' },
-  ], [t, currentLanguage]); // Add t as dependency
+  ];
+
+  const routes = useMemo(() => {
+    return currentLanguage === 'ar' ? [...baseRoutes].reverse() : baseRoutes;
+  }, [t, currentLanguage]);
 
   // Pre-render all scenes to avoid lazy loading
   const scenes = useMemo(() => ({
