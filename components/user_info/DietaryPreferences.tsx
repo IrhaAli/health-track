@@ -11,6 +11,30 @@ import {
 import { Link } from "expo-router";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 
+type DietaryPreferencesLabels = {
+  [key: string]: string;
+  is_vegetarian: string;
+  is_vegan: string;
+  is_gluten_free: string;
+  is_dairy_free: string;
+  is_nut_free: string;
+  is_seafood_allergic: string;
+  is_low_carb: string;
+  is_high_protein: string;
+  is_low_fat: string;
+  is_ketogenic: string;
+  is_paleo: string;
+  is_mediterranean: string;
+  is_soy_allergic: string;
+  is_egg_allergic: string;
+  is_shellfish_allergic: string;
+  is_fructose_intolerant: string;
+  is_halal: string;
+  is_spice_free: string;
+  is_sugar_free: string;
+  is_salt_free: string;
+};
+
 export default function DietaryPreferences({
   dietaryPreferences,
   setDietaryPreferences,
@@ -21,7 +45,7 @@ export default function DietaryPreferences({
       [toggleType]: !prev[toggleType],
     }));
 
-  const dietaryPreferencesLabels = {
+  const dietaryPreferencesLabels: DietaryPreferencesLabels = {
     is_vegetarian: "Vegetarian",
     is_vegan: "Vegan",
     is_gluten_free: "Gluten Free",
