@@ -3,7 +3,8 @@ import { DietDataEntry, DietDataState } from "@/types/track";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Divider, Text, Surface, Portal, Modal, IconButton } from "react-native-paper";
-import { Image, View, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity } from "react-native";
+import { Image, View, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity, Platform } from "react-native";
+import { ImageModal } from "./imageModal";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.3; // Reduced to fit 3 cards per row
@@ -109,30 +110,11 @@ export default function AppMediaMealComponent() {
         ))}
       </ScrollView>
 
-      <Portal>
-        <Modal 
-          visible={!!selectedImage} 
-          onDismiss={() => setSelectedImage(null)}
-          contentContainerStyle={styles.modalContainer}
-        >
-          {selectedImage && (
-            <View style={styles.modalContent}>
-              <IconButton
-                icon="close"
-                size={24}
-                onPress={() => setSelectedImage(null)}
-                style={styles.closeButton}
-                iconColor="#fff"
-              />
-              <Image
-                source={{ uri: selectedImage }}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            </View>
-          )}
-        </Modal>
-      </Portal>
+      <ImageModal 
+        visible={!!selectedImage}
+        imageUri={selectedImage}
+        onDismiss={() => setSelectedImage(null)}
+      />
     </>
   );
 }
@@ -191,25 +173,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullScreenImage: {
-    width: '100%',
-    height: '100%',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 10,
-    zIndex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
+  }
 });
