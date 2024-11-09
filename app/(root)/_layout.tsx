@@ -2,7 +2,6 @@ import { router, Stack, Redirect, Slot } from "expo-router";
 import React, { useContext, useEffect, useMemo, useCallback } from "react";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { getAuth } from "firebase/auth";
 import { BottomNavigation, Text } from 'react-native-paper';
 import { StatusBar, View, Platform } from 'react-native';
 import { useSession } from '../../ctx';

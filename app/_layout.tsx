@@ -3,7 +3,6 @@ import { Provider } from "react-redux";
 import store from "../store/store";
 import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
 import { useEffect, useState } from "react";
-import { getAuth } from "firebase/auth";
 import { SessionProvider } from '../ctx';
 import React from "react";
 
