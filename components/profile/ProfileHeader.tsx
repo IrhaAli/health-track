@@ -1,15 +1,31 @@
 import { StyleSheet, View } from "react-native";
 import { Avatar, Surface, Text, useTheme } from "react-native-paper";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
-import React from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from "react";
 
 export default function ProfileHeader() {
-  const userObjStr = useSelector((state: RootState) => state.user.userData);
-  const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const theme = useTheme();
 
-  return userData?.full_name && userData?.email ? (
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        const name = await AsyncStorage.getItem('userName');
+        const email = await AsyncStorage.getItem('userEmail');
+        setUserName(name);
+        setUserEmail(email);
+      } catch (error) {
+        console.log('Error getting user data:', error);
+      }
+    };
+
+    getUserData();
+  }, []);
+
+  const displayName = userName || userEmail || 'Guest';
+
+  return (
     <Surface style={styles.container} elevation={1}>
       <View style={styles.content}>
         <Avatar.Image
@@ -20,18 +36,16 @@ export default function ProfileHeader() {
           style={styles.avatar}
         />
         <View style={styles.textContainer}>
-          <Text variant="titleMedium" style={styles.name}>
-            {userData.full_name}
+          <Text variant="titleMedium" style={styles.greeting}>
+            Hi, {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
           </Text>
-          <Text variant="bodyMedium" style={styles.email}>
-            {userData.email}
-          </Text>
+          {userName && userEmail && (
+            <Text variant="bodyMedium" style={styles.email}>
+              {userEmail.toLowerCase()}
+            </Text>
+          )}
         </View>
       </View>
-    </Surface>
-  ) : (
-    <Surface style={styles.container} elevation={1}>
-      <Text variant="bodyLarge">No user data available</Text>
     </Surface>
   );
 }
@@ -54,9 +68,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
-  name: {
+  greeting: {
     fontWeight: "bold",
     marginBottom: 4,
+    fontSize: 20
   },
   email: {
     opacity: 0.7,
