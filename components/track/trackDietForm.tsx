@@ -7,7 +7,7 @@ import { setHideCamera, setShowCamera, setImageURI, clearImageURI } from "@/stor
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { Divider, Button, Text, HelperText, Avatar } from 'react-native-paper';
+import { Divider, Button, Text, HelperText, Avatar, Surface } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addDietData, updateDietData } from "@/store/trackSlice";
 import { DietDataEntry, DietDataState, isDietDataEntry, TrackState } from "@/types/track";
@@ -185,79 +185,130 @@ export default function TrackDietForm() {
 
     return (
         <View style={styles.trackDietForm}>
-            <View style={styles.buttonContainer}>
+            <Surface style={styles.formContainer} elevation={3}>
+                <View style={styles.timeSection}>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>Time of Meal</Text>
+                    {Platform.OS == "android" ? (
+                        <View style={styles.timePickerContainer}>
+                            <Button 
+                                mode="outlined" 
+                                icon="clock" 
+                                onPress={() => { setShowMealTimeSelector(true); }} 
+                                disabled={loading} 
+                                loading={loading}
+                                style={styles.timeButton}
+                            >
+                                {`${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+                            </Button>
+                            {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
+                        </View>
+                    ) : (
+                        <View style={styles.timePickerContainer}>
+                            <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />
+                        </View>
+                    )}
+                </View>
 
-                <Text variant="titleLarge">Time of Meal</Text>
-                {Platform.OS == "android" ?
-                    <View>
-                        <Button mode="text" icon="clock" onPress={() => { setShowMealTimeSelector(true); }} disabled={loading} loading={loading} textColor="blue">
-                            {`${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+                <View style={styles.imageSection}>
+                    {dialogType !== DialogType.EDIT && (!imageURI ? (
+                        <Button 
+                            icon="camera" 
+                            mode="contained-tonal"
+                            onPress={() => {
+                                dispatch(clearImageURI());
+                                setTimeout(() => {
+                                    dispatch(setShowCamera());
+                                }, 100);
+                            }} 
+                            disabled={loading}
+                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            textColor="white"
+                        >
+                            Add Meal Picture
                         </Button>
-                        {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
-                    </View> :
-                    <View>
-                        <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />
-                    </View>
-                }
+                    ) : (
+                        <Surface style={styles.imageContainer} elevation={2}>
+                            <Button 
+                                icon="delete"
+                                mode="contained-tonal"
+                                onPress={() => dispatch(setImageURI(''))}
+                                disabled={loading}
+                                style={styles.deleteButton}
+                                children={undefined}
+                            />
+                            <Image source={{ uri: imageURI }} style={styles.image} />
+                        </Surface>
+                    ))}
 
-                {dialogType !== DialogType.EDIT && (!imageURI ? (
-                    <Button 
-                        icon="camera" 
-                        mode="contained" 
-                        onPress={() => {
-                            // Ensure camera state is cleared before opening
-                            dispatch(clearImageURI());
-                            // Small delay to allow state update before showing camera
-                            setTimeout(() => {
-                                dispatch(setShowCamera());
-                            }, 100);
-                        }} 
-                        disabled={loading}
-                    >
-                        Add Meal Picture
-                    </Button>
-                ) : (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                ))}
+                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
+                        <Button 
+                            icon="camera" 
+                            mode="contained-tonal"
+                            onPress={() => {
+                                dispatch(clearImageURI());
+                                setTimeout(() => {
+                                    dispatch(setShowCamera());
+                                }, 100);
+                            }} 
+                            disabled={loading}
+                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            textColor="white"
+                        >
+                            Add Meal Picture
+                        </Button>
+                    )}
 
-                {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
-                    <Button 
-                        icon="camera" 
-                        mode="contained" 
-                        onPress={() => {
-                            dispatch(clearImageURI());
-                            setTimeout(() => {
-                                dispatch(setShowCamera());
-                            }, 100);
-                        }} 
-                        disabled={loading}
-                    >
-                        Add Meal Picture
-                    </Button>
-                )}
+                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
+                        <Surface style={styles.imageContainer} elevation={2}>
+                            <Button 
+                                icon="delete"
+                                mode="contained-tonal"
+                                onPress={() => dispatch(setImageURI(''))}
+                                disabled={loading}
+                                style={styles.deleteButton}
+                                children={undefined}
+                            />
+                            <Image source={{ uri: imageURI }} style={styles.image} />
+                        </Surface>
+                    )}
 
-                {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { dispatch(setImageURI('')); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: imageURI }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                )}
+                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && currentDietData.meal_picture && currentDietData.meal_picture.length && (
+                        <Surface style={styles.imageContainer} elevation={2}>
+                            <Button 
+                                icon="delete"
+                                mode="contained-tonal"
+                                onPress={() => deleteImage()}
+                                disabled={loading}
+                                style={styles.deleteButton}
+                                children={undefined}
+                            />
+                            <Image source={{ uri: currentDietData.meal_picture }} style={styles.image} />
+                        </Surface>
+                    )}
+                </View>
+            </Surface>
 
-                {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && currentDietData.meal_picture && currentDietData.meal_picture.length && (
-                    <View>
-                        <Button icon={({ size, color }) => (<Avatar.Icon size={24} icon="delete" color="#fff" />)} mode="text" onPress={() => { deleteImage(); }} disabled={loading} style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}>{''}</Button>
-                        <Image source={{ uri: currentDietData.meal_picture }} style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} />
-                    </View>
-                )}
-            </View>
-
-            <Divider />
+            <Divider style={styles.divider} />
+            
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)} loading={loading}>Submit</Button>
+                <Button 
+                    mode="text" 
+                    onPress={() => { 
+                        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); 
+                        dispatch(clearImageURI()); 
+                    }} 
+                    disabled={loading}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    mode="contained" 
+                    onPress={onSubmit} 
+                    disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)} 
+                    loading={loading}
+                >
+                    Submit
+                </Button>
             </View>
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
@@ -267,17 +318,62 @@ export default function TrackDietForm() {
 
 const styles = StyleSheet.create({
     trackDietForm: {
-        paddingVertical: 10,
+        padding: 16,
     },
-    buttonContainer: {
-        flexDirection: 'column',
+    formContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        gap: 24
+    },
+    timeSection: {
         alignItems: 'center',
-        justifyContent: 'center'
+        gap: 12
+    },
+    sectionTitle: {
+        fontWeight: '600',
+        color: '#1a1a1a'
+    },
+    timePickerContainer: {
+        width: '100%',
+        alignItems: 'center'
+    },
+    timeButton: {
+        width: 200,
+        borderRadius: 8
+    },
+    imageSection: {
+        alignItems: 'center',
+        gap: 16
+    },
+    cameraButton: {
+        width: '100%',
+        borderRadius: 8
+    },
+    imageContainer: {
+        position: 'relative',
+        borderRadius: 12,
+        overflow: 'hidden',
+        backgroundColor: '#fff'
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 1,
+        margin: 0
+    },
+    image: {
+        width: 300,
+        height: 300,
+        resizeMode: 'cover'
+    },
+    divider: {
+        marginVertical: 16
     },
     formSubmission: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingTop: 15
-    },
+        gap: 12
+    }
 })

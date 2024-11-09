@@ -9,7 +9,7 @@ import { clearImageURI, setHideCamera, setImageURI, setShowCamera } from "@/stor
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
-import { Divider, Button, HelperText, Avatar } from 'react-native-paper';
+import { Divider, Button, HelperText, Avatar, Surface, TextInput } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWeightData, updateWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, isWeightDataEntry } from "@/types/track";
@@ -178,83 +178,88 @@ export default function TrackWeightForm() {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View>
+            <View style={styles.container}>
                 <View style={styles.trackWeightForm}>
-                    <View style={styles.weightView}>
-                        <Dialog.Input
-                            style={[styles.input]}
-                            placeholder="Add Weight"
-                            value={weight}
-                            onChangeText={setWeight}
-                            autoCorrect={false}
-                            autoCapitalize="none"
-                            keyboardType="numeric"
-                            maxLength={4}
-                            underlineColorAndroid={'transparent'}
-                            editable={!loading}
-                        />
-                        <Dropdown
-                            style={[styles.dropdown, isWeightTypeFocus && { borderColor: "blue" }]}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            iconStyle={styles.iconStyle}
-                            data={weightTypeOptions}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
-                            value={weightType}
-                            onFocus={() => setIsWeightTypeFocus(true)}
-                            onBlur={() => setIsWeightTypeFocus(false)}
-                            onChange={(item: any) => {
-                                setWeightType(item.value);
-                                setIsWeightTypeFocus(false);
-                            }}
-                            renderRightIcon={() => (<AntDesign style={styles.icon} color={isWeightTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
-                            disable={loading}
-                        />
-                    </View>
+                    <Surface style={styles.inputContainer} elevation={3}>
+                        <View style={styles.weightInputSection}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Add Weight"
+                                value={weight}
+                                onChangeText={setWeight}
+                                autoCorrect={false}
+                                autoCapitalize="none"
+                                keyboardType="numeric"
+                                maxLength={4}
+                                editable={!loading}
+                                mode="flat"
+                            />
+                            
+                            <Dropdown
+                                style={[styles.dropdown, isWeightTypeFocus && { borderColor: "#6200ee" }]}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                iconStyle={styles.iconStyle}
+                                data={weightTypeOptions}
+                                maxHeight={300}
+                                labelField="label"
+                                valueField="value"
+                                placeholder={!isWeightTypeFocus ? "Select Unit" : "..."}
+                                value={weightType}
+                                onFocus={() => setIsWeightTypeFocus(true)}
+                                onBlur={() => setIsWeightTypeFocus(false)}
+                                onChange={(item: any) => {
+                                    setWeightType(item.value);
+                                    setIsWeightTypeFocus(false);
+                                }}
+                                renderRightIcon={() => (
+                                    <AntDesign 
+                                        style={styles.icon} 
+                                        color={isWeightTypeFocus ? "#6200ee" : "#666"} 
+                                        name="Safety" 
+                                        size={18} 
+                                    />
+                                )}
+                                disable={loading}
+                            />
+                        </View>
+                    </Surface>
 
                     {dialogType !== DialogType.EDIT && (!imageURI ? (
                         <Button 
                             icon="camera" 
-                            mode="contained" 
+                            mode="contained-tonal"
                             onPress={() => {
-                                // Ensure camera state is cleared before opening
                                 dispatch(clearImageURI());
-                                // Small delay to allow state update before showing camera
                                 setTimeout(() => {
                                     handleShowCamera();
                                 }, 100);
                             }} 
                             disabled={loading}
+                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            textColor="white"
                         >
                             Add Weight Picture
                         </Button>
                     ) : (
-                        <View>
+                        <Surface style={styles.imageContainer} elevation={2}>
                             <Button 
-                                icon={({ size, color }) => (
-                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
-                                )} 
-                                mode="text" 
-                                onPress={() => dispatch(setImageURI(''))} 
-                                disabled={loading} 
-                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
-                            >
-                                {''}
-                            </Button>
+                                    icon="delete"
+                                    mode="contained-tonal"
+                                    onPress={() => dispatch(setImageURI(''))}
+                                    disabled={loading}
+                                    style={styles.deleteButton} children={undefined}                            />
                             <Image 
                                 source={{ uri: imageURI }} 
-                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                                style={styles.image} 
                             />
-                        </View>
+                        </Surface>
                     ))}
 
                     {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && !imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
                         <Button 
                             icon="camera" 
-                            mode="contained" 
+                            mode="contained-tonal"
                             onPress={() => {
                                 dispatch(clearImageURI());
                                 setTimeout(() => {
@@ -262,56 +267,62 @@ export default function TrackWeightForm() {
                                 }, 100);
                             }} 
                             disabled={loading}
+                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            textColor="white"
                         >
                             Add Weight Picture
                         </Button>
                     )}
 
                     {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && imageURI && (!currentWeightData.picture || !currentWeightData.picture.length) && (
-                        <View>
+                        <Surface style={styles.imageContainer} elevation={2}>
                             <Button 
-                                icon={({ size, color }) => (
-                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
-                                )} 
-                                mode="text" 
-                                onPress={() => dispatch(setImageURI(''))} 
-                                disabled={loading} 
-                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
-                            >
-                                {''}
-                            </Button>
+                                icon="delete"
+                                mode="contained-tonal"
+                                onPress={() => dispatch(setImageURI(''))}
+                                disabled={loading}
+                                style={styles.deleteButton} children={undefined}                            />
                             <Image 
                                 source={{ uri: imageURI }} 
-                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                                style={styles.image} 
                             />
-                        </View>
+                        </Surface>
                     )}
 
                     {dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData) && currentWeightData.picture && currentWeightData.picture.length && (
-                        <View>
+                        <Surface style={styles.imageContainer} elevation={2}>
                             <Button 
-                                icon={({ size, color }) => (
-                                    <Avatar.Icon size={24} icon="delete" color="#fff" />
-                                )} 
-                                mode="text" 
-                                onPress={() => deleteImage()} 
-                                disabled={loading} 
-                                style={[{ position: 'absolute', right: -15, zIndex: 999, top: 15 }]}
-                            >
-                                {''}
-                            </Button>
+                                icon="delete"
+                                mode="contained-tonal"
+                                onPress={() => deleteImage()}
+                                disabled={loading}
+                                style={styles.deleteButton} children={undefined}                            />
                             <Image 
                                 source={{ uri: currentWeightData.picture }} 
-                                style={[{ borderWidth: 1, width: 100, height: 200, resizeMode: 'contain' }]} 
+                                style={styles.image} 
                             />
-                        </View>
+                        </Surface>
                     )}
                 </View>
 
-                <Divider />
+                <Divider style={styles.divider} />
+                
                 <View style={styles.formSubmission}>
-                    <Button mode="text" onPress={handleCancel} disabled={loading} textColor="blue">Cancel</Button>
-                    <Button mode="contained" onPress={onSubmit} disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
+                    <Button 
+                        mode="text" 
+                        onPress={handleCancel} 
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        mode="contained" 
+                        onPress={onSubmit} 
+                        disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} 
+                        loading={loading}
+                    >
+                        {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                    </Button>
                 </View>
 
                 {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
@@ -321,74 +332,77 @@ export default function TrackWeightForm() {
 }
 
 const styles = StyleSheet.create({
-    trackWeightForm: {
-        paddingVertical: 10,
-        justifyContent: 'center',
-        alignContent: 'center',
-        alignItems: 'center'
+    container: {
+        padding: 16,
     },
-    weightView: {
+    trackWeightForm: {
+        gap: 16
+    },
+    inputContainer: {
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        padding: 8
+    },
+    weightInputSection: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        alignContent: 'center'
+        gap: 8
     },
     input: {
-        paddingLeft: 20,
-        paddingRight: 130,
-        borderColor: "gray",
-        borderWidth: 0.5,
-        borderRadius: 3,
-        fontSize: 16,
-        color: 'black',
-        marginTop: 0,
-        marginLeft: 0,
-        marginRight: 0,
-        marginBottom: 0,
-        borderTopLeftRadius: 3,
-        borderBottomLeftRadius: 3,
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-        borderTopWidth: 0.5,
-        borderRightWidth: 0,
-        borderBottomWidth: 0.5,
-        borderLeftWidth: 0.5,
+        flex: 1,
+        height: 44,
+        backgroundColor: 'transparent',
+        fontSize: 16
     },
     dropdown: {
-        flex: 0.75,
-        borderColor: "gray",
+        width: 120,
+        height: 44,
+        borderRadius: 8,
         paddingHorizontal: 8,
-        paddingVertical: 9.2,
-        marginTop: -20,
-        marginLeft: -11,
-        marginRight: 0,
-        marginBottom: 0,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderTopRightRadius: 3,
-        borderBottomRightRadius: 3,
-        borderTopWidth: 0.5,
-        borderRightWidth: 0.5,
-        borderBottomWidth: 0.5,
-        borderLeftWidth: 0
-    },
-    icon: {
-        marginRight: 5,
+        backgroundColor: '#f5f5f5'
     },
     placeholderStyle: {
-        fontSize: 16,
+        fontSize: 14,
+        color: '#666'
     },
     selectedTextStyle: {
-        fontSize: 16,
+        fontSize: 14,
+        color: '#1a1a1a'
     },
     iconStyle: {
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18
+    },
+    icon: {
+        marginRight: 4
+    },
+    cameraButton: {
+        borderRadius: 8
+    },
+    imageContainer: {
+        position: 'relative',
+        borderRadius: 12,
+        overflow: 'hidden',
+        alignSelf: 'center'
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 1,
+        margin: 0
+    },
+    image: {
+        width: 200,
+        height: 200,
+        resizeMode: 'cover'
+    },
+    divider: {
+        marginVertical: 16
     },
     formSubmission: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingTop: 15
-    },
+        gap: 12
+    }
 })

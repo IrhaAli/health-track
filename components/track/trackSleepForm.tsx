@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, Platform, Pressable, View, ActivityIndicator } from "react-native";
+import { StyleSheet, Platform, Pressable, View, ActivityIndicator, TouchableOpacity } from "react-native";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
@@ -8,7 +8,7 @@ import { db } from "../../firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Divider, Text, Button, HelperText } from 'react-native-paper';
+import { Divider, Text, Button, HelperText, Surface } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { isSleepDataEntry, SleepDataEntry } from "@/types/track";
 import { addSleepData, updateSleepData } from "@/store/trackSlice";
@@ -212,77 +212,222 @@ export default function TrackSleepForm() {
     return (
         <View>
             <View style={styles.trackSleepForm}>
-                <View>
-                    <Text variant="titleLarge">Last Night's Sleep</Text>
-                    {Platform.OS == "android" ?
-                        <View style={styles.sleepTimeDateView}>
-                            <Button icon="calendar" mode="text" onPress={() => { setShowSleepDateSelector(true); }} disabled={loading} textColor="blue">
-                                {` ${sleepDateTime.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", })}`}
-                            </Button>
-                            {showSleepDateSelector && <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} maximumDate={new Date(currentDate)} minimumDate={new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1))} />}
+                <View style={styles.section}>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>Last Night's Sleep</Text>
+                    <Surface style={styles.dateTimeContainer} elevation={1}>
+                        <TouchableOpacity 
+                            style={styles.dateTimeButton}
+                            onPress={() => setShowSleepDateSelector(true)}
+                            disabled={loading}
+                        >
+                            <View style={styles.dateTimeContent}>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Date</Text>
+                                <View style={styles.dateTimeValue}>
+                                    <Text variant="bodyLarge" style={styles.dateTimeText}>
+                                        {sleepDateTime.toLocaleDateString("en-US", { 
+                                            month: "short", 
+                                            day: "numeric", 
+                                            year: "numeric"
+                                        })}
+                                    </Text>
+                                    <Text variant="titleSmall" style={styles.iconText}>📅</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
 
-                            <Button icon="clock" mode="text" onPress={() => { setShowSleepTimeSelector(true); }} disabled={loading} textColor="blue">
-                                {` ${sleepDateTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
-                            </Button>
+                        <TouchableOpacity
+                            style={styles.dateTimeButton}
+                            onPress={() => setShowSleepTimeSelector(true)}
+                            disabled={loading}
+                        >
+                            <View style={styles.dateTimeContent}>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Time</Text>
+                                <View style={styles.dateTimeValue}>
+                                    <Text variant="bodyLarge" style={styles.dateTimeText}>
+                                        {sleepDateTime.toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true
+                                        })}
+                                    </Text>
+                                    <Text variant="titleSmall" style={styles.iconText}>🕐</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </Surface>
 
-                            {showSleepTimeSelector && <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />}
-                        </View> :
-                        <View>
-                            <DateTimePicker mode="date" value={sleepDateTime} onChange={onSleepDateChange} />
-                            <DateTimePicker mode="time" value={sleepDateTime} onChange={onSleepTimeChange} />
-                        </View>}
-
+                    {showSleepDateSelector && (
+                        <DateTimePicker
+                            mode="date"
+                            value={sleepDateTime}
+                            onChange={onSleepDateChange}
+                            maximumDate={new Date(currentDate)}
+                            minimumDate={new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1))}
+                        />
+                    )}
+                    {showSleepTimeSelector && (
+                        <DateTimePicker
+                            mode="time"
+                            value={sleepDateTime}
+                            onChange={onSleepTimeChange}
+                        />
+                    )}
                 </View>
 
-                <View>
-                    <Text variant="titleLarge">Wakeup Time</Text>
-                    {Platform.OS == "android" ?
-                        <View>
-                            <Button icon="clock" mode="text" onPress={() => { setShowWakeupTimeSelector(true); }} disabled={loading} textColor="blue" style={[{ alignSelf: 'flex-start' }]}>
-                                {`${wakeupTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
-                            </Button>
-                            {showWakeupTimeSelector && <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />}
-                        </View> :
-                        <View>
-                            <DateTimePicker mode="time" value={wakeupTime} onChange={onWakeupTimeChange} />
+                <View style={styles.section}>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>Wakeup Time</Text>
+                    <Surface style={styles.dateTimeContainer} elevation={1}>
+                        <TouchableOpacity
+                            style={[styles.dateTimeButton, { flex: 1 }]}
+                            onPress={() => setShowWakeupTimeSelector(true)}
+                            disabled={loading}
+                        >
+                            <View style={styles.dateTimeContent}>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Time</Text>
+                                <View style={styles.dateTimeValue}>
+                                    <Text variant="bodyLarge" style={styles.dateTimeText}>
+                                        {wakeupTime.toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true
+                                        })}
+                                    </Text>
+                                    <Text variant="titleSmall" style={styles.iconText}>⏰</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </Surface>
+
+                    {showWakeupTimeSelector && (
+                        <DateTimePicker
+                            mode="time"
+                            value={wakeupTime}
+                            onChange={onWakeupTimeChange}
+                        />
+                    )}
+                </View>
+
+                <View style={styles.section}>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>Sleep Quality: {sleepQuality}</Text>
+                    <Surface style={styles.sliderContainer} elevation={1}>
+                        <Slider
+                            style={styles.slider}
+                            value={sleepQuality}
+                            minimumValue={1}
+                            maximumValue={5}
+                            step={1}
+                            onValueChange={(value: number) => setSleepQuality(value)}
+                            disabled={loading}
+                            thumbTintColor="#6200ee"
+                            minimumTrackTintColor="#6200ee"
+                        />
+                        <View style={styles.qualityLabels}>
+                            <Text>Poor</Text>
+                            <Text>Excellent</Text>
                         </View>
-                    }
+                    </Surface>
+                    <Text variant="titleMedium" style={styles.durationText}>
+                        Total Sleep: {convertMinutesToHoursAndMinutes(sleepDuration)}
+                    </Text>
                 </View>
-
-                <View>
-                    <Text variant="titleLarge">Sleep Quality: {sleepQuality}</Text>
-                    <Slider style={styles.slider} value={sleepQuality} minimumValue={1} maximumValue={5} step={1} onValueChange={(value: number) => setSleepQuality(value)} disabled={loading} thumbTintColor="tomato" minimumTrackTintColor="blue" />
-                </View>
-                <Text variant="titleMedium">{`Total Sleeping Hours: ${convertMinutesToHoursAndMinutes(sleepDuration)}`}</Text>
             </View>
 
             <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
+                <Button 
+                    mode="outlined" 
+                    onPress={() => {
+                        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+                        dispatch(clearImageURI());
+                    }}
+                    disabled={loading}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    mode="contained" 
+                    onPress={onSubmit} 
+                    disabled={loading} 
+                    loading={loading}
+                >
+                    {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                </Button>
             </View>
 
-            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
+            {showError && (
+                <HelperText type="error" visible={showError}>
+                    {errorString}
+                </HelperText>
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     trackSleepForm: {
-        paddingVertical: 10
+        paddingVertical: 16,
+        gap: 24
     },
-    sleepTimeDateView: {
+    section: {
+        gap: 12
+    },
+    sectionTitle: {
+        fontWeight: '600',
+        marginBottom: 4
+    },
+    dateTimeContainer: {
+        flexDirection: 'row',
+        borderRadius: 12,
+        overflow: 'hidden'
+    },
+    dateTimeButton: {
+        flex: 0.5,
+        padding: 12,
+        borderRightWidth: 1,
+        borderRightColor: '#e0e0e0'
+    },
+    dateTimeContent: {
+        gap: 4
+    },
+    dateTimeLabel: {
+        color: '#666',
+        fontSize: 14
+    },
+    dateTimeValue: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10
+        justifyContent: 'space-between'
     },
-    formSubmission: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingTop: 15
+    dateTimeText: {
+        color: '#1a1a1a',
+        fontWeight: '500'
+    },
+    iconText: {
+        fontSize: 16
+    },
+    sliderContainer: {
+        padding: 16,
+        borderRadius: 12
     },
     slider: {
         width: '100%',
+        height: 40
+    },
+    qualityLabels: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        marginTop: 4
+    },
+    durationText: {
+        textAlign: 'center',
+        marginTop: 8,
+        color: '#6200ee'
+    },
+    formSubmission: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 12,
+        paddingTop: 16
     }
-})
+});

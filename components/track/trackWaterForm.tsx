@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Divider, Button, HelperText, Text } from 'react-native-paper';
+import { Divider, Button, HelperText, Text, Surface, TextInput } from 'react-native-paper';
 import { getAuth } from "firebase/auth";
 import { addWaterData, updateWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState, isWaterDataEntry } from "@/types/track";
@@ -126,121 +126,162 @@ export default function TrackWaterForm() {
     }
 
     return (
-        <View>
-            {currentWaterData && Object.keys(currentWaterData).length > 0 && 'intake_amount' in currentWaterData && 'waterType' in currentWaterData && <View>
-                <Text variant="bodyLarge">{`Congratulations! You have consumed ${currentWaterData.intake_amount} ${currentWaterData.waterType.charAt(0).toUpperCase() + currentWaterData.waterType.slice(1)} of water today.\nDo you like to add more?`}</Text>
-            </View>}
+        <View style={styles.container}>
+            {currentWaterData && Object.keys(currentWaterData).length > 0 && 'intake_amount' in currentWaterData && 'waterType' in currentWaterData && (
+                <Surface style={styles.currentIntakeCard} elevation={2}>
+                    <Text variant="bodyLarge" style={styles.intakeText}>
+                        Congratulations! You have consumed {currentWaterData.intake_amount} {currentWaterData.waterType.charAt(0).toUpperCase() + currentWaterData.waterType.slice(1)} of water today.
+                    </Text>
+                    <Text variant="bodyMedium" style={styles.addMoreText}>Would you like to add more?</Text>
+                </Surface>
+            )}
+
             <View style={styles.trackWaterForm}>
-                <Dialog.Input
-                    style={[styles.input]}
-                    placeholder="Add Water"
-                    value={water}
-                    onChangeText={setWater}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                    keyboardType="numeric"
-                    maxLength={4}
-                    underlineColorAndroid={'transparent'}
-                    editable={!loading}
-                ></Dialog.Input>
-                <Dropdown style={[styles.dropdown, isWaterTypeFocus && { borderColor: "blue" }]}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    iconStyle={styles.iconStyle}
-                    data={waterTypeOptions}
-                    maxHeight={300}
-                    labelField="label"
-                    valueField="value"
-                    placeholder={!isWaterTypeFocus ? "Select Water Unit" : "..."}
-                    value={waterType}
-                    onFocus={() => setIsWaterTypeFocus(true)}
-                    onBlur={() => setIsWaterTypeFocus(false)}
-                    onChange={(item: any) => {
-                        setWaterType(item.value as WaterTypeEnum);
-                        setIsWaterTypeFocus(false);
-                    }}
-                    renderRightIcon={() => (<AntDesign style={styles.icon} color={isWaterTypeFocus ? "blue" : "black"} name="Safety" size={20} />)}
-                    disable={loading}
-                />
+                <Surface style={styles.inputContainer} elevation={3}>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Add Water"
+                            value={water}
+                            onChangeText={setWater}
+                            autoCorrect={false}
+                            autoCapitalize="none"
+                            keyboardType="numeric"
+                            maxLength={4}
+                            editable={!loading}
+                            mode="flat"
+                        />
+                        
+                        <Dropdown 
+                            style={[styles.dropdown, isWaterTypeFocus && { borderColor: "#6200ee" }]}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            iconStyle={styles.iconStyle}
+                            data={waterTypeOptions}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder={!isWaterTypeFocus ? "Select Unit" : "..."}
+                            value={waterType}
+                            onFocus={() => setIsWaterTypeFocus(true)}
+                            onBlur={() => setIsWaterTypeFocus(false)}
+                            onChange={(item: any) => {
+                                setWaterType(item.value as WaterTypeEnum);
+                                setIsWaterTypeFocus(false);
+                            }}
+                            renderRightIcon={() => (
+                                <AntDesign 
+                                    style={styles.icon} 
+                                    color={isWaterTypeFocus ? "#6200ee" : "#666"} 
+                                    name="Safety" 
+                                    size={18} 
+                                />
+                            )}
+                            disable={loading}
+                        />
+                    </View>
+                </Surface>
             </View>
 
-            <Divider />
             <View style={styles.formSubmission}>
-                <Button mode="text" onPress={() => { dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); dispatch(clearImageURI()); }} disabled={loading} textColor="blue">Cancel</Button>
-                <Button mode="contained" onPress={onSubmit} disabled={loading || !water} loading={loading}>{dialogType === DialogType.EDIT ? 'Update' : 'Submit'}</Button>
+                <Button 
+                    mode="text" 
+                    onPress={() => { 
+                        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+                        dispatch(clearImageURI());
+                    }} 
+                    disabled={loading}
+                    style={styles.button}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    mode="contained" 
+                    onPress={onSubmit} 
+                    disabled={loading || !water} 
+                    loading={loading}
+                    style={styles.button}
+                >
+                    {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                </Button>
             </View>
 
-            {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
+            {showError && <HelperText type="error" visible={showError} style={styles.errorText}>{errorString}</HelperText>}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        padding: 16,
+    },
+    currentIntakeCard: {
+        padding: 12,
+        marginBottom: 16,
+        borderRadius: 12,
+        backgroundColor: '#fff'
+    },
+    intakeText: {
+        textAlign: 'center',
+        marginBottom: 4,
+        color: '#1a1a1a'
+    },
+    addMoreText: {
+        textAlign: 'center',
+        color: '#666'
+    },
     trackWaterForm: {
+        marginBottom: 16
+    },
+    inputContainer: {
+        borderRadius: 12,
+        backgroundColor: '#fff',
+        padding: 8
+    },
+    inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 10,
+        gap: 8
     },
     input: {
-        paddingBottom: 0,
-        paddingTop: 0,
-        paddingRight: 100,
-        paddingLeft: 20,
-        borderColor: "gray",
-        borderWidth: 0.5,
-        borderRadius: 3,
-        fontSize: 16,
-        color: 'black',
-        marginTop: 0,
-        marginLeft: 0,
-        marginRight: 0,
-        marginBottom: 0,
-        borderTopLeftRadius: 3,
-        borderBottomLeftRadius: 3,
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-        borderTopWidth: 0.5,
-        borderRightWidth: 0,
-        borderBottomWidth: 0.5,
-        borderLeftWidth: 0.5,
-        width: '100%'
-    },
-    icon: {
-        marginRight: 5,
+        flex: 1,
+        height: 44,
+        backgroundColor: 'transparent',
+        fontSize: 16
     },
     dropdown: {
-        flex: 0.75,
-        borderColor: "gray",
+        width: 120,
+        height: 44,
+        borderRadius: 8,
         paddingHorizontal: 8,
-        paddingVertical: 9.2,
-        marginTop: -20,
-        marginLeft: -11,
-        marginRight: 0,
-        marginBottom: 0,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderTopRightRadius: 3,
-        borderBottomRightRadius: 3,
-        borderTopWidth: 0.5,
-        borderRightWidth: 0.5,
-        borderBottomWidth: 0.5,
-        borderLeftWidth: 0,
+        backgroundColor: '#f5f5f5'
     },
     placeholderStyle: {
-        fontSize: 16,
+        fontSize: 14,
+        color: '#666'
     },
     selectedTextStyle: {
-        fontSize: 16,
+        fontSize: 14,
+        color: '#1a1a1a'
     },
     iconStyle: {
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18
+    },
+    icon: {
+        marginRight: 4
     },
     formSubmission: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingTop: 15
+        gap: 12
     },
+    button: {
+        borderRadius: 8,
+        minWidth: 100
+    },
+    errorText: {
+        textAlign: 'center',
+        marginTop: 8
+    }
 })
