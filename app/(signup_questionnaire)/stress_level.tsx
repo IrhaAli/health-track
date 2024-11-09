@@ -1,22 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import StressLevel from "@/components/user_info/StressLevel";
 import { Pressable, View, Text, StyleSheet } from "react-native";
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function StressLevelPanel() {
-  const auth = getAuth();
-  const user_id = auth.currentUser?.uid;
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [stressLevel, setStressLevel] = useState({
     stressLevel: 0,
     notes: "",
   });
 
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
+
   const onSubmit = async () => {
     await addDoc(collection(db, "stress_level"), {
-      user_id,
+      user_id: currentUser?.uid,
       stress_level: stressLevel.stressLevel,
       notes: stressLevel.notes,
     });

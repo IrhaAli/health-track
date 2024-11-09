@@ -3,7 +3,6 @@ import ProfileHeader from "./ProfileHeader";
 import { Button, Surface, useTheme } from "react-native-paper";
 import { Link } from "expo-router";
 import ProfileContactForm from "./ProfileContactForm";
-import { getAuth } from "firebase/auth";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
@@ -11,10 +10,11 @@ import { setUser } from "@/store/userSlice";
 import { AppDispatch } from "@/store/store";
 import { View, StyleSheet, ScrollView, InteractionManager } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileComponent() {
   const [isReady, setIsReady] = useState(false);
-  const auth = getAuth();
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
@@ -24,11 +24,22 @@ export default function ProfileComponent() {
     });
   }, []);
 
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
+
   const getUserData = async () => {
     try {
       const collectionData = query(
         collection(db, "users"),
-        where("user_id", "==", auth.currentUser?.uid)
+        where("user_id", "==", currentUser?.uid)
       );
       const querySnapshot = await getDocs(collectionData);
       let docData: any[] = [];
@@ -46,10 +57,10 @@ export default function ProfileComponent() {
   };
 
   useEffect(() => {
-    if (auth.currentUser?.uid) {
+    if (currentUser?.uid) {
       getUserData();
     }
-  }, [auth.currentUser]);
+  }, [currentUser]);
 
   const menuItems = [
     {

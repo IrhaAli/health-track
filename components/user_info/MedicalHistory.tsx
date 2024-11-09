@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -13,7 +13,8 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 interface Item {
   user_id: string;
   condition: string;
@@ -28,9 +29,21 @@ export default function MedicalHistory({
   medicalHistory,
   setMedicalHistory,
 }: any) {
-  const auth = getAuth();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
+
   const emptyCondition: Item = {
-    user_id: auth.currentUser?.uid || "",
+    user_id: currentUser?.uid || "",
     condition: "",
     diagnosis_date: new Date(),
     treatment_status: "",
@@ -60,7 +73,7 @@ export default function MedicalHistory({
       ...prev,
       {
         ...currentMedicalCondition,
-        user_id: auth.currentUser?.uid,
+        user_id: currentUser?.uid,
         is_deleted: false,
       },
     ]);

@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Pressable, Text, ScrollView } from "react-native";
 import { useLocalSearchParams, router, Link } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import DietaryPreferences from "@/components/user_info/DietaryPreferences";
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 interface dietaryPreferencesInterface {
   [key: string]: boolean;
 }
 
 export default function DietaryPreferencesPanel() {
-  const auth = getAuth();
-  const user_id = auth.currentUser?.uid;
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [dietaryPreferences, setDietaryPreferences] =
     useState<dietaryPreferencesInterface>({
       is_vegetarian: false,
@@ -36,9 +36,20 @@ export default function DietaryPreferencesPanel() {
       is_salt_free: false,
     });
 
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
+
   const onSubmit = async () => {
     await addDoc(collection(db, "dietary_preferences"), {
-      user_id,
+      user_id: currentUser?.uid,
       ...dietaryPreferences,
     });
     router.push("/(signup_questionnaire)/medical_history");

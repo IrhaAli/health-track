@@ -1,4 +1,3 @@
-import { getAuth } from "firebase/auth";
 import {
   collection,
   query,
@@ -13,17 +12,30 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { db } from "../../firebaseConfig";
+import React from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileMedicalHistory() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState([]);
-  const auth = getAuth();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", auth.currentUser?.uid)
+      where("user_id", "==", currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];
@@ -45,8 +57,10 @@ export default function ProfileMedicalHistory() {
       const medicalInfo = await fetchData("medical_history");
       setMedicalHistory(medicalInfo);
     };
-    getData();
-  }, []);
+    if (currentUser) {
+      getData();
+    }
+  }, [currentUser]);
 
   const onSubmit = async () => {
     setIsEdit(false);

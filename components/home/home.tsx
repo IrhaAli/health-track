@@ -6,7 +6,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MealChartComponent from "./meal";
 import WaterChartComponent from "./water";
 import SleepChartComponent from "./sleep";
@@ -21,7 +21,7 @@ const MONTH_NAMES = [
 export default function HomeComponent() {
     const [disablePrevButton, setDisablePrevButton] = useState(false);
     const [disableNextButton, setDisableNextButton] = useState(true);
-    const [currentUser, setCurrentUser] = useState(getAuth().currentUser);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const dispatch = useDispatch<AppDispatch>();
@@ -36,49 +36,36 @@ export default function HomeComponent() {
         };
     }, [currentMonth]);
 
-    // Listen for auth state changes
+    // Get user from AsyncStorage and fetch data
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(getAuth(), (user) => {
-            setCurrentUser(user);
-        });
+        const initializeData = async () => {
+            try {
+                const userString = await AsyncStorage.getItem('session');
+                if (userString) {
+                    const user = JSON.parse(userString);
+                    setCurrentUser(user);
+                    
+                    // Fetch data only after we have the user
+                    await Promise.all([
+                        dispatch(fetchWeightData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
+                        dispatch(fetchDietData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
+                        dispatch(fetchWaterData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
+                        dispatch(fetchSleepData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid }))
+                    ]);
+                }
+            } catch (error) {
+                console.error('Error initializing data:', error);
+            }
+        };
 
-        return () => unsubscribe();
-    }, []);
+        initializeData();
+    }, [currentMonth]); // Only re-run when month changes
 
-    // Fetch data function
-    const fetchAllData = async () => {
-        if (!currentUser?.uid) {
-            return;
-        }
-        
-        
-        try {
-            await Promise.all([
-                dispatch(fetchWeightData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid })),
-                dispatch(fetchDietData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid })),
-                dispatch(fetchWaterData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid })),
-                dispatch(fetchSleepData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid }))
-            ]);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
-
-    // Initial data fetch
-    useEffect(() => {
-        if (currentUser) {
-            fetchAllData();
-        }
-    }, [currentUser]); // Depends on currentUser instead of user?.uid
-
-    // Update data on month change
+    // Update navigation button states
     useEffect(() => {
         setDisableNextButton(year > todayYear || (year === todayYear && month >= todayMonth));
         setDisablePrevButton(month === 1 && year === todayYear);
-        if (currentUser) {
-            fetchAllData();
-        }
-    }, [currentMonth, currentUser]);
+    }, [month, year, todayMonth, todayYear]);
 
     const navNext = () => {
         let newMonth = month + 1;

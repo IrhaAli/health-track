@@ -10,10 +10,10 @@ import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "fire
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
 import { Divider, Button, HelperText, Avatar, Surface, TextInput } from 'react-native-paper';
-import { getAuth } from "firebase/auth";
 import { addWeightData, updateWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, isWeightDataEntry } from "@/types/track";
 import { compose } from "redux";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -38,9 +38,20 @@ export default function TrackWeightForm() {
     const weightData = useSelector((state: RootState) => state.track.weightData);
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const weightTypeOptions = Object.values(WeightTypeEnum).map((type) => ({ label: type.charAt(0).toUpperCase() + type.slice(1), value: type }));
-    const auth = getAuth();
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [currentWeightData, setCurrentWeightData] = useState<WeightDataEntry | {}>({});
     const [imageToBeDelete, setImageToBeDelete] = useState<string | null>(null);
+
+    useEffect(() => {
+        const getUser = async () => {
+            const userString = await AsyncStorage.getItem('session');
+            if (userString) {
+                const user = JSON.parse(userString);
+                setCurrentUser(user);
+            }
+        };
+        getUser();
+    }, []);
 
     const getWeightDataObject = (): WeightDataEntry | {} => {
         const [year, month] = currentDate.split('-');
@@ -111,7 +122,7 @@ export default function TrackWeightForm() {
             return;
         }
 
-        if (auth?.currentUser?.uid) {
+        if (currentUser?.uid) {
             if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
                 setErrorString('Please add weight picture!');
@@ -133,7 +144,7 @@ export default function TrackWeightForm() {
                 const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : parseFloat(weight);
 
                 if (dialogType !== DialogType.EDIT) {
-                    let weightData: WeightDataEntry = { user_id: auth.currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
+                    let weightData: WeightDataEntry = { user_id: currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
                     dispatch(addWeightData({ currentDate: currentDate, addWeight: weightData }));
                 }
                 if (dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData)) {

@@ -1,15 +1,26 @@
 import { StyleSheet, View } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Surface, TextInput, Text, useTheme } from "react-native-paper";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import { getAuth } from "firebase/auth";
 import React from "react";
 import { Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileContactForm() {
-  const auth = getAuth();
   const theme = useTheme();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const [contactUs, setContactUs] = useState({
     subject: "",
@@ -22,7 +33,7 @@ export default function ProfileContactForm() {
       Alert.alert("Please fill the form before submitting.");
     } else {
       await addDoc(collection(db, "contacts"), {
-        user_id: auth.currentUser?.uid,
+        user_id: currentUser?.uid,
         ...contactUs,
         date: new Date(),
       });

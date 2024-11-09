@@ -9,10 +9,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Text, Button, HelperText, Surface } from 'react-native-paper';
-import { getAuth } from "firebase/auth";
 import { isSleepDataEntry, SleepDataEntry } from "@/types/track";
 import { addSleepData, updateSleepData } from "@/store/trackSlice";
 import { clearImageURI } from "@/store/cameraSlice";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -43,7 +43,18 @@ export default function TrackSleepForm() {
     const sleepData = useSelector((state: RootState) => state.track.sleepData);
     const [currentSleepData, setCurrentSleepData] = useState<SleepDataEntry | {}>({});
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
-    const auth = getAuth();
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    useEffect(() => {
+        const getUser = async () => {
+            const userString = await AsyncStorage.getItem('session');
+            if (userString) {
+                const user = JSON.parse(userString);
+                setCurrentUser(user);
+            }
+        };
+        getUser();
+    }, []);
 
     const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
         `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
@@ -179,12 +190,12 @@ export default function TrackSleepForm() {
             return;
         }
 
-        if (auth?.currentUser?.uid) {
+        if (currentUser?.uid) {
             setLoading(true);
 
             try {
                 if (dialogType !== DialogType.EDIT) {
-                    let addSleep: SleepDataEntry = { user_id: auth.currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
+                    let addSleep: SleepDataEntry = { user_id: currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
                     dispatch(addSleepData({ currentDate: currentDate, addSleep: addSleep }));
                 }
                 if (dialogType === DialogType.EDIT && isSleepDataEntry(currentSleepData)) {

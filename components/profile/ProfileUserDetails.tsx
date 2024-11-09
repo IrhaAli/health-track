@@ -1,4 +1,3 @@
-import { getAuth } from "firebase/auth";
 import {
   collection,
   query,
@@ -11,10 +10,13 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../firebaseConfig";
+import React from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileUserDetails() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [userDetails, setUserDetails] = useState<{
     docId: string | null;
     gender: string | null;
@@ -38,13 +40,23 @@ export default function ProfileUserDetails() {
     sleepTime: null,
     healthGoal: "",
   });
-  const auth = getAuth();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const fetchData = async (collectionName: string) => {
     try {
       const collectionData = query(
         collection(db, collectionName),
-        where("user_id", "==", auth.currentUser?.uid)
+        where("user_id", "==", currentUser?.uid)
       );
       const querySnapshot = await getDocs(collectionData);
       let docData: any[] = [];
@@ -81,8 +93,10 @@ export default function ProfileUserDetails() {
         healthGoal: userInfo.health_goal,
       });
     };
-    getData();
-  }, []);
+    if (currentUser) {
+      getData();
+    }
+  }, [currentUser]);
 
   const onSubmit = async () => {
     setIsEdit(false);

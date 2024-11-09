@@ -1,4 +1,3 @@
-import { getAuth } from "firebase/auth";
 import {
   collection,
   query,
@@ -11,21 +10,34 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../firebaseConfig";
+import React from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileStressLevel() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [stressLevel, setStressLevel] = useState({
     docId: null,
     stressLevel: 0,
     notes: "",
   });
-  const auth = getAuth();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
       collection(db, collectionName),
-      where("user_id", "==", auth.currentUser?.uid)
+      where("user_id", "==", currentUser?.uid)
     );
     const querySnapshot = await getDocs(collectionData);
     let docData: any[] = [];
@@ -46,8 +58,10 @@ export default function ProfileStressLevel() {
         notes: stressInfo.notes,
       });
     };
-    getData();
-  }, []);
+    if (currentUser) {
+      getData();
+    }
+  }, [currentUser]);
 
   const onSubmit = async () => {
     setIsEdit(false);

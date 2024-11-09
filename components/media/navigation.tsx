@@ -6,7 +6,7 @@ import { View, StyleSheet, InteractionManager } from "react-native";
 import { fetchDietData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
 import AppMediaMealComponent from "./meal";
 import AppMediaWeightComponent from "./weight";
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 enum MediaTabEnum {
     MEAL = 'meal',
@@ -23,10 +23,21 @@ export default function AppMediaNavitaionComponent() {
     const [disableNextButton, setDisableNextButton] = useState(true);
     const [mediaTab, setMediaTab] = useState(MediaTabEnum.MEAL);
     const [isReady, setIsReady] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const dispatch = useDispatch<AppDispatch>();
-    const user = getAuth()?.currentUser;
+
+    useEffect(() => {
+        const getUser = async () => {
+            const userString = await AsyncStorage.getItem('session');
+            if (userString) {
+                const user = JSON.parse(userString);
+                setCurrentUser(user);
+            }
+        };
+        getUser();
+    }, []);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -48,11 +59,11 @@ export default function AppMediaNavitaionComponent() {
         setDisableNextButton(year > todayYear || (year === todayYear && month >= todayMonth));
         setDisablePrevButton(month === 1 && year === todayYear);
 
-        if (user?.uid) {
-            dispatch(fetchWeightData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid }));
-            dispatch(fetchDietData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid }));
+        if (currentUser?.uid) {
+            dispatch(fetchWeightData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid }));
+            dispatch(fetchDietData({ month: currentMonth.month, year: currentMonth.year, userId: currentUser.uid }));
         }
-    }, [currentMonth, user]);
+    }, [currentMonth, currentUser]);
 
     const navNext = () => {
         let newMonth = month + 1;

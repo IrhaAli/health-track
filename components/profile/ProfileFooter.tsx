@@ -1,4 +1,3 @@
-import { getAuth } from "firebase/auth";
 import { Linking, StyleSheet, View } from "react-native";
 import AlertAsync from "react-native-alert-async";
 import { Button, Surface, Text, useTheme, Divider } from "react-native-paper";
@@ -9,16 +8,28 @@ import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
   const userData = userObjStr?.length ? JSON.parse(userObjStr) : null;
   const theme = useTheme();
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
-  const auth = getAuth();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const onLogout = () => {
     dispatch(setUser(null));
@@ -38,12 +49,11 @@ export default function ProfileFooterLinks() {
 
     if (!choice) return;
 
-    const user: any = auth.currentUser;
     try {
       const deleteAccount = doc(db, "users", userData.id);
       await updateDoc(deleteAccount, {
         is_deleted: true,
-      }).then(() => user.delete());
+      }).then(() => currentUser.delete());
     } catch (error) {
       console.log("error in delete account", error);
     }

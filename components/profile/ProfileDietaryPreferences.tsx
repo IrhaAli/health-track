@@ -1,4 +1,3 @@
-import { getAuth } from "firebase/auth";
 import {
   collection,
   query,
@@ -11,10 +10,11 @@ import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import DietaryPreferences from "@/components/user_info/DietaryPreferences";
 import { db } from "../../firebaseConfig";
+import React from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileDietaryPreferences() {
-  const uid =
-    /* getAuth().currentUser?.uid || */ "PHCJD511ukbTHQfVXPu26N8rzqg1";
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [dietaryPreferences, setDietaryPreferences] = useState({
@@ -62,13 +62,23 @@ export default function ProfileDietaryPreferences() {
     is_sugar_free: "Sugar Free",
     is_salt_free: "Salt Free",
   };
-  const auth = getAuth();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const userString = await AsyncStorage.getItem('session');
+      if (userString) {
+        const user = JSON.parse(userString);
+        setCurrentUser(user);
+      }
+    };
+    getUser();
+  }, []);
 
   const fetchData = async (collectionName: string) => {
     try {
       const collectionData = query(
         collection(db, collectionName),
-        where("user_id", "==", auth.currentUser?.uid)
+        where("user_id", "==", currentUser?.uid)
       );
       const querySnapshot = await getDocs(collectionData);
       let docData: any[] = [];
@@ -87,8 +97,10 @@ export default function ProfileDietaryPreferences() {
       const dietaryInfo = await fetchData("dietary_preferences");
       setDietaryPreferences((({ user_id, ...o }) => o)(dietaryInfo));
     };
-    getData();
-  }, []);
+    if (currentUser) {
+      getData();
+    }
+  }, [currentUser]);
 
   const onSubmit = async () => {
     setIsEdit(false);

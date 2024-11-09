@@ -8,14 +8,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Divider, Button, HelperText, Text, Surface, TextInput } from 'react-native-paper';
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addWaterData, updateWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState, isWaterDataEntry } from "@/types/track";
 import { clearImageURI } from "@/store/cameraSlice";
 
 enum WaterTypeEnum {
     MILLILITRES = "millilitres",
-    LITRES = "litres",
+    LITRES = "litres", 
     CUPS = "cups"
 };
 
@@ -30,9 +30,20 @@ export default function TrackWaterForm() {
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
-    const auth = getAuth();
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const waterTypeOptions = Object.values(WaterTypeEnum).map((type) => ({ label: type.charAt(0).toUpperCase() + type.slice(1), value: type }));
     const [currentWaterData, setCurrentWaterData] = useState<WaterDataEntry | {}>({});
+
+    useEffect(() => {
+        const getUser = async () => {
+            const userString = await AsyncStorage.getItem('session');
+            if (userString) {
+                const user = JSON.parse(userString);
+                setCurrentUser(user);
+            }
+        };
+        getUser();
+    }, []);
 
     const getWaterDataObject = (): WaterDataEntry | {} => {
         const [year, month] = currentDate.split('-');
@@ -92,7 +103,7 @@ export default function TrackWaterForm() {
             return;
         }
 
-        if (auth?.currentUser?.uid) {
+        if (currentUser?.uid) {
             setLoading(true);
 
             try {
@@ -100,7 +111,7 @@ export default function TrackWaterForm() {
                 waterDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds(), new Date().getMilliseconds());
 
                 if (dialogType !== DialogType.EDIT) {
-                    let addWater: WaterDataEntry = { user_id: auth.currentUser.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType: WaterTypeEnum.MILLILITRES }
+                    let addWater: WaterDataEntry = { user_id: currentUser.uid, date: waterDate, intake_amount: calculateIntakeAmount(), waterType: WaterTypeEnum.MILLILITRES }
                     dispatch(addWaterData({ addWater, currentDate }))
                 }
                 if (dialogType === DialogType.EDIT && isWaterDataEntry(currentWaterData)) {

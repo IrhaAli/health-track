@@ -8,7 +8,7 @@ import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { Divider, Button, Text, HelperText, Avatar, Surface } from 'react-native-paper';
-import { getAuth } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDietData, updateDietData } from "@/store/trackSlice";
 import { DietDataEntry, DietDataState, isDietDataEntry, TrackState } from "@/types/track";
 
@@ -34,9 +34,20 @@ export default function TrackDietForm() {
     const [showError, setShowError] = useState<boolean>(false);
     const [errorString, setErrorString] = useState<string | null>(null);
     const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
-    const auth = getAuth();
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [imageToBeDelete, setImageToBeDelete] = useState<string | null>(null);
     const [currentDietData, setCurrentDietData] = useState<DietDataEntry | {}>({});
+
+    useEffect(() => {
+        const getUser = async () => {
+            const userString = await AsyncStorage.getItem('session');
+            if (userString) {
+                const user = JSON.parse(userString);
+                setCurrentUser(user);
+            }
+        };
+        getUser();
+    }, []);
 
     const getDietDataObject = (): DietDataEntry | {} => {
         const [year, month] = currentDate.split('-');
@@ -130,7 +141,7 @@ export default function TrackDietForm() {
             return;
         }
 
-        if (auth?.currentUser?.uid) {
+        if (currentUser?.uid) {
             if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
                 setErrorString('Please add meal picture!');
@@ -149,7 +160,7 @@ export default function TrackDietForm() {
 
             try {
                 if (dialogType !== DialogType.EDIT) {
-                    let addDiet = { user_id: auth.currentUser.uid, date: mealTime, meal_picture: await uploadImage() }
+                    let addDiet = { user_id: currentUser.uid, date: mealTime, meal_picture: await uploadImage() }
                     dispatch(addDietData({ currentDate: currentDate, addDiet: addDiet }));
                 }
                 if (dialogType === DialogType.EDIT && isDietDataEntry(currentDietData)) {
