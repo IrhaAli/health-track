@@ -174,9 +174,9 @@ export default function HomeComponent() {
             <View style={[styles.calendarParent, {
                 flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
             }]}>
-                {renderNavigationButton('chevron-left', navPrev, disablePrevButton)}
+                {renderNavigationButton(currentLanguage === 'ar' ? 'chevron-right' : 'chevron-left', navPrev, disablePrevButton)}
                 <Text variant="titleLarge">{MONTH_NAMES[currentLanguage as keyof typeof MONTH_NAMES][month - 1]} {year}</Text>
-                {renderNavigationButton('chevron-right', navNext, disableNextButton)}
+                {renderNavigationButton(currentLanguage === 'ar' ? 'chevron-left' : 'chevron-right', navNext, disableNextButton)}
             </View>
             <MealChartComponent />
             <FastingChartComponent />
