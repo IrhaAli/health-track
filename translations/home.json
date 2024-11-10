@@ -13,14 +13,24 @@
             "october": "October",
             "november": "November",
             "december": "December"
-        }
+        },
+        "dailyMealCount": "Daily Meal Count",
+        "noMealData": "No meal data available for this month",
+        "dailyFastingHours": "Daily Fasting Hours",
+        "noFastingData": "No fasting data available for this month",
+        "weightTitle": "Daily Weight (Kg)",
+        "noWeightData": "No weight data available for this month",
+        "waterIntakeTitle": "Daily Water Intake (ML)",
+        "noWaterData": "No water data available for this month",
+        "sleepDurationTitle": "Daily Sleep Duration (Hours)",
+        "noSleepData": "No sleep data available for this month"
     },
     "fr": {
         "months": {
             "january": "Janvier",
             "february": "Février",
             "march": "Mars",
-            "april": "Avril", 
+            "april": "Avril",
             "may": "Mai",
             "june": "Juin",
             "july": "Juillet",
@@ -29,12 +39,22 @@
             "october": "Octobre",
             "november": "Novembre",
             "december": "Décembre"
-        }
+        },
+        "dailyMealCount": "Nombre de Repas Quotidiens",
+        "noMealData": "Aucune donnée de repas disponible pour ce mois",
+        "dailyFastingHours": "Heures de Jeûne Quotidiennes",
+        "noFastingData": "Aucune donnée de jeûne disponible pour ce mois",
+        "weightTitle": "Poids Quotidien (Kg)",
+        "noWeightData": "Aucune donnée de poids disponible pour ce mois",
+        "waterIntakeTitle": "Consommation d'eau quotidienne (ML)",
+        "noWaterData": "Aucune donnée d'eau disponible pour ce mois",
+        "sleepDurationTitle": "Durée de Sommeil Quotidienne (Heures)",
+        "noSleepData": "Aucune donnée de sommeil disponible pour ce mois"
     },
     "ar": {
         "months": {
             "january": "يناير",
-            "february": "فبراير", 
+            "february": "فبراير",
             "march": "مارس",
             "april": "أبريل",
             "may": "مايو",
@@ -45,6 +65,16 @@
             "october": "أكتوبر",
             "november": "نوفمبر",
             "december": "ديسمبر"
-        }
+        },
+        "dailyMealCount": "عدد الوجبات اليومية",
+        "noMealData": "لا توجد بيانات وجبات متاحة لهذا الشهر",
+        "dailyFastingHours": "ساعات الصيام اليومية",
+        "noFastingData": "لا توجد بيانات صيام متاحة لهذا الشهر",
+        "weightTitle": "الوزن اليومي (كجم)",
+        "noWeightData": "لا توجد بيانات وزن متاحة لهذا الشهر",
+        "waterIntakeTitle": "استهلاك الماء اليومي (مل)",
+        "noWaterData": "لا توجد بيانات مياه متاحة لهذا الشهر",
+        "sleepDurationTitle": "مدة النوم اليومية (ساعات)",
+        "noSleepData": "لا تتوفر بيانات النوم لهذا الشهر"
     }
 }
