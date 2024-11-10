@@ -1,7 +1,7 @@
 import ProfileFooterLinks from "./ProfileFooter";
 import ProfileHeader from "./ProfileHeader";
 import { Button, Surface, useTheme } from "react-native-paper";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import ProfileContactForm from "./ProfileContactForm";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
@@ -120,25 +120,37 @@ export default function ProfileComponent() {
     }
   ] : [];
 
+  const handleNavigation = (href: string) => {
+    router.push(href);
+  };
+
   const MemoizedMenuItems = useCallback(() => {
     if (!t) return null;
     
     return (
       <View style={styles.menuContainer}>
         {menuItems.map((item, index) => (
-          <Link key={index} href={item.href} style={styles.menuLink}>
+          <View key={index} style={styles.buttonWrapper}>
             <Button
               mode="text"
               icon={item.icon}
-              contentStyle={styles.buttonContent}
-              style={styles.menuButton}
-              labelStyle={styles.buttonLabel}
+              contentStyle={[
+                styles.buttonContent,
+                currentLanguage === 'ar' && {flexDirection: 'row-reverse'}
+              ]}
+              style={[styles.menuButton]}
+              labelStyle={[
+                styles.buttonLabel,
+                currentLanguage === 'ar' ? {marginRight: 24} : {marginLeft: 24},
+                {textAlign: 'center'}
+              ]}
               uppercase={false}
               rippleColor={theme.colors.primary}
+              onPress={() => handleNavigation(item.href)}
             >
               {item.title}
             </Button>
-          </Link>
+          </View>
         ))}
       </View>
     );
@@ -192,9 +204,12 @@ const styles = StyleSheet.create({
   },
   menuLink: {
     width: '100%',
-    marginBottom: 12,
+    marginBottom: 12
+  },
+  buttonWrapper: {
+    width: '100%',
     alignItems: 'center',
-    alignSelf: 'center'
+    marginBottom: 12
   },
   menuButton: {
     borderRadius: 12,
@@ -209,21 +224,20 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    alignSelf: 'center'
+    justifyContent: 'center'
   },
   buttonContent: {
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingLeft: 20
+    justifyContent: 'center',
+    paddingHorizontal: 20
   },
   buttonLabel: {
     fontSize: 18,
     fontWeight: '500',
-    textAlign: 'left',
-    marginLeft: 24,
-    color: '#333'
+    color: '#333',
+    textAlign: 'center'
   },
   formContainer: {
     width: '100%',
