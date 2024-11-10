@@ -1,16 +1,54 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { DietDataState } from "@/types/track";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import translations from "@/translations/home.json";
 
 export default function FastingChartComponent() {
+  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
+  const [t, setT] = useState<any>(null);
+
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const dietData: DietDataState | [] = useSelector((state: RootState) => state.track.dietData);
   const isLoading = useSelector((state: RootState) => state.track.loadingTrackDietData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
+
+  useEffect(() => {
+    const initLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('userLanguage');
+        const effectiveLanguage = savedLanguage || 'en';
+        setCurrentLanguage(effectiveLanguage);
+        setT(translations[effectiveLanguage as keyof typeof translations]);
+      } catch (error) {
+        console.error('Error getting language:', error);
+        setT(translations.en);
+      }
+    };
+    initLanguage();
+  }, []);
+
+  // Listen for language changes
+  useEffect(() => {
+    const checkLanguageChanges = async () => {
+      try {
+        const newLanguage = await AsyncStorage.getItem('userLanguage');
+        if (newLanguage && newLanguage !== currentLanguage) {
+          setCurrentLanguage(newLanguage);
+          setT(translations[newLanguage as keyof typeof translations]);
+        }
+      } catch (error) {
+        console.error('Error checking language changes:', error);
+      }
+    };
+
+    const intervalId = setInterval(checkLanguageChanges, 1000);
+    return () => clearInterval(intervalId);
+  }, [currentLanguage]);
 
   const getChartData = () => {
     if (Array.isArray(dietData) || !dietData[formattedMonth]?.length) {
@@ -34,7 +72,7 @@ export default function FastingChartComponent() {
         const hours = (currentMealDate.getTime() - prevMealDate.getTime()) / (1000 * 60 * 60);
         
         const day = String(currentMealDate.getDate()).padStart(2, '0');
-        const month = currentMealDate.toLocaleString('default', { month: 'short' }).toLowerCase();
+        const month = currentMealDate.toLocaleString(currentLanguage, { month: 'short' }).toLowerCase();
         const dateLabel = `${day} ${month}`;
         
         fastingHours[dateLabel] = hours;
@@ -60,9 +98,11 @@ export default function FastingChartComponent() {
 
   const chartData = getChartData();
 
+  if (!t) return null;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Daily Fasting Hours</Text>
+      <Text style={styles.title}>{t.dailyFastingHours}</Text>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4CAF50" />
@@ -75,10 +115,7 @@ export default function FastingChartComponent() {
               { value: 0, label: '', frontColor: 'transparent' }
             ]}
             barWidth={20}
-            spacing={10}
-            roundedTop
-            roundedBottom
-            hideRules
+            spacing={5}
             xAxisThickness={0.5}
             yAxisThickness={0.5}
             yAxisTextStyle={{ color: '#666', fontSize: 10 }}
@@ -101,7 +138,7 @@ export default function FastingChartComponent() {
             backgroundColor={'#fff'}
           />
           {chartData.length === 0 && !isLoading && (
-            <Text style={styles.noDataText}>No fasting data available for this month</Text>
+            <Text style={styles.noDataText}>{t.noFastingData}</Text>
           )}
         </>
       )}
