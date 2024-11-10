@@ -1,6 +1,6 @@
 import { Linking, StyleSheet, View } from "react-native";
 import AlertAsync from "react-native-alert-async";
-import { Button, Surface, Text, useTheme, Divider, Dialog, Portal } from "react-native-paper";
+import { Button, Surface, Text, useTheme, Divider, Dialog, Portal, ActivityIndicator } from "react-native-paper";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { useDispatch } from "react-redux";
@@ -18,6 +18,7 @@ export default function ProfileFooterLinks() {
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
+  const [isLanguageLoading, setIsLanguageLoading] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState("en");
   const [t, setT] = useState<any>(null);
 
@@ -51,12 +52,19 @@ export default function ProfileFooterLinks() {
 
   const handleLanguageSelect = async (language: string) => {
     try {
+      setIsLanguageLoading(true);
+      setLanguageDialogVisible(false);
+      
       await AsyncStorage.setItem('userLanguage', language);
       setCurrentLanguage(language);
       setT(translations[language as keyof typeof translations]);
-      setLanguageDialogVisible(false);
+      
+      // Add artificial delay after everything is changed
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error('Error saving language:', error);
+    } finally {
+      setIsLanguageLoading(false);
     }
   };
 
@@ -100,7 +108,7 @@ export default function ProfileFooterLinks() {
         mode="contained"
         onPress={onLogout}
         style={styles.logoutButton}
-        contentStyle={styles.buttonContent}
+        contentStyle={[styles.buttonContent, currentLanguage === 'ar' && {flexDirection: 'row-reverse'}]}
         labelStyle={styles.buttonLabel}
         icon="logout"
       >
@@ -116,6 +124,7 @@ export default function ProfileFooterLinks() {
           textColor={theme.colors.error}
           icon="account-remove"
           style={styles.linkButton}
+          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {t.deleteAccount}
         </Button>
@@ -123,8 +132,9 @@ export default function ProfileFooterLinks() {
         <Button
           mode="text"
           onPress={() => Linking.openURL("https://google.com")}
-          icon="shield-account"
+          icon="shield-account" 
           style={styles.linkButton}
+          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {t.privacyPolicy}
         </Button>
@@ -134,6 +144,7 @@ export default function ProfileFooterLinks() {
           onPress={() => Linking.openURL("https://google.com")}
           icon="file-document"
           style={styles.linkButton}
+          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {t.termsAndConditions}
         </Button>
@@ -143,13 +154,14 @@ export default function ProfileFooterLinks() {
           onPress={() => setLanguageDialogVisible(true)}
           icon="translate"
           style={styles.linkButton}
+          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {t.changeLanguage}
         </Button>
 
         <Portal>
           <Dialog visible={languageDialogVisible} onDismiss={() => setLanguageDialogVisible(false)}>
-            <Dialog.Title style={styles.dialogTitle}>{t.selectLanguage}</Dialog.Title>
+            <Dialog.Title style={styles.dialogTitle}>Select Language</Dialog.Title>
             <Dialog.Content style={styles.dialogContent}>
               <Button
                 mode="contained-tonal"
@@ -178,6 +190,13 @@ export default function ProfileFooterLinks() {
               >
                 عربي
               </Button>
+            </Dialog.Content>
+          </Dialog>
+
+          <Dialog visible={isLanguageLoading} dismissable={false}>
+            <Dialog.Content style={styles.loadingContent}>
+              <ActivityIndicator animating={true} size="large" />
+              <Text style={styles.loadingText}>Changing language...</Text>
             </Dialog.Content>
           </Dialog>
         </Portal>
@@ -237,5 +256,13 @@ const styles = StyleSheet.create({
   },
   selectedLanguageLabel: {
     color: 'white',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
   }
 });
