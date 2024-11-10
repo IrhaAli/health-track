@@ -84,7 +84,10 @@ export default function ProfileContactForm() {
 
   return (
     <Surface style={styles.container} elevation={1}>
-      <Text variant="titleLarge" style={styles.title}>{t.title}</Text>
+      <Text variant="titleLarge" style={[
+        styles.title,
+        currentLanguage === 'ar' && styles.titleRTL
+      ]}>{t.title}</Text>
       
       <TextInput
         mode="outlined"
@@ -95,9 +98,18 @@ export default function ProfileContactForm() {
         }}
         autoCorrect={false}
         autoCapitalize="words"
-        style={styles.subjectInput}
+        style={[
+          styles.subjectInput,
+          currentLanguage === 'ar' && styles.inputRTL
+        ]}
         outlineColor={theme.colors.primary}
         activeOutlineColor={theme.colors.primary}
+        textAlign={currentLanguage === 'ar' ? 'right' : 'left'}
+        textAlignVertical="center"
+        textContentType="none"
+        contentStyle={[
+          currentLanguage === 'ar' && styles.inputContentRTL
+        ]}
       />
 
       <TextInput
@@ -111,9 +123,16 @@ export default function ProfileContactForm() {
         }}
         autoCorrect={false}
         autoCapitalize="sentences"
-        style={styles.messageInput}
+        style={[
+          styles.messageInput,
+          currentLanguage === 'ar' && styles.inputRTL
+        ]}
         outlineColor={theme.colors.primary}
         activeOutlineColor={theme.colors.primary}
+        textAlign={currentLanguage === 'ar' ? 'right' : 'left'}
+        contentStyle={[
+          currentLanguage === 'ar' && styles.inputContentRTL
+        ]}
       />
 
       <Button 
@@ -121,6 +140,7 @@ export default function ProfileContactForm() {
         onPress={onContactSend}
         style={styles.button}
         icon="send"
+        contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
       >
         {t.sendMessage}
       </Button>
@@ -137,6 +157,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: 'bold',
   },
+  titleRTL: {
+    textAlign: 'right',
+    width: '100%'
+  },
   subjectInput: {
     marginBottom: 16,
     backgroundColor: 'transparent',
@@ -148,5 +172,12 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 8,
     paddingVertical: 6,
+  },
+  inputRTL: {
+    textAlign: 'right',
+  },
+  inputContentRTL: {
+    textAlign: 'right',
+    writingDirection: 'rtl'
   }
 });
