@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "CFBundleAllowMixedLocalizations": true
     },
     "android": {
       "adaptiveIcon": {
@@ -37,11 +38,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+          "cameraPermission": {
+            "en": "Allow $(PRODUCT_NAME) to access your camera",
+            "fr": "Autoriser $(PRODUCT_NAME) à accéder à votre caméra",
+            "ar": "السماح لـ $(PRODUCT_NAME) بالوصول إلى الكاميرا"
+          }
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true
@@ -49,7 +55,13 @@
     "extra": {
       "eas": {
         "projectId": "0a489597-5ba9-4fa6-9d5d-e3b3c892c1b3"
-      }
+      },
+      "supportsRTL": true
+    },
+    "locales": {
+      "en": "./translations/en.json",
+      "fr": "./translations/fr.json", 
+      "ar": "./translations/ar.json"
     }
   }
 }
