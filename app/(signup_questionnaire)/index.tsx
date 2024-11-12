@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import UserDetails from "@/components/user_info/UserDetails";
 import { ScrollView } from "react-native";
 import { Button, Surface } from "react-native-paper";
