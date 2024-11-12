@@ -50,8 +50,10 @@ export default function ProfileFooterLinks() {
       if (I18nManager.isRTL !== isRTL) {
         I18nManager.allowRTL(isRTL);
         I18nManager.forceRTL(isRTL);
-        await Updates.reloadAsync(); // Reload app to apply RTL changes
       }
+
+      // Always reload app after language change
+      await Updates.reloadAsync();
 
     } catch (error) {
       console.error('Error changing language:', error);
