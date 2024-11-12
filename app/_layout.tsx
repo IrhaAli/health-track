@@ -1,7 +1,7 @@
-import { Stack, Redirect, Slot } from "expo-router";
+import {  Slot } from "expo-router";
 import { Provider } from "react-redux";
 import store from "../store/store";
-import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
 import { SessionProvider } from '../ctx';
 import React from "react";
 import { theme } from "./theme";
