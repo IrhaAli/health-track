@@ -1,10 +1,19 @@
 import { Platform } from 'react-native';
 import { useFonts } from 'expo-font';
 import AppLoading from 'expo-app-loading';
+import { MD3LightTheme as DefaultTheme } from 'react-native-paper';
 import React from 'react';
 
+export const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: 'tomato',
+    secondary: 'yellow',
+  },
+};
 
-export const themeColor = '#00AAAF';
+export const themeColor = theme.colors.primary;
 export const lightThemeColor = '#f2f7f7';
 
 export function getTheme() {
@@ -33,7 +42,7 @@ export function getTheme() {
     textDayHeaderFontWeight: 'normal' as const,
     // dates
     dayTextColor: themeColor,
-    todayTextColor: '#af0078',
+    todayTextColor: theme.colors.secondary,
     textDayFontSize: 18,
     textDayFontFamily: 'HelveticaNeue',
     textDayFontWeight: '500' as const,

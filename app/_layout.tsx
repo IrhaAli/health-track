@@ -4,15 +4,7 @@ import store from "../store/store";
 import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
 import { SessionProvider } from '../ctx';
 import React from "react";
-
-const theme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: 'tomato',
-    secondary: 'yellow',
-  },
-};
+import { theme } from "./theme";
 
 export default function Layout() {
   return (
