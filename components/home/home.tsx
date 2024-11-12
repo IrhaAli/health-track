@@ -12,29 +12,12 @@ import WaterChartComponent from "./water";
 import SleepChartComponent from "./sleep";
 import WeightChartComponent from "./weight";
 import FastingChartComponent from "./fasting";
-import translations from "@/translations/home.json";
-
-const MONTH_NAMES = {
-    en: [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ],
-    fr: [
-        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-    ],
-    ar: [
-        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-    ]
-};
+import i18n from "@/i18n";
 
 export default function HomeComponent() {
     const [disablePrevButton, setDisablePrevButton] = useState(false);
     const [disableNextButton, setDisableNextButton] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
-    const [currentLanguage, setCurrentLanguage] = useState<string>('en');
-    const [isLanguageLoaded, setIsLanguageLoaded] = useState(false);
 
     const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
     const dispatch = useDispatch<AppDispatch>();
@@ -48,43 +31,6 @@ export default function HomeComponent() {
             todayYear: today.getFullYear()
         };
     }, [currentMonth]);
-
-    // Initialize language
-    useEffect(() => {
-        const initLanguage = async () => {
-            try {
-                const savedLanguage = await AsyncStorage.getItem('userLanguage');
-                if (savedLanguage) {
-                    setCurrentLanguage(savedLanguage);
-                }
-            } catch (error) {
-                console.error('Error getting language:', error);
-            } finally {
-                setIsLanguageLoaded(true);
-            }
-        };
-        initLanguage();
-    }, []);
-
-    // Listen for language changes
-    useEffect(() => {
-        const checkLanguageChanges = async () => {
-            try {
-                const newLanguage = await AsyncStorage.getItem('userLanguage');
-                if (newLanguage && newLanguage !== currentLanguage) {
-                    setCurrentLanguage(newLanguage);
-                }
-            } catch (error) {
-                console.error('Error checking language changes:', error);
-            }
-        };
-
-        const intervalId = setInterval(checkLanguageChanges, 1000);
-
-        return () => {
-            clearInterval(intervalId);
-        };
-    }, [currentLanguage]);
 
     // Get user from AsyncStorage and fetch data
     useEffect(() => {
@@ -165,18 +111,19 @@ export default function HomeComponent() {
         </Button>
     ), []);
 
-    if (!isLanguageLoaded) {
-        return null;
-    }
+    const monthName = useMemo(() => {
+        const date = new Date(year, month - 1);
+        return date.toLocaleString(i18n.locale, { month: 'long' });
+    }, [month, year]);
 
     return (
         <ScrollView style={styles.container}>
             <View style={[styles.calendarParent, {
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                flexDirection: 'row'
             }]}>
-                {renderNavigationButton(currentLanguage === 'ar' ? 'chevron-right' : 'chevron-left', navPrev, disablePrevButton)}
-                <Text variant="titleLarge">{MONTH_NAMES[currentLanguage as keyof typeof MONTH_NAMES][month - 1]} {year}</Text>
-                {renderNavigationButton(currentLanguage === 'ar' ? 'chevron-left' : 'chevron-right', navNext, disableNextButton)}
+                {renderNavigationButton(i18n.locale === 'ar' ? 'chevron-right' : 'chevron-left', navPrev, disablePrevButton)}
+                <Text variant="titleLarge">{monthName} {year}</Text>
+                {renderNavigationButton(i18n.locale === 'ar' ? 'chevron-left' : 'chevron-right', navNext, disableNextButton)}
             </View>
             <MealChartComponent />
             <FastingChartComponent />
