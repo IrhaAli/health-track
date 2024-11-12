@@ -1,7 +1,7 @@
 import React, { useContext, createContext, type PropsWithChildren, useEffect } from 'react';
 import { useStorageState } from "./useStorageState";
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { auth } from './services/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
@@ -11,7 +11,6 @@ interface AuthContextType {
   signOut: () => void;
   session?: string | null;
   isLoading: boolean;
-  isFirstLaunch: boolean | null;
 }
 
 const AuthContextDefault: AuthContextType = {
@@ -19,7 +18,6 @@ const AuthContextDefault: AuthContextType = {
   signOut: () => {},
   session: null,
   isLoading: true,
-  isFirstLaunch: null
 };
 
 const AuthContext = createContext<AuthContextType>(AuthContextDefault);
@@ -36,7 +34,6 @@ export function useSession() {
 
 export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState('session');
-  const [isFirstLaunch, setIsFirstLaunch] = React.useState<boolean | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(true);
   const [lastAuthCheck, setLastAuthCheck] = React.useState<number>(0);
   const ONE_HOUR = 3600000; // 1 hour in milliseconds
@@ -44,9 +41,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const [hasLaunched, language, savedSession, lastCheck] = await Promise.all([
-          AsyncStorage.getItem('hasLaunched'),
-          AsyncStorage.getItem('userLanguage'),
+        const [savedSession, lastCheck] = await Promise.all([
           AsyncStorage.getItem('session'),
           AsyncStorage.getItem('lastAuthCheck')
         ]);
@@ -55,27 +50,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setLastAuthCheck(parseInt(lastCheck));
         }
 
-        if (!hasLaunched) {
-          setIsFirstLaunch(true);
-          await AsyncStorage.setItem('hasLaunched', 'true');
-          // Defer navigation
-          setTimeout(() => router.replace('/language'), 0);
+        if (savedSession) {
+          await setSession(savedSession);
+          setTimeout(() => router.replace('/(root)'), 0);
         } else {
-          setIsFirstLaunch(false);
-          if (savedSession) {
-            await setSession(savedSession);
-            if (!language) {
-              setTimeout(() => router.replace('/language'), 0);
-            } else {
-              setTimeout(() => router.replace('/(root)'), 0);
-            }
-          } else {
-            setTimeout(() => router.replace('/login'), 0);
-          }
+          setTimeout(() => router.replace('/login'), 0);
         }
       } catch (error) {
         console.error('Initialization error:', error);
-        setIsFirstLaunch(false);
         setTimeout(() => router.replace('/login'), 0);
       } finally {
         setIsInitializing(false);
@@ -115,7 +97,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const onAuthStateChange = async (user: any) => {
     try {
-      const language = await AsyncStorage.getItem('userLanguage');
       const currentTime = Date.now();
 
       if (user) {
@@ -131,12 +112,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(userString)
         ]);
         setLastAuthCheck(currentTime);
-
-        if (!language) {
-          setTimeout(() => router.replace('/language'), 0);
-        } else {
-          setTimeout(() => router.replace('/(root)'), 0);
-        }
+        setTimeout(() => router.replace('/(root)'), 0);
       } else {
         await Promise.all([
           AsyncStorage.removeItem('session'),
@@ -176,13 +152,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(userString)
       ]);
       setLastAuthCheck(currentTime);
-
-      const language = await AsyncStorage.getItem('userLanguage');
-      if (!language) {
-        setTimeout(() => router.replace('/language'), 0);
-      } else {
-        setTimeout(() => router.replace('/(root)'), 0);
-      }
+      setTimeout(() => router.replace('/(root)'), 0);
       return userCredential;
     } catch (error) {
       await Promise.all([
@@ -231,7 +201,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
         signOut: handleSignOut,
         session,
         isLoading: false,
-        isFirstLaunch
       }}>
       {children}
     </AuthContext.Provider>
