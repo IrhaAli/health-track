@@ -52,13 +52,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
         if (savedSession) {
           await setSession(savedSession);
-          setTimeout(() => router.replace('/(root)'), 0);
-        } else {
-          setTimeout(() => router.replace('/login'), 0);
         }
       } catch (error) {
         console.error('Initialization error:', error);
-        setTimeout(() => router.replace('/login'), 0);
       } finally {
         setIsInitializing(false);
       }
@@ -70,6 +66,17 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
     return () => unsubscribe();
   }, []);
+
+  // Separate useEffect for navigation after initialization
+  useEffect(() => {
+    if (!isInitializing && !isLoading) {
+      if (session) {
+        router.replace('/(root)');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [isInitializing, isLoading, session]);
 
   useEffect(() => {
     let unsubscribe: () => void;
@@ -112,7 +119,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(userString)
         ]);
         setLastAuthCheck(currentTime);
-        setTimeout(() => router.replace('/(root)'), 0);
       } else {
         await Promise.all([
           AsyncStorage.removeItem('session'),
@@ -120,12 +126,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setSession(null)
         ]);
         setLastAuthCheck(0);
-        setTimeout(() => router.replace('/login'), 0);
       }
     } catch (error) {
       console.error('Auth state change error:', error);
       await setSession(null);
-      setTimeout(() => router.replace('/login'), 0);
     } finally {
       setIsInitializing(false);
     }
@@ -152,7 +156,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(userString)
       ]);
       setLastAuthCheck(currentTime);
-      setTimeout(() => router.replace('/(root)'), 0);
       return userCredential;
     } catch (error) {
       await Promise.all([
@@ -174,7 +177,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(null)
       ]);
       setLastAuthCheck(0);
-      setTimeout(() => router.replace('/login'), 0);
     } catch (error) {
       console.error('Sign out error:', error);
       await Promise.all([
