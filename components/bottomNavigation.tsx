@@ -5,8 +5,8 @@ import { View, Text, StyleSheet, Animated, useColorScheme } from "react-native";
 import { TouchableRipple } from "react-native-paper";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useDispatch } from "react-redux";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import translations from "@/translations/layout.json";
+import { getLocales } from 'expo-localization';
+import i18n from '@/i18n';
 import { usePathname, useRouter } from "expo-router";
 
 interface BottomTabBarProps {
@@ -14,39 +14,24 @@ interface BottomTabBarProps {
     currentIndex: number;
 }
 
+// Define routes without translations initially
+const getRoutes = () => [
+    { key: 'home', title: i18n.t('home'), icon: 'home', path: '/' },
+    { key: 'track', title: i18n.t('track'), icon: 'clock', path: '/track' },
+    { key: 'media', title: i18n.t('media'), icon: 'image', path: '/media' },
+    { key: 'profile', title: i18n.t('profile'), icon: 'account', path: '/profile' },
+];
+
 // BottomTabBar component
 export const BottomTabBar = React.memo(({ onIndexChange, currentIndex }: BottomTabBarProps) => {
     const colorScheme = useColorScheme();
     const slideAnim = React.useRef(new Animated.Value(0)).current;
     const dispatch = useDispatch();
-    const [currentLanguage, setCurrentLanguage] = React.useState<string>('en');
-    const [isLanguageLoaded, setIsLanguageLoaded] = React.useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
-    // Move routes inside useEffect to ensure it updates when language changes
-    useEffect(() => {
-        const initLanguage = async () => {
-            try {
-                const savedLanguage = await AsyncStorage.getItem('userLanguage');
-                if (savedLanguage) {
-                    setCurrentLanguage(savedLanguage);
-                }
-            } catch (error) {
-                console.error('Error getting language:', error);
-            } finally {
-                setIsLanguageLoaded(true);
-            }
-        };
-        initLanguage();
-    }, []);
-
-    const routes = useMemo(() => [
-        { key: 'home', title: translations[currentLanguage as keyof typeof translations].home || translations.en.home, icon: 'home', path: '/' },
-        { key: 'track', title: translations[currentLanguage as keyof typeof translations].track || translations.en.track, icon: 'clock', path: '/track' },
-        { key: 'media', title: translations[currentLanguage as keyof typeof translations].media || translations.en.media, icon: 'image', path: '/media' },
-        { key: 'profile', title: translations[currentLanguage as keyof typeof translations].profile || translations.en.profile, icon: 'account', path: '/profile' },
-    ], [currentLanguage]);
+    // Memoize routes with current translations
+    const routes = useMemo(() => getRoutes(), [i18n.locale]);
 
     // Update currentIndex based on pathname
     useEffect(() => {
@@ -54,7 +39,7 @@ export const BottomTabBar = React.memo(({ onIndexChange, currentIndex }: BottomT
         if (currentRoute !== -1 && currentRoute !== currentIndex) {
             onIndexChange(currentRoute);
         }
-    }, [pathname, routes, currentIndex, onIndexChange]);
+    }, [pathname, currentIndex, onIndexChange]);
 
     const handleIndexChange = useCallback((newIndex: number) => {
         Animated.spring(slideAnim, {
@@ -79,43 +64,14 @@ export const BottomTabBar = React.memo(({ onIndexChange, currentIndex }: BottomT
                 `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
             ));
         }
-    }, [dispatch, slideAnim, onIndexChange, router, routes]);
-
-    // Add effect to listen for language changes
-    useEffect(() => {
-        const checkLanguageChanges = async () => {
-            try {
-                const newLanguage = await AsyncStorage.getItem('userLanguage');
-                if (newLanguage && newLanguage !== currentLanguage) {
-                    setCurrentLanguage(newLanguage);
-                }
-            } catch (error) {
-                console.error('Error checking language changes:', error);
-            }
-        };
-
-        // Set up interval to check for language changes
-        const intervalId = setInterval(checkLanguageChanges, 1000);
-
-        return () => {
-            clearInterval(intervalId);
-        };
-    }, [currentLanguage]);
-
-    const t = useMemo(() => {
-        return translations[currentLanguage as keyof typeof translations] || translations.en;
-    }, [currentLanguage]);
-
-    if (!isLanguageLoaded) {
-        return null;
-    }
+    }, [dispatch, slideAnim, onIndexChange, router]);
 
     return (
         <View style={[
             styles.tabBar,
             {
                 backgroundColor: Colors[colorScheme ?? "light"].tint,
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                flexDirection: 'row'
             }
         ]}>
             {routes.map((route, i) => (
