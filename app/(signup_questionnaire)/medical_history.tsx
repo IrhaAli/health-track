@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { router, Link } from "expo-router";
 import { Pressable, StyleSheet, View, Text } from "react-native";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { ScrollView } from "react-native";
 

@@ -4,7 +4,7 @@ import { Button, Surface, useTheme } from "react-native-paper";
 import { router } from "expo-router";
 import ProfileContactForm from "./ProfileContactForm";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
+import { db } from "@/services/firebaseConfig";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/userSlice";
 import { AppDispatch } from "@/store/store";

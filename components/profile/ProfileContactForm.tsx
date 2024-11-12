@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { useState, useEffect } from "react";
 import { Button, Surface, TextInput, Text, useTheme } from "react-native-paper";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
+import { db } from "@/services/firebaseConfig";
 import React from "react";
 import { Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';

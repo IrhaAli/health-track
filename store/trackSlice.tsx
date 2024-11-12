@@ -1,4 +1,4 @@
-import { db } from '@/firebaseConfig';
+import { db } from '@/services/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { DietDataEntry, SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Pressable, Text, ScrollView } from "react-native";
 import { useLocalSearchParams, router, Link } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import DietaryPreferences from "@/components/user_info/DietaryPreferences";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

@@ -4,7 +4,7 @@ import { StyleSheet, Platform, Pressable, View, ActivityIndicator, TouchableOpac
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";

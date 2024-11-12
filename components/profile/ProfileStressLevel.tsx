@@ -9,7 +9,7 @@ import {
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { useEffect, useState } from "react";
 import StressLevel from "@/components/user_info/StressLevel";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import translations from '@/translations/profile.json';

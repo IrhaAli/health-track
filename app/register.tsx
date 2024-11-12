@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Link, router } from "expo-router";
-import "../firebaseConfig";
+import "../services/firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { TextInput, Button, Text, Surface, useTheme, HelperText } from "react-native-paper";
 import AsyncStorage from '@react-native-async-storage/async-storage';

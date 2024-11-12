@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../services/firebaseConfig";
 import StressLevel from "@/components/user_info/StressLevel";
 import { Pressable, View, Text, StyleSheet } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
