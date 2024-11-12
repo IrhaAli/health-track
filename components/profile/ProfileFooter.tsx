@@ -2,7 +2,7 @@ import { Linking, StyleSheet, View } from "react-native";
 import AlertAsync from "react-native-alert-async";
 import { Button, Surface, Text, useTheme, Divider, Dialog, Portal, ActivityIndicator } from "react-native-paper";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/firebaseConfig";
+import { db } from "@/services/firebaseConfig";
 import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
@@ -10,7 +10,9 @@ import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import * as Updates from 'expo-updates';
+import i18n from '@/i18n';
+import { I18nManager } from 'react-native';
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
@@ -19,31 +21,15 @@ export default function ProfileFooterLinks() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
   const [isLanguageLoading, setIsLanguageLoading] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState<any>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const { signOut } = useSession();
 
   useEffect(() => {
     const initialize = async () => {
-      // Get user
       const userString = await AsyncStorage.getItem('session');
       if (userString) {
-        const user = JSON.parse(userString);
-        setCurrentUser(user);
-      }
-
-      // Get language
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-      } catch (error) {
-        console.error('Error getting language:', error);
-        setCurrentLanguage('en');
-        setT(translations.en);
+        setCurrentUser(JSON.parse(userString));
       }
     };
 
@@ -55,14 +41,20 @@ export default function ProfileFooterLinks() {
       setIsLanguageLoading(true);
       setLanguageDialogVisible(false);
       
+      // Update i18n locale and save to AsyncStorage
+      i18n.locale = language;
       await AsyncStorage.setItem('userLanguage', language);
-      setCurrentLanguage(language);
-      setT(translations[language as keyof typeof translations]);
-      
-      // Add artificial delay after everything is changed
-      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Handle RTL layout for Arabic
+      const isRTL = language === 'ar';
+      if (I18nManager.isRTL !== isRTL) {
+        I18nManager.allowRTL(isRTL);
+        I18nManager.forceRTL(isRTL);
+        await Updates.reloadAsync(); // Reload app to apply RTL changes
+      }
+
     } catch (error) {
-      console.error('Error saving language:', error);
+      console.error('Error changing language:', error);
     } finally {
       setIsLanguageLoading(false);
     }
@@ -75,14 +67,12 @@ export default function ProfileFooterLinks() {
   };
 
   const onAccountDelete = async () => {
-    if (!t) return;
-
     const choice = await AlertAsync(
-      t.deleteAccountTitle,
-      t.deleteAccountMessage,
+      i18n.t('deleteAccountTitle'),
+      i18n.t('deleteAccountMessage'),
       [
-        { text: t.yes, onPress: () => true },
-        { text: t.no, onPress: () => false },
+        { text: i18n.t('yes'), onPress: () => true },
+        { text: i18n.t('no'), onPress: () => false },
       ]
     );
 
@@ -94,13 +84,11 @@ export default function ProfileFooterLinks() {
         is_deleted: true,
       }).then(() => currentUser.delete());
     } catch (error) {
-      console.log(t.deleteAccountError, error);
+      console.log(i18n.t('deleteAccountError'), error);
     }
 
     onLogout();
   };
-
-  if (!t) return null;
 
   return (
     <Surface style={styles.container} elevation={1}>
@@ -108,11 +96,11 @@ export default function ProfileFooterLinks() {
         mode="contained"
         onPress={onLogout}
         style={styles.logoutButton}
-        contentStyle={[styles.buttonContent, currentLanguage === 'ar' && {flexDirection: 'row-reverse'}]}
+        contentStyle={[styles.buttonContent, i18n.locale === 'ar' && {flexDirection: 'row-reverse'}]}
         labelStyle={styles.buttonLabel}
         icon="logout"
       >
-        {t.logout}
+        {i18n.t('logout')}
       </Button>
 
       <Divider style={styles.divider} />
@@ -124,9 +112,9 @@ export default function ProfileFooterLinks() {
           textColor={theme.colors.error}
           icon="account-remove"
           style={styles.linkButton}
-          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
+          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
-          {t.deleteAccount}
+          {i18n.t('deleteAccount')}
         </Button>
 
         <Button
@@ -134,9 +122,9 @@ export default function ProfileFooterLinks() {
           onPress={() => Linking.openURL("https://google.com")}
           icon="shield-account" 
           style={styles.linkButton}
-          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
+          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
-          {t.privacyPolicy}
+          {i18n.t('privacyPolicy')}
         </Button>
 
         <Button
@@ -144,9 +132,9 @@ export default function ProfileFooterLinks() {
           onPress={() => Linking.openURL("https://google.com")}
           icon="file-document"
           style={styles.linkButton}
-          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
+          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
-          {t.termsAndConditions}
+          {i18n.t('termsAndConditions')}
         </Button>
 
         <Button
@@ -154,20 +142,20 @@ export default function ProfileFooterLinks() {
           onPress={() => setLanguageDialogVisible(true)}
           icon="translate"
           style={styles.linkButton}
-          contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
+          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
-          {t.changeLanguage}
+          {i18n.t('changeLanguage')}
         </Button>
 
         <Portal>
           <Dialog visible={languageDialogVisible} onDismiss={() => setLanguageDialogVisible(false)}>
-            <Dialog.Title style={styles.dialogTitle}>Select Language</Dialog.Title>
+            <Dialog.Title style={styles.dialogTitle}>{i18n.t('selectLanguage')}</Dialog.Title>
             <Dialog.Content style={styles.dialogContent}>
               <Button
                 mode="contained-tonal"
                 onPress={() => handleLanguageSelect('en')}
-                style={[styles.dialogButton, currentLanguage === 'en' && styles.selectedLanguage]}
-                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'en' && styles.selectedLanguageLabel]}
+                style={[styles.dialogButton, i18n.locale === 'en' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, i18n.locale === 'en' && styles.selectedLanguageLabel]}
                 icon="check-circle"
               >
                 English
@@ -175,8 +163,8 @@ export default function ProfileFooterLinks() {
               <Button
                 mode="contained-tonal"
                 onPress={() => handleLanguageSelect('fr')}
-                style={[styles.dialogButton, currentLanguage === 'fr' && styles.selectedLanguage]}
-                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'fr' && styles.selectedLanguageLabel]}
+                style={[styles.dialogButton, i18n.locale === 'fr' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, i18n.locale === 'fr' && styles.selectedLanguageLabel]}
                 icon="check-circle"
               >
                 Français
@@ -184,8 +172,8 @@ export default function ProfileFooterLinks() {
               <Button
                 mode="contained-tonal"
                 onPress={() => handleLanguageSelect('ar')}
-                style={[styles.dialogButton, currentLanguage === 'ar' && styles.selectedLanguage]}
-                labelStyle={[styles.dialogButtonLabel, currentLanguage === 'ar' && styles.selectedLanguageLabel]}
+                style={[styles.dialogButton, i18n.locale === 'ar' && styles.selectedLanguage]}
+                labelStyle={[styles.dialogButtonLabel, i18n.locale === 'ar' && styles.selectedLanguageLabel]}
                 icon="check-circle"
               >
                 عربي
@@ -196,7 +184,7 @@ export default function ProfileFooterLinks() {
           <Dialog visible={isLanguageLoading} dismissable={false}>
             <Dialog.Content style={styles.loadingContent}>
               <ActivityIndicator animating={true} size="large" />
-              <Text style={styles.loadingText}>Changing language...</Text>
+              <Text style={styles.loadingText}>{i18n.t('changingLanguage')}</Text>
             </Dialog.Content>
           </Dialog>
         </Portal>
