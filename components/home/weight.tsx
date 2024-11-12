@@ -1,54 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { WeightDataState } from "@/types/track";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from "@/translations/home.json";
+import i18n from "@/i18n";
 
 export default function WeightChartComponent() {
-  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
-  const [t, setT] = useState<any>(null);
-
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const weightData: WeightDataState | [] = useSelector((state: RootState) => state.track.weightData);
   const isLoading = useSelector((state: RootState) => state.track.loadingTrackWeightData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-
-  useEffect(() => {
-    const initLanguage = async () => {
-      try {
-        const savedLanguage = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = savedLanguage || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-      } catch (error) {
-        console.error('Error getting language:', error);
-        setT(translations.en);
-      }
-    };
-    initLanguage();
-  }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const checkLanguageChanges = async () => {
-      try {
-        const newLanguage = await AsyncStorage.getItem('userLanguage');
-        if (newLanguage && newLanguage !== currentLanguage) {
-          setCurrentLanguage(newLanguage);
-          setT(translations[newLanguage as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error checking language changes:', error);
-      }
-    };
-
-    const intervalId = setInterval(checkLanguageChanges, 1000);
-    return () => clearInterval(intervalId);
-  }, [currentLanguage]);
 
   const getChartData = () => {
     if (Array.isArray(weightData) || !weightData[formattedMonth]?.length) {
@@ -59,7 +22,7 @@ export default function WeightChartComponent() {
     const dailyWeights = [...weightData[formattedMonth]].reduce((acc: {[key: string]: number}, weight) => {
       const date = new Date(weight.date);
       const day = String(date.getDate()).padStart(2, '0');
-      const month = date.toLocaleString(currentLanguage, { month: 'short' }).toLowerCase();
+      const month = date.toLocaleString(i18n.locale, { month: 'short' }).toLowerCase();
       const dateLabel = `${day} ${month}`;
       acc[dateLabel] = weight.weight;
       return acc;
@@ -91,7 +54,7 @@ export default function WeightChartComponent() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t?.weightTitle || 'Daily Weight (Kg)'}</Text>
+      <Text style={styles.title}>{i18n.t('weightTitle')}</Text>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9C27B0" />
@@ -124,7 +87,7 @@ export default function WeightChartComponent() {
             backgroundColor={'#fff'}
           />
           {chartData.length === 0 && (
-            <Text style={styles.noDataText}>{t?.noWeightData || 'No weight data available for this month'}</Text>
+            <Text style={styles.noDataText}>{i18n.t('noWeightData')}</Text>
           )}
         </>
       )}
