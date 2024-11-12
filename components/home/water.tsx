@@ -1,54 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { WaterDataState } from "@/types/track";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from "@/translations/home.json";
+import i18n from "@/i18n";
 
 export default function WaterChartComponent() {
-  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
-  const [t, setT] = useState<any>(null);
-
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const waterData: WaterDataState | [] = useSelector((state: RootState) => state.track.waterData);
   const isLoading = useSelector((state: RootState) => state.track.loadingTrackWaterData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-
-  useEffect(() => {
-    const initLanguage = async () => {
-      try {
-        const savedLanguage = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = savedLanguage || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-      } catch (error) {
-        console.error('Error getting language:', error);
-        setT(translations.en);
-      }
-    };
-    initLanguage();
-  }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const checkLanguageChanges = async () => {
-      try {
-        const newLanguage = await AsyncStorage.getItem('userLanguage');
-        if (newLanguage && newLanguage !== currentLanguage) {
-          setCurrentLanguage(newLanguage);
-          setT(translations[newLanguage as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error checking language changes:', error);
-      }
-    };
-
-    const intervalId = setInterval(checkLanguageChanges, 1000);
-    return () => clearInterval(intervalId);
-  }, [currentLanguage]);
 
   const getChartData = () => {
     if (Array.isArray(waterData) || !waterData[formattedMonth]?.length) {
@@ -59,7 +22,7 @@ export default function WaterChartComponent() {
     const dailyWaterAmounts = [...waterData[formattedMonth]].reduce((acc: {[key: string]: number}, water) => {
       const date = new Date(water.date);
       const day = String(date.getDate()).padStart(2, '0');
-      const month = date.toLocaleString(currentLanguage, { month: 'short' }).toLowerCase();
+      const month = date.toLocaleString(i18n.locale, { month: 'short' }).toLowerCase();
       const dateLabel = `${day} ${month}`;
       acc[dateLabel] = (acc[dateLabel] || 0) + water.intake_amount;
       return acc;
@@ -89,11 +52,9 @@ export default function WaterChartComponent() {
     { value: 0, label: '', frontColor: 'transparent' }
   ];
 
-  if (!t) return null;
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t.waterIntakeTitle}</Text>
+      <Text style={styles.title}>{i18n.t('waterIntakeTitle')}</Text>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
@@ -126,7 +87,7 @@ export default function WaterChartComponent() {
             backgroundColor={'#fff'}
           />
           {chartData.length === 0 && (
-            <Text style={styles.noDataText}>{t.noWaterData}</Text>
+            <Text style={styles.noDataText}>{i18n.t('noWaterData')}</Text>
           )}
         </>
       )}
