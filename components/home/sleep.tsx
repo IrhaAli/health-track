@@ -1,54 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Text } from "react-native-paper";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { SleepDataState } from "@/types/track";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from "@/translations/home.json";
+import i18n from "@/i18n";
 
 export default function SleepChartComponent() {
-  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
-  const [t, setT] = useState<any>(null);
-
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
   const isLoading = useSelector((state: RootState) => state.track.loadingTrackSleepData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-
-  useEffect(() => {
-    const initLanguage = async () => {
-      try {
-        const savedLanguage = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = savedLanguage || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-      } catch (error) {
-        console.error('Error getting language:', error);
-        setT(translations.en);
-      }
-    };
-    initLanguage();
-  }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const checkLanguageChanges = async () => {
-      try {
-        const newLanguage = await AsyncStorage.getItem('userLanguage');
-        if (newLanguage && newLanguage !== currentLanguage) {
-          setCurrentLanguage(newLanguage);
-          setT(translations[newLanguage as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error checking language changes:', error);
-      }
-    };
-
-    const intervalId = setInterval(checkLanguageChanges, 1000);
-    return () => clearInterval(intervalId);
-  }, [currentLanguage]);
 
   const getChartData = () => {
     if (Array.isArray(sleepData) || !sleepData[formattedMonth]?.length) {
@@ -60,7 +23,7 @@ export default function SleepChartComponent() {
       // Use wake_time instead of bed_time to ensure today's sleep is counted
       const date = new Date(sleep.wakeup_time);
       const day = String(date.getDate()).padStart(2, '0');
-      const month = date.toLocaleString(currentLanguage, { month: 'short' }).toLowerCase();
+      const month = date.toLocaleString(i18n.locale, { month: 'short' }).toLowerCase();
       const dateLabel = `${day} ${month}`;
       // Convert minutes to hours
       acc[dateLabel] = sleep.sleep_duration / 60;
@@ -91,11 +54,9 @@ export default function SleepChartComponent() {
     { value: 0, label: '', frontColor: 'transparent' }
   ];
 
-  if (!t) return null;
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t.sleepDurationTitle}</Text>
+      <Text style={styles.title}>{i18n.t('sleepDurationTitle')}</Text>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#673AB7" />
@@ -127,7 +88,7 @@ export default function SleepChartComponent() {
             backgroundColor={'#fff'}
           />
           {chartData.length === 0 && !isLoading && (
-            <Text style={styles.noDataText}>{t.noSleepData}</Text>
+            <Text style={styles.noDataText}>{i18n.t('noSleepData')}</Text>
           )}
         </>
       )}
