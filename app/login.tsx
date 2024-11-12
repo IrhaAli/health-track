@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { SafeAreaView, StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Alert, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
-import "../firebaseConfig";
+import "../services/firebaseConfig";
 import {
   getAuth,
   sendPasswordResetEmail,
@@ -13,8 +13,10 @@ import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 import { AppDispatch } from "@/store/store";
+import i18n from "@/i18n";
+import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/auth.json';
+import { I18nManager } from 'react-native';
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -24,51 +26,44 @@ const LoginForm = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
   const dispatch = useDispatch<AppDispatch>();
   const { signIn } = useSession();
   const auth = getAuth();
   const theme = useTheme();
 
-  useEffect(() => {
-    const getLanguage = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language) {
-          setCurrentLanguage(language);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-    getLanguage();
-  }, []);
-
-  const t = translations[currentLanguage as keyof typeof translations];
-
-  const handleLanguageSelect = async (language: string) => {
+  const handleLanguageSelect = useCallback(async (language: string) => {
     try {
+      // Update i18n locale and save to AsyncStorage
+      i18n.locale = language;
       await AsyncStorage.setItem('userLanguage', language);
-      setCurrentLanguage(language);
+
+      // Handle RTL layout for Arabic
+      const isRTL = language === 'ar';
+      if (I18nManager.isRTL !== isRTL) {
+        I18nManager.allowRTL(isRTL);
+        I18nManager.forceRTL(isRTL);
+        await Updates.reloadAsync(); // Reload app to apply RTL changes
+      }
+
       setLanguageDialogVisible(false);
     } catch (error) {
-      console.error('Error saving language:', error);
+      console.error('Error changing language:', error);
     }
-  };
+  }, []);
 
-  const onSubmit = () => {
+  const onSubmit = useCallback(() => {
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
     setEmailError("");
     setPasswordError("");
 
     if (email.length === 0) {
-      setEmailError(t.emailEmpty);
+      setEmailError(i18n.t('emailEmpty'));
       return;
     } else if (reg.test(email) === false) {
-      setEmailError(t.emailInvalid);
+      setEmailError(i18n.t('emailInvalid'));
       return;
     } else if (password.length === 0) {
-      setPasswordError(t.passwordEmpty);
+      setPasswordError(i18n.t('passwordEmpty'));
       return;
     }
 
@@ -86,17 +81,17 @@ const LoginForm = () => {
         if (error.code === "auth/invalid-email") {
           setEmailError(error.message);
         } else if (error.code === "auth/user-not-found") {
-          setEmailError(t.emailNotFound);
+          setEmailError(i18n.t('emailNotFound'));
         } else if (error.code === "auth/wrong-password") {
-          setPasswordError(t.passwordInvalid);
+          setPasswordError(i18n.t('passwordInvalid'));
         } else {
           setEmailError(error.message);
         }
         setLoading(false);
       });
-  };
+  }, [email, password, signIn, dispatch]);
 
-  const onTestUser = () => {
+  const onTestUser = useCallback(() => {
     setEmail("test@test.com");
     setPassword("test1234");
     setLoading(true);
@@ -112,20 +107,45 @@ const LoginForm = () => {
         setEmailError(error.message);
         setLoading(false);
       });
-  };
+  }, [signIn, dispatch]);
 
-  const clearAllSessions = async () => {
+  const clearAllSessions = useCallback(async () => {
     try {
-      await AsyncStorage.clear();
       await auth.signOut();
+      await AsyncStorage.removeItem('userLanguage');
       dispatch(setUser(null));
       dispatch(setUserId(null));
-      Alert.alert('Success', 'All sessions cleared successfully');
+      Alert.alert('Success', 'All sessions cleared successfully', [
+        {
+          text: 'OK',
+          onPress: async () => {
+            await Updates.reloadAsync();
+          }
+        }
+      ]);
     } catch (error) {
       console.error('Error clearing sessions:', error);
       Alert.alert('Error', 'Failed to clear sessions');
     }
-  };
+  }, [auth, dispatch]);
+
+  const handleEmailChange = useCallback((text: string) => {
+    setEmail(text);
+    setEmailError("");
+  }, []);
+
+  const handlePasswordChange = useCallback((text: string) => {
+    setPassword(text);
+    setPasswordError("");
+  }, []);
+
+  const togglePasswordVisibility = useCallback(() => {
+    setPasswordHidden(prev => !prev);
+  }, []);
+
+  const toggleLanguageDialog = useCallback(() => {
+    setLanguageDialogVisible(prev => !prev);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -149,14 +169,11 @@ const LoginForm = () => {
               <View style={styles.inputView}>
                 <TextInput
                   mode="outlined"
-                  label={t.email}
+                  label={i18n.t('email')}
                   value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    setEmailError("");
-                  }}
+                  onChangeText={handleEmailChange}
                   autoCorrect={false}
-                  placeholder={t.emailPlaceholder}
+                  placeholder={i18n.t('emailPlaceholder')}
                   editable={!loading}
                   autoCapitalize="none"
                   left={<TextInput.Icon icon="email" />}
@@ -172,13 +189,10 @@ const LoginForm = () => {
               <View style={styles.inputView}>
                 <TextInput
                   mode="outlined"
-                  label={t.password}
-                  placeholder={t.passwordPlaceholder}
+                  label={i18n.t('password')}
+                  placeholder={i18n.t('passwordPlaceholder')}
                   value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    setPasswordError("");
-                  }}
+                  onChangeText={handlePasswordChange}
                   autoCorrect={false}
                   autoCapitalize="none"
                   secureTextEntry={isPasswordHidden}
@@ -187,7 +201,7 @@ const LoginForm = () => {
                   right={
                     <TextInput.Icon
                       icon={isPasswordHidden ? "eye-off" : "eye"}
-                      onPress={() => setPasswordHidden(!isPasswordHidden)}
+                      onPress={togglePasswordVisibility}
                     />
                   }
                   error={!!passwordError}
@@ -208,7 +222,7 @@ const LoginForm = () => {
                 labelStyle={{ fontSize: 16 }}
                 contentStyle={styles.buttonContent}
               >
-                {t.signIn}
+                {i18n.t('signIn')}
               </Button>
 
               <Link href="/forgot_password" style={{ alignSelf: 'center' }}>
@@ -216,19 +230,19 @@ const LoginForm = () => {
                   mode="text"
                   style={styles.forgotPassword}
                   labelStyle={{ fontSize: 16 }}
-                >{t.forgotPassword}</Button>
+                >{i18n.t('forgotPassword')}</Button>
               </Link>
 
               <View style={styles.divider}>
                 <View style={styles.line} />
                 <Text variant="bodySmall" style={styles.orText}>
-                  {t.or}
+                  {i18n.t('or')}
                 </Text>
                 <View style={styles.line} />
               </View>
 
               <View style={styles.signUpText}>
-                <Text variant="bodyMedium">{t.noAccount}</Text>
+                <Text variant="bodyMedium">{i18n.t('noAccount')}</Text>
               </View>
 
               <Link href="/register" asChild>
@@ -238,7 +252,7 @@ const LoginForm = () => {
                   labelStyle={{ fontSize: 16 }}
                   contentStyle={styles.buttonContentSignUp}
                 >
-                  {t.signUpNow}
+                  {i18n.t('signUpNow')}
                 </Button>
               </Link>
 
@@ -247,20 +261,20 @@ const LoginForm = () => {
                 style={styles.languageButton}
                 labelStyle={{ fontSize: 16 }}
                 icon="translate"
-                onPress={() => setLanguageDialogVisible(true)}
+                onPress={toggleLanguageDialog}
               >
-                {t.changeLanguage}
+                {i18n.t('changeLanguage')}
               </Button>
 
               <Portal>
-                <Dialog visible={languageDialogVisible} onDismiss={() => setLanguageDialogVisible(false)}>
-                  <Dialog.Title style={styles.dialogTitle}>{t.selectLanguage}</Dialog.Title>
+                <Dialog visible={languageDialogVisible} onDismiss={toggleLanguageDialog}>
+                  <Dialog.Title style={styles.dialogTitle}>{i18n.t('selectLanguage')}</Dialog.Title>
                   <Dialog.Content style={styles.dialogContent}>
                     <Button
                       mode="contained-tonal"
                       onPress={() => handleLanguageSelect('en')}
-                      style={[styles.dialogButton, currentLanguage === 'en' && styles.selectedLanguage]}
-                      labelStyle={[styles.dialogButtonLabel, currentLanguage === 'en' && styles.selectedLanguageLabel]}
+                      style={[styles.dialogButton, i18n.locale === 'en' && styles.selectedLanguage]}
+                      labelStyle={[styles.dialogButtonLabel, i18n.locale === 'en' && styles.selectedLanguageLabel]}
                       icon="check-circle"
                     >
                       English
@@ -268,8 +282,8 @@ const LoginForm = () => {
                     <Button
                       mode="contained-tonal"
                       onPress={() => handleLanguageSelect('fr')}
-                      style={[styles.dialogButton, currentLanguage === 'fr' && styles.selectedLanguage]}
-                      labelStyle={[styles.dialogButtonLabel, currentLanguage === 'fr' && styles.selectedLanguageLabel]}
+                      style={[styles.dialogButton, i18n.locale === 'fr' && styles.selectedLanguage]}
+                      labelStyle={[styles.dialogButtonLabel, i18n.locale === 'fr' && styles.selectedLanguageLabel]}
                       icon="check-circle"
                     >
                       Français
@@ -277,8 +291,8 @@ const LoginForm = () => {
                     <Button
                       mode="contained-tonal"
                       onPress={() => handleLanguageSelect('ar')}
-                      style={[styles.dialogButton, currentLanguage === 'ar' && styles.selectedLanguage]}
-                      labelStyle={[styles.dialogButtonLabel, currentLanguage === 'ar' && styles.selectedLanguageLabel]}
+                      style={[styles.dialogButton, i18n.locale === 'ar' && styles.selectedLanguage]}
+                      labelStyle={[styles.dialogButtonLabel, i18n.locale === 'ar' && styles.selectedLanguageLabel]}
                       icon="check-circle"
                     >
                       عربي
@@ -294,7 +308,7 @@ const LoginForm = () => {
                 onPress={onTestUser}
                 style={styles.testButton}
               >
-                {t.testUser}
+                {i18n.t('testUser')}
               </Button>
 
               <Button
