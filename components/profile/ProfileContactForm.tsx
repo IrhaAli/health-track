@@ -6,25 +6,19 @@ import { db } from "@/services/firebaseConfig";
 import React from "react";
 import { Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
 
 export default function ProfileContactForm() {
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [t, setT] = useState<any>(null);
+  const [contactUs, setContactUs] = useState({
+    subject: "",
+    text: "",
+  });
 
-  // Initialize user and language
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Get language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-
-        // Then get user
         const userString = await AsyncStorage.getItem('session');
         if (userString) {
           const user = JSON.parse(userString);
@@ -32,44 +26,15 @@ export default function ProfileContactForm() {
         }
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English if there's an error
-        setCurrentLanguage('en');
-        setT(translations.en);
       }
     };
 
     initialize();
   }, []);
 
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    // Set up event listener for AsyncStorage changes
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
-
-  const [contactUs, setContactUs] = useState({
-    subject: "",
-    text: "",
-  });
-
   const onContactSend = async () => {
-    if (!t) return; // Wait for translations to load
-
     if (!contactUs.subject || !contactUs.text) {
-      Alert.alert(t.fillFormError);
+      Alert.alert(i18n.t('fillFormError'));
     } else {
       await addDoc(collection(db, "contacts"), {
         user_id: currentUser?.uid,
@@ -80,41 +45,31 @@ export default function ProfileContactForm() {
     }
   };
 
-  if (!t) return null; // Don't render until translations are loaded
-
   return (
     <Surface style={styles.container} elevation={1}>
-      <Text variant="titleLarge" style={[
-        styles.title,
-        currentLanguage === 'ar' && styles.titleRTL
-      ]}>{t.title}</Text>
+      <Text variant="titleLarge" style={styles.title}>
+        {i18n.t('title')}
+      </Text>
       
       <TextInput
         mode="outlined"
-        label={t.subject}
+        label={i18n.t('subject')}
         value={contactUs.subject}
         onChangeText={(item: string) => {
           setContactUs((prev) => ({ ...prev, subject: item }));
         }}
         autoCorrect={false}
         autoCapitalize="words"
-        style={[
-          styles.subjectInput,
-          currentLanguage === 'ar' && styles.inputRTL
-        ]}
+        style={styles.subjectInput}
         outlineColor={theme.colors.primary}
         activeOutlineColor={theme.colors.primary}
-        textAlign={currentLanguage === 'ar' ? 'right' : 'left'}
         textAlignVertical="center"
         textContentType="none"
-        contentStyle={[
-          currentLanguage === 'ar' && styles.inputContentRTL
-        ]}
       />
 
       <TextInput
         mode="outlined"
-        label={t.message}
+        label={i18n.t('message')}
         multiline
         numberOfLines={5}
         value={contactUs.text}
@@ -123,16 +78,9 @@ export default function ProfileContactForm() {
         }}
         autoCorrect={false}
         autoCapitalize="sentences"
-        style={[
-          styles.messageInput,
-          currentLanguage === 'ar' && styles.inputRTL
-        ]}
+        style={styles.messageInput}
         outlineColor={theme.colors.primary}
         activeOutlineColor={theme.colors.primary}
-        textAlign={currentLanguage === 'ar' ? 'right' : 'left'}
-        contentStyle={[
-          currentLanguage === 'ar' && styles.inputContentRTL
-        ]}
       />
 
       <Button 
@@ -140,9 +88,8 @@ export default function ProfileContactForm() {
         onPress={onContactSend}
         style={styles.button}
         icon="send"
-        contentStyle={currentLanguage === 'ar' && {flexDirection: 'row-reverse'}}
       >
-        {t.sendMessage}
+        {i18n.t('sendMessage')}
       </Button>
     </Surface>
   );
@@ -157,10 +104,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: 'bold',
   },
-  titleRTL: {
-    textAlign: 'right',
-    width: '100%'
-  },
   subjectInput: {
     marginBottom: 16,
     backgroundColor: 'transparent',
@@ -172,12 +115,5 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 8,
     paddingVertical: 6,
-  },
-  inputRTL: {
-    textAlign: 'right',
-  },
-  inputContentRTL: {
-    textAlign: 'right',
-    writingDirection: 'rtl'
   }
 });
