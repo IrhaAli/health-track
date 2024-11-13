@@ -18,7 +18,7 @@ interface BottomTabBarProps {
 const getRoutes = () => [
     { key: 'home', title: i18n.t('home'), icon: 'home', path: '/' },
     { key: 'track', title: i18n.t('track'), icon: 'clock', path: '/track' },
-    { key: 'media', title: i18n.t('media'), icon: 'image', path: '/media' },
+    { key: 'media', title: i18n.t('media.title'), icon: 'image', path: '/media' },
     { key: 'profile', title: i18n.t('profile'), icon: 'account', path: '/profile' },
 ];
 
