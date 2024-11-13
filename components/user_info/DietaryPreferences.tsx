@@ -9,7 +9,6 @@ import {
   Switch,
 } from "react-native";
 import { Link } from "expo-router";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 type DietaryPreferencesLabels = {
   [key: string]: string;

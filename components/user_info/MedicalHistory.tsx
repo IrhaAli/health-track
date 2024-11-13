@@ -12,7 +12,6 @@ import { router } from "expo-router";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Item {

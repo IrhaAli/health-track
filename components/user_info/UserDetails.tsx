@@ -11,7 +11,6 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
 
 export default function UserDetails({
   userDetails,

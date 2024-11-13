@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { StyleSheet, View, ScrollView } from "react-native";
 import { Avatar, Button, Divider, Text } from "react-native-paper";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedView } from "@/components/ThemedView";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
