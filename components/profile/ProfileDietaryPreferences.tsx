@@ -6,20 +6,20 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, SafeAreaView, ScrollView } from "react-native";
 import { useEffect, useState } from "react";
-import DietaryPreferences from "@/components/user_info/DietaryPreferences";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
+import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme } from 'react-native-paper';
 
 export default function ProfileDietaryPreferences() {
+  const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState<any>(null);
+  const [showDialog, setShowDialog] = useState(false);
   const [dietaryPreferences, setDietaryPreferences] = useState({
     docId: null,
     is_vegetarian: false,
@@ -44,97 +44,9 @@ export default function ProfileDietaryPreferences() {
     is_salt_free: false,
   });
 
-  const dietaryPreferencesLabels = {
-    en: {
-      is_vegetarian: "Vegetarian",
-      is_vegan: "Vegan", 
-      is_gluten_free: "Gluten Free",
-      is_dairy_free: "Dairy Free/Lactose Intolerant",
-      is_nut_free: "Nut Free",
-      is_seafood_allergic: "Seafood Allergy",
-      is_low_carb: "Low Carb",
-      is_high_protein: "High Protein", 
-      is_low_fat: "Low Fat",
-      is_ketogenic: "Ketogenic",
-      is_paleo: "Paleo",
-      is_mediterranean: "Mediterranean",
-      is_soy_allergic: "Soy Allergy",
-      is_egg_allergic: "Egg Allergy",
-      is_shellfish_allergic: "Shellfish Allergy",
-      is_fructose_intolerant: "Fructose Intolerant",
-      is_halal: "Halal",
-      is_spice_free: "Spice Free",
-      is_sugar_free: "Sugar Free",
-      is_salt_free: "Salt Free",
-      submit: "Submit",
-      cancel: "Cancel",
-      edit: "Edit",
-      title: "Dietary Preferences"
-    },
-    fr: {
-      is_vegetarian: "Végétarien",
-      is_vegan: "Végétalien",
-      is_gluten_free: "Sans Gluten",
-      is_dairy_free: "Sans Lactose",
-      is_nut_free: "Sans Noix",
-      is_seafood_allergic: "Allergie aux Fruits de Mer",
-      is_low_carb: "Faible en Glucides",
-      is_high_protein: "Riche en Protéines",
-      is_low_fat: "Faible en Gras",
-      is_ketogenic: "Cétogène",
-      is_paleo: "Paléo",
-      is_mediterranean: "Méditerranéen",
-      is_soy_allergic: "Allergie au Soja",
-      is_egg_allergic: "Allergie aux Œufs",
-      is_shellfish_allergic: "Allergie aux Crustacés",
-      is_fructose_intolerant: "Intolérance au Fructose",
-      is_halal: "Halal",
-      is_spice_free: "Sans Épices",
-      is_sugar_free: "Sans Sucre",
-      is_salt_free: "Sans Sel",
-      submit: "Soumettre",
-      cancel: "Annuler",
-      edit: "Modifier",
-      title: "Préférences Alimentaires"
-    },
-    ar: {
-      is_vegetarian: "نباتي",
-      is_vegan: "نباتي صارم",
-      is_gluten_free: "خالي من الغلوتين",
-      is_dairy_free: "خالي من منتجات الألبان",
-      is_nut_free: "خالي من المكسرات",
-      is_seafood_allergic: "حساسية من المأكولات البحرية",
-      is_low_carb: "قليل الكربوهيدرات",
-      is_high_protein: "عالي البروتين",
-      is_low_fat: "قليل الدهون",
-      is_ketogenic: "كيتوجيني",
-      is_paleo: "باليو",
-      is_mediterranean: "متوسطي",
-      is_soy_allergic: "حساسية من الصويا",
-      is_egg_allergic: "حساسية من البيض",
-      is_shellfish_allergic: "حساسية من المحار",
-      is_fructose_intolerant: "عدم تحمل الفركتوز",
-      is_halal: "حلال",
-      is_spice_free: "خالي من التوابل",
-      is_sugar_free: "خالي من السكر",
-      is_salt_free: "خالي من الملح",
-      submit: "إرسال",
-      cancel: "إلغاء",
-      edit: "تعديل",
-      title: "التفضيلات الغذائية"
-    }
-  };
-
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Get language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(dietaryPreferencesLabels[effectiveLanguage as keyof typeof dietaryPreferencesLabels]);
-
-        // Then get user
         const userString = await AsyncStorage.getItem('session');
         if (userString) {
           const user = JSON.parse(userString);
@@ -142,32 +54,11 @@ export default function ProfileDietaryPreferences() {
         }
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English
-        setCurrentLanguage('en');
-        setT(dietaryPreferencesLabels.en);
       }
     };
 
     initialize();
   }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(dietaryPreferencesLabels[language as keyof typeof dietaryPreferencesLabels]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     try {
@@ -211,6 +102,7 @@ export default function ProfileDietaryPreferences() {
           updateDietaryPreferencesDetails,
           (({ docId, ...o }) => o)(dietaryPreferences)
         );
+        setShowDialog(true);
       }
     } catch (err) {
       console.log(err);
@@ -218,95 +110,173 @@ export default function ProfileDietaryPreferences() {
     setIsDisabled(false);
   };
 
-  if (!t) return null; // Wait for translations to load
+  const toggleSwitch = (key: string) => {
+    setDietaryPreferences(prev => ({
+      ...prev,
+      [key]: !prev[key as keyof typeof prev]
+    }));
+  };
+
+  const PreferenceSwitch = ({ preference, label }: { preference: string, label: string }) => (
+    <Surface style={styles.preferenceSurface} elevation={1}>
+      <Text variant="bodyLarge">{label}</Text>
+      <Switch
+        value={dietaryPreferences[preference as keyof typeof dietaryPreferences] ?? false}
+        onValueChange={() => toggleSwitch(preference)}
+        disabled={!isEdit}
+      />
+    </Surface>
+  );
 
   return (
-    <>
-      {isEdit ? (
-        <>
-          <View
-            style={styles.buttonView}
-            pointerEvents={isDisabled ? "none" : "auto"}
-          >
-            <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{t.submit}</Text>
-            </Pressable>
-            <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{t.cancel}</Text>
-            </Pressable>
-          </View>
-          <DietaryPreferences
-            dietaryPreferences={dietaryPreferences}
-            setDietaryPreferences={setDietaryPreferences}
-          />
-        </>
-      ) : (
-        <>
-          <View style={styles.buttonView}>
-            <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{t.edit}</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>{t.title}</Text>
-          {Object.keys(dietaryPreferences).map(
-            (item: string, index: number) => {
-              if (dietaryPreferences[item as keyof typeof dietaryPreferences] === true) {
-                return (
-                  <Text key={index}>{t[item as keyof typeof t]}</Text>
-                );
-              }
-              return null;
-            }
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Surface style={styles.mainSurface} elevation={2}>
+          <Text variant="headlineMedium" style={styles.title}>
+            {i18n.t('dietaryPreferences.title')}
+          </Text>
+
+          {isEdit ? (
+            <>
+              <View style={styles.buttonContainer}>
+                <Button 
+                  mode="contained" 
+                  onPress={onSubmit}
+                  disabled={isDisabled}
+                  style={styles.actionButton}
+                >
+                  {i18n.t('profile.submit')}
+                </Button>
+                <Button 
+                  mode="outlined"
+                  onPress={() => setIsEdit(false)}
+                  style={styles.actionButton}
+                >
+                  {i18n.t('profile.cancel')}
+                </Button>
+              </View>
+
+              <View style={styles.preferencesGrid}>
+                <PreferenceSwitch preference="is_vegetarian" label={i18n.t('dietaryPreferences.is_vegetarian')} />
+                <PreferenceSwitch preference="is_vegan" label={i18n.t('dietaryPreferences.is_vegan')} />
+                <PreferenceSwitch preference="is_gluten_free" label={i18n.t('dietaryPreferences.is_gluten_free')} />
+                <PreferenceSwitch preference="is_dairy_free" label={i18n.t('dietaryPreferences.is_dairy_free')} />
+                <PreferenceSwitch preference="is_nut_free" label={i18n.t('dietaryPreferences.is_nut_free')} />
+                <PreferenceSwitch preference="is_seafood_allergic" label={i18n.t('dietaryPreferences.is_seafood_allergic')} />
+                <PreferenceSwitch preference="is_low_carb" label={i18n.t('dietaryPreferences.is_low_carb')} />
+                <PreferenceSwitch preference="is_high_protein" label={i18n.t('dietaryPreferences.is_high_protein')} />
+                <PreferenceSwitch preference="is_low_fat" label={i18n.t('dietaryPreferences.is_low_fat')} />
+                <PreferenceSwitch preference="is_ketogenic" label={i18n.t('dietaryPreferences.is_ketogenic')} />
+                <PreferenceSwitch preference="is_paleo" label={i18n.t('dietaryPreferences.is_paleo')} />
+                <PreferenceSwitch preference="is_mediterranean" label={i18n.t('dietaryPreferences.is_mediterranean')} />
+                <PreferenceSwitch preference="is_soy_allergic" label={i18n.t('dietaryPreferences.is_soy_allergic')} />
+                <PreferenceSwitch preference="is_egg_allergic" label={i18n.t('dietaryPreferences.is_egg_allergic')} />
+                <PreferenceSwitch preference="is_shellfish_allergic" label={i18n.t('dietaryPreferences.is_shellfish_allergic')} />
+                <PreferenceSwitch preference="is_fructose_intolerant" label={i18n.t('dietaryPreferences.is_fructose_intolerant')} />
+                <PreferenceSwitch preference="is_halal" label={i18n.t('dietaryPreferences.is_halal')} />
+                <PreferenceSwitch preference="is_spice_free" label={i18n.t('dietaryPreferences.is_spice_free')} />
+                <PreferenceSwitch preference="is_sugar_free" label={i18n.t('dietaryPreferences.is_sugar_free')} />
+                <PreferenceSwitch preference="is_salt_free" label={i18n.t('dietaryPreferences.is_salt_free')} />
+              </View>
+            </>
+          ) : (
+            <>
+              <Button 
+                mode="contained"
+                onPress={() => setIsEdit(true)}
+                style={styles.editButton}
+              >
+                {i18n.t('edit')}
+              </Button>
+
+              <Surface style={styles.preferencesListSurface} elevation={1}>
+                {Object.entries(dietaryPreferences)
+                  .filter(([key]) => key !== 'docId')
+                  .map(([key, value]) => (
+                    <View key={key} style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingVertical: 4
+                    }}>
+                      <Text variant="bodyLarge" style={styles.preferenceItem}>
+                        • {i18n.t(`dietaryPreferences.${key}`)}
+                      </Text>
+                      <Text variant="bodyLarge" style={{
+                        fontWeight: '500',
+                        color: value ? theme.colors.primary : theme.colors.error
+                      }}>
+                        {value ? 'Yes' : 'No'}
+                      </Text>
+                    </View>
+                  ))
+                }
+              </Surface>
+            </>
           )}
-        </>
-      )}
-    </>
+        </Surface>
+      </ScrollView>
+
+      <Portal>
+        <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
+          <Dialog.Title>Success</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Your dietary preferences have been updated successfully!</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowDialog(false)}>OK</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  appLogo: {
-    height: 250,
-    width: 400,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5'
   },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
+  scrollContent: {
+    padding: 16,
+    flexGrow: 1
+  },
+  mainSurface: {
+    padding: 16,
+    borderRadius: 8
   },
   title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: 'bold'
   },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 24
   },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+  actionButton: {
+    minWidth: 120
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+  editButton: {
+    marginBottom: 16,
+    borderRadius: 8
   },
-  buttonTextRed: {
-    color: "red",
+  preferencesGrid: {
+    gap: 12
   },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
+  preferenceSurface: {
+    padding: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
+  preferencesListSurface: {
+    padding: 16,
+    borderRadius: 8
+  },
+  preferenceItem: {
+    paddingVertical: 4
+  }
 });
