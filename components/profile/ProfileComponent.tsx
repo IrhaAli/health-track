@@ -11,13 +11,11 @@ import { AppDispatch } from "@/store/store";
 import { View, StyleSheet, ScrollView, InteractionManager } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
 
 export default function ProfileComponent() {
   const [isReady, setIsReady] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [t, setT] = useState<any>(null);
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
@@ -28,15 +26,8 @@ export default function ProfileComponent() {
   }, []);
 
   useEffect(() => {
-    const initializeUserAndLanguage = async () => {
+    const initializeUser = async () => {
       try {
-        // Get saved language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-
-        // Then get user data
         const userString = await AsyncStorage.getItem('session');
         if (userString) {
           const user = JSON.parse(userString);
@@ -44,31 +35,11 @@ export default function ProfileComponent() {
         }
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English if there's an error
-        setT(translations.en);
       }
     };
 
-    initializeUserAndLanguage();
+    initializeUser();
   }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
 
   const getUserData = async () => {
     try {
@@ -97,36 +68,34 @@ export default function ProfileComponent() {
     }
   }, [currentUser]);
 
-  const menuItems = t ? [
+  const menuItems = [
     {
-      title: t.backgroundInformation,
-      icon: "account-details", 
+      title: i18n.t('backgroundInformation'),
+      icon: "account-details",
       href: "/(profile)/background_information"
     },
     {
-      title: t.dietaryPreferences.title,
+      title: i18n.t('dietaryPreferences.title'),
       icon: "food-apple",
       href: "/(profile)/dietary_preferences"
     },
     {
-      title: t.medicalHistory,
+      title: i18n.t('medicalHistory'),
       icon: "medical-bag",
       href: "/(profile)/medical_history"
     },
     {
-      title: t.stressLevel,
+      title: i18n.t('stressLevel'),
       icon: "brain",
       href: "/(profile)/stress_level"
     }
-  ] : [];
+  ];
 
   const handleNavigation = (href: string) => {
     router.push(href);
   };
 
   const MemoizedMenuItems = useCallback(() => {
-    if (!t) return null;
-    
     return (
       <View style={styles.menuContainer}>
         {menuItems.map((item, index) => (
@@ -134,16 +103,9 @@ export default function ProfileComponent() {
             <Button
               mode="text"
               icon={item.icon}
-              contentStyle={[
-                styles.buttonContent,
-                currentLanguage === 'ar' && {flexDirection: 'row-reverse'}
-              ]}
-              style={[styles.menuButton]}
-              labelStyle={[
-                styles.buttonLabel,
-                currentLanguage === 'ar' ? {marginRight: 24} : {marginLeft: 24},
-                {textAlign: 'center'}
-              ]}
+              contentStyle={styles.buttonContent}
+              style={styles.menuButton}
+              labelStyle={styles.buttonLabel}
               uppercase={false}
               rippleColor={theme.colors.primary}
               onPress={() => handleNavigation(item.href)}
@@ -154,9 +116,7 @@ export default function ProfileComponent() {
         ))}
       </View>
     );
-  }, [theme.colors.primary, t]);
-
-  if (!t) return null;
+  }, [theme.colors.primary]);
 
   return (
     <ScrollView style={styles.scrollView}>
