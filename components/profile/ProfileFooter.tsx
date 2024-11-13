@@ -98,7 +98,7 @@ export default function ProfileFooterLinks() {
         mode="contained"
         onPress={onLogout}
         style={styles.logoutButton}
-        contentStyle={[styles.buttonContent, i18n.locale === 'ar' && {flexDirection: 'row-reverse'}]}
+        contentStyle={[styles.buttonContent]}
         labelStyle={styles.buttonLabel}
         icon="logout"
       >
@@ -114,7 +114,6 @@ export default function ProfileFooterLinks() {
           textColor={theme.colors.error}
           icon="account-remove"
           style={styles.linkButton}
-          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {i18n.t('deleteAccount')}
         </Button>
@@ -124,7 +123,6 @@ export default function ProfileFooterLinks() {
           onPress={() => Linking.openURL("https://google.com")}
           icon="shield-account" 
           style={styles.linkButton}
-          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {i18n.t('privacyPolicy')}
         </Button>
@@ -134,7 +132,6 @@ export default function ProfileFooterLinks() {
           onPress={() => Linking.openURL("https://google.com")}
           icon="file-document"
           style={styles.linkButton}
-          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {i18n.t('termsAndConditions')}
         </Button>
@@ -144,7 +141,6 @@ export default function ProfileFooterLinks() {
           onPress={() => setLanguageDialogVisible(true)}
           icon="translate"
           style={styles.linkButton}
-          contentStyle={i18n.locale === 'ar' && {flexDirection: 'row-reverse'}}
         >
           {i18n.t('changeLanguage')}
         </Button>
