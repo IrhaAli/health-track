@@ -12,14 +12,12 @@ import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
 
 export default function ProfileUserDetails() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [t, setT] = useState<any>(null);
   const [userDetails, setUserDetails] = useState<{
     docId: string | null;
     gender: string | null;
@@ -47,13 +45,6 @@ export default function ProfileUserDetails() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Get language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-
-        // Then get user
         const userString = await AsyncStorage.getItem('session');
         if (userString) {
           const user = JSON.parse(userString);
@@ -61,32 +52,11 @@ export default function ProfileUserDetails() {
         }
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English if there's an error
-        setCurrentLanguage('en');
-        setT(translations.en);
       }
     };
 
     initialize();
   }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     try {
@@ -154,8 +124,6 @@ export default function ProfileUserDetails() {
     setIsDisabled(false);
   };
 
-  if (!t) return null; // Don't render until translations are loaded
-
   return (
     <View style={[{ marginTop: 80 }]}>
       {isEdit ? (
@@ -165,10 +133,10 @@ export default function ProfileUserDetails() {
             pointerEvents={isDisabled ? "none" : "auto"}
           >
             <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{t.submit}</Text>
+              <Text style={styles.buttonText}>{i18n.t('submit')}</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{t.cancel}</Text>
+              <Text style={styles.buttonText}>{i18n.t('cancel')}</Text>
             </Pressable>
           </View>
           <UserDetails
@@ -181,19 +149,19 @@ export default function ProfileUserDetails() {
         <>
           <View style={styles.buttonView}>
             <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{t.edit}</Text>
+              <Text style={styles.buttonText}>{i18n.t('edit')}</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>{t.backgroundInformation}</Text>
-          <Text>{t.dateOfBirth}: {`${userDetails.dob}`}</Text>
-          <Text>{t.gender}: {userDetails.gender}</Text>
-          <Text>{t.height}: {userDetails.height}</Text>
-          <Text>{t.weight}: {userDetails.weight}</Text>
-          <Text>{t.bodyType}: {userDetails.bodyType}</Text>
-          <Text>{t.activityType}: {userDetails.activityType}</Text>
-          <Text>{t.wakeupTime}: {`${userDetails.wakeupTime}`}</Text>
-          <Text>{t.sleepTime}: {`${userDetails.sleepTime}`}</Text>
-          <Text>{t.healthGoal}: {userDetails.healthGoal}</Text>
+          <Text style={styles.title}>{i18n.t('backgroundInformation')}</Text>
+          <Text>{i18n.t('dateOfBirth')}: {`${userDetails.dob}`}</Text>
+          <Text>{i18n.t('gender')}: {userDetails.gender}</Text>
+          <Text>{i18n.t('height')}: {userDetails.height}</Text>
+          <Text>{i18n.t('weight')}: {userDetails.weight}</Text>
+          <Text>{i18n.t('bodyType')}: {userDetails.bodyType}</Text>
+          <Text>{i18n.t('activityType')}: {userDetails.activityType}</Text>
+          <Text>{i18n.t('wakeupTime')}: {`${userDetails.wakeupTime}`}</Text>
+          <Text>{i18n.t('sleepTime')}: {`${userDetails.sleepTime}`}</Text>
+          <Text>{i18n.t('healthGoal')}: {userDetails.healthGoal}</Text>
         </>
       )}
     </View>
