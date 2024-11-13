@@ -12,14 +12,12 @@ import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
 
 export default function ProfileStressLevel() {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [t, setT] = useState<any>(null);
   const [stressLevel, setStressLevel] = useState({
     docId: null,
     stressLevel: 0,
@@ -29,13 +27,6 @@ export default function ProfileStressLevel() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Get language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-
-        // Then get user
         const userString = await AsyncStorage.getItem('session');
         if (userString) {
           const user = JSON.parse(userString);
@@ -43,32 +34,11 @@ export default function ProfileStressLevel() {
         }
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English if there's an error
-        setCurrentLanguage('en');
-        setT(translations.en);
       }
     };
 
     initialize();
   }, []);
-
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
 
   const fetchData = async (collectionName: string) => {
     const collectionData = query(
@@ -120,8 +90,6 @@ export default function ProfileStressLevel() {
     setIsDisabled(false);
   };
 
-  if (!t) return null; // Don't render until translations are loaded
-
   return (
     <>
       {isEdit ? (
@@ -131,10 +99,10 @@ export default function ProfileStressLevel() {
             pointerEvents={isDisabled ? "none" : "auto"}
           >
             <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{t.submit}</Text>
+              <Text style={styles.buttonText}>{i18n.t('submit')}</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{t.cancel}</Text>
+              <Text style={styles.buttonText}>{i18n.t('cancel')}</Text>
             </Pressable>
           </View>
           <StressLevel
@@ -146,12 +114,12 @@ export default function ProfileStressLevel() {
         <>
           <View style={styles.buttonView}>
             <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{t.edit}</Text>
+              <Text style={styles.buttonText}>{i18n.t('edit')}</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>{t.stressLevel}</Text>
-          <Text>{t.stressLevel}: {stressLevel.stressLevel}</Text>
-          <Text>{t.notes}: {stressLevel.notes}</Text>
+          <Text style={styles.title}>{i18n.t('stressLevel')}</Text>
+          <Text>{i18n.t('stressLevel')}: {stressLevel.stressLevel}</Text>
+          <Text>{i18n.t('notes')}: {stressLevel.notes}</Text>
         </>
       )}
     </>
