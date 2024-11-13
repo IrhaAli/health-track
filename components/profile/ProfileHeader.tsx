@@ -2,65 +2,33 @@ import { StyleSheet, View } from "react-native";
 import { Avatar, Surface, Text, useTheme } from "react-native-paper";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
-import translations from '@/translations/profile.json';
+import i18n from '@/i18n';
 
 export default function ProfileHeader() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState<string | null>(null);
-  const [t, setT] = useState<any>(null);
   const theme = useTheme();
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Get language first
-        const language = await AsyncStorage.getItem('userLanguage');
-        const effectiveLanguage = language || 'en';
-        setCurrentLanguage(effectiveLanguage);
-        setT(translations[effectiveLanguage as keyof typeof translations]);
-
-        // Then get user data
         const name = await AsyncStorage.getItem('userName');
         const email = await AsyncStorage.getItem('userEmail');
         setUserName(name);
         setUserEmail(email);
       } catch (error) {
         console.error('Error initializing:', error);
-        // Fallback to English if there's an error
-        setCurrentLanguage('en');
-        setT(translations.en);
       }
     };
 
     initialize();
   }, []);
 
-  // Listen for language changes
-  useEffect(() => {
-    const languageListener = async () => {
-      try {
-        const language = await AsyncStorage.getItem('userLanguage');
-        if (language && language !== currentLanguage) {
-          setCurrentLanguage(language);
-          setT(translations[language as keyof typeof translations]);
-        }
-      } catch (error) {
-        console.error('Error getting language:', error);
-      }
-    };
-
-    const interval = setInterval(languageListener, 1000);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
-
-  if (!t) return null; // Don't render until translations are loaded
-
-  const displayName = userName || userEmail || t.guest;
+  const displayName = userName || userEmail || i18n.t('guest');
 
   return (
     <Surface style={styles.container} elevation={1}>
-      <View style={[{ flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row' }]}>
+      <View style={styles.row}>
         <Avatar.Image
           source={{
             uri: "https://tr.rbxcdn.com/63dc4f38b22fabffccefa6363a33dd06/420/420/Hat/Webp",
@@ -68,11 +36,9 @@ export default function ProfileHeader() {
           size={60}
           style={styles.avatar}
         />
-        <View style={[styles.textContainer, {
-          alignItems: currentLanguage === 'ar' ? 'flex-end' : 'flex-start'
-        }]}>
+        <View style={styles.textContainer}>
           <Text variant="titleMedium" style={styles.greeting}>
-            {t.greeting} {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
+            {i18n.t('greeting')} {displayName ? displayName.charAt(0).toUpperCase() + displayName.slice(1) : ''}
           </Text>
           {userName && userEmail && (
             <Text variant="bodyMedium" style={styles.email}>
@@ -91,6 +57,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: "100%",
     marginTop: 25
+  },
+  row: {
+    flexDirection: 'row'
   },
   avatar: {
   },
