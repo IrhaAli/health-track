@@ -5,67 +5,76 @@ import { useSelector } from "react-redux";
 import { Divider, Text, Surface } from "react-native-paper";
 import { Image, View, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity } from "react-native";
 import { ImageModal } from "./imageModal";
+import i18n from "@/services/i18n";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_WIDTH = SCREEN_WIDTH * 0.3; // Reduced to fit 3 cards per row
+const CARD_WIDTH = SCREEN_WIDTH * 0.3;
 
 export default function AppMediaWeightComponent() {
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
   const weightData: WeightDataState | [] = useSelector((state: RootState) => state.track.weightData);
-  const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const formattedMonth = React.useMemo(() => `${currentMonth.year}-${currentMonth.month}`, [currentMonth]);
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
   const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
 
+  const groupedData = React.useMemo(() => {
+    if (Array.isArray(weightData) || !weightData[formattedMonth]?.length) {
+      return {};
+    }
+
+    return [...weightData[formattedMonth]]
+      .sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .reduce((acc: { [key: string]: { date: string; data: WeightDataEntry[] } }, entry) => {
+        const entryDate = new Date(entry.date);
+        const dateKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
+        if (!acc[dateKey]) {
+          acc[dateKey] = { date: dateKey, data: [] };
+        }
+        acc[dateKey].data.push(entry);
+        return acc;
+      }, {});
+  }, [weightData, formattedMonth]);
+
   React.useEffect(() => {
-    fadeAnim.setValue(0); // Reset animation value
+    fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 600,
       useNativeDriver: true,
     }).start();
-  }, [currentMonth, formattedMonth]);
+  }, [formattedMonth]);
+
+  const formatDate = (date: Date) => {
+    const day = date.getDate();
+    const weekday = i18n.t(`media.weekdays.${date.toLocaleDateString('en-US', {weekday: 'long'}).toLowerCase()}`);
+    const month = i18n.t(`media.months.${date.toLocaleDateString('en-US', {month: 'long'}).toLowerCase()}`);
+    return `${weekday}, ${month} ${day}`;
+  };
 
   if (Array.isArray(weightData) || !weightData[formattedMonth]?.length) {
     return null;
   }
 
-  const groupedData = [...weightData[formattedMonth]]
-    .sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB.getTime() - dateA.getTime();
-    })
-    .reduce((acc: { [key: string]: { date: string; data: WeightDataEntry[] } }, entry) => {
-        // Create date in local timezone to avoid timezone offset issues
-        const entryDate = new Date(entry.date);
-        const dateKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
-      if (!acc[dateKey]) {
-        acc[dateKey] = { date: dateKey, data: [] };
-      }
-      acc[dateKey].data.push(entry);
-      return acc;
-    }, {});
-
   return (
     <>
       <ScrollView>
         {Object.values(groupedData).map((group, index) => (
-          <View key={index}>
+          <View key={group.date}>
             <View style={styles.dateContainer}>
               <Surface style={styles.dateSurface} elevation={1}>
                 <Text variant="titleLarge" style={styles.dateText}>
-                  {new Date(group.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {formatDate(new Date(group.date))}
                 </Text>
               </Surface>
             </View>
             <View style={styles.imagesParent}>
               {group.data.map((weight, i) => (
                 <Animated.View
-                  key={i}
+                  key={`${group.date}-${i}`}
                   style={[
                     styles.animatedCard,
                     {
@@ -93,11 +102,49 @@ export default function AppMediaWeightComponent() {
                       />
                       <View style={styles.timeContainer}>
                         <Text variant="titleSmall" style={styles.timeText}>
-                          {new Date(weight.date).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit', 
-                            hour12: true 
-                          }).toUpperCase()}
+                          {(() => {
+                            const date = new Date(weight.date);
+                            if (isNaN(date.getTime())) {
+                              return '';
+                            }
+                            
+                            const currentLang = i18n.locale as 'ar' | 'fr' | 'en';
+                            
+                            // Get time in 24h format first
+                            const time24h = date.toLocaleTimeString('en-US', {
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              hour12: false
+                            });
+                            
+                            // Convert to 12h format and handle translations
+                            const hour = parseInt(time24h.split(':')[0]);
+                            const minutes = time24h.split(':')[1];
+                            const hour12 = hour % 12 || 12;
+                            const period = hour < 12 ? 'AM' : 'PM';
+                            
+                            const translations = {
+                              'AM': {
+                                'ar': 'ص',
+                                'fr': 'AM',
+                                'en': 'AM'
+                              },
+                              'PM': {
+                                'ar': 'م',
+                                'fr': 'PM',
+                                'en': 'PM'
+                              }
+                            } as const;
+
+                            const translatedPeriod = translations[period][currentLang];
+                            const timeString = `${hour12}:${minutes}`;
+
+                            if (currentLang === 'ar') {
+                              return `${translatedPeriod} ${timeString}`;
+                            }
+                            
+                            return `${timeString} ${translatedPeriod}`;
+                          })()}
                         </Text>
                       </View>
                     </Surface>
