@@ -8,9 +8,9 @@ import { SleepDataState } from "@/types/track";
 import i18n from "@/services/i18n";
 
 export default function SleepChartComponent() {
-  const currentMonth = useSelector((state: RootState) => state.track.currentMonth);
-  const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
-  const isLoading = useSelector((state: RootState) => state.track.loadingTrackSleepData);
+  const currentMonth = useSelector((state: RootState) => state.track?.currentMonth);
+  const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track?.sleepData);
+  const isLoading = useSelector((state: RootState) => state.track?.loadingTrackSleepData);
   const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
 
   const getChartData = () => {
