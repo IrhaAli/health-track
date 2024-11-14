@@ -1,16 +1,20 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { StyleSheet, View, ScrollView } from "react-native";
-import { Avatar, Button, Divider, Text } from "react-native-paper";
+import { Avatar, Button, Text } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData, setCurrentMonth } from "@/store/trackSlice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MealChartComponent from "./meal";
-import WaterChartComponent from "./water";
-import SleepChartComponent from "./sleep";
-import WeightChartComponent from "./weight";
-import FastingChartComponent from "./fasting";
 import i18n from "@/services/i18n";
+import ChartComponent from "./chart";
+
+const CHART_CONFIG = [
+  { type: 'meal', color: '#FF9800', titleKey: 'dailyMealCount', noDataKey: 'noMealData' },
+  { type: 'fasting', color: '#4CAF50', titleKey: 'dailyFastingHours', noDataKey: 'noFastingData' },
+  { type: 'water', color: '#2196F3', titleKey: 'waterIntakeTitle', noDataKey: 'noWaterData' },
+  { type: 'sleep', color: '#673AB7', titleKey: 'sleepDurationTitle', noDataKey: 'noSleepData' },
+  { type: 'weight', color: '#9C27B0', titleKey: 'weightTitle', noDataKey: 'noWeightData' }
+] as const;
 
 export default function HomeComponent() {
     const [disablePrevButton, setDisablePrevButton] = useState(false);
@@ -30,7 +34,17 @@ export default function HomeComponent() {
         };
     }, [currentMonth]);
 
-    // Get user from AsyncStorage and fetch data
+    const fetchAllData = useCallback(async (user: any) => {
+        const fetchParams = { month: currentMonth.month, year: currentMonth.year, userId: user.uid };
+        const fetchActions = [
+            fetchWeightData(fetchParams),
+            fetchDietData(fetchParams),
+            fetchWaterData(fetchParams),
+            fetchSleepData(fetchParams)
+        ];
+        await Promise.all(fetchActions.map(action => dispatch(action as any)));
+    }, [currentMonth, dispatch]);
+
     useEffect(() => {
         const initializeData = async () => {
             try {
@@ -38,14 +52,7 @@ export default function HomeComponent() {
                 if (userString) {
                     const user = JSON.parse(userString);
                     setCurrentUser(user);
-                    
-                    // Fetch data only after we have the user
-                    await Promise.all([
-                        dispatch(fetchWeightData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
-                        dispatch(fetchDietData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
-                        dispatch(fetchWaterData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid })),
-                        dispatch(fetchSleepData({ month: currentMonth.month, year: currentMonth.year, userId: user.uid }))
-                    ]);
+                    await fetchAllData(user);
                 }
             } catch (error) {
                 console.error('Error initializing data:', error);
@@ -53,34 +60,21 @@ export default function HomeComponent() {
         };
 
         initializeData();
-    }, [currentMonth]);
+    }, [fetchAllData]);
 
-    // Update navigation button states
     useEffect(() => {
         setDisableNextButton(year > todayYear || (year === todayYear && month >= todayMonth));
         setDisablePrevButton(month === 1 && year === todayYear);
     }, [month, year, todayMonth, todayYear]);
 
-    const navNext = () => {
-        let newMonth = month + 1;
+    const navigateMonth = useCallback((increment: number) => {
+        let newMonth = month + increment;
         let newYear = year;
 
         if (newMonth > 12) {
             newMonth = 1;
             newYear++;
-        }
-
-        dispatch(setCurrentMonth({
-            month: newMonth.toString().padStart(2, '0'),
-            year: newYear.toString()
-        }));
-    };
-
-    const navPrev = () => {
-        let newMonth = month - 1;
-        let newYear = year;
-
-        if (newMonth < 1) {
+        } else if (newMonth < 1) {
             newMonth = 12;
             newYear--;
         }
@@ -89,24 +83,20 @@ export default function HomeComponent() {
             month: newMonth.toString().padStart(2, '0'),
             year: newYear.toString()
         }));
-    };
+    }, [month, year, dispatch]);
 
-    const renderNavigationButton = useMemo(() => (icon: string, onPress: () => void, disabled: boolean) => (
+    const renderNavigationButton = useCallback((icon: string, onPress: () => void, disabled: boolean) => (
         <Button
             icon={() => (
                 <Avatar.Icon
                     size={30}
                     icon={icon}
                     color='#fff'
-                    style={[{ backgroundColor: disabled ? '#B0B0B0' : 'tomato' }]}
-                />
+                    style={{ backgroundColor: disabled ? '#B0B0B0' : 'tomato' }} />
             )}
             mode="text"
             onPress={onPress}
-            disabled={disabled}
-        >
-            {''}
-        </Button>
+            disabled={disabled} children={undefined}        />
     ), []);
 
     const monthName = useMemo(() => {
@@ -114,21 +104,36 @@ export default function HomeComponent() {
         return date.toLocaleString(i18n.locale, { month: 'long' });
     }, [month, year]);
 
+    const isRTL = i18n.locale === 'ar';
+
     return (
-        <ScrollView style={styles.container}>
-            <View style={[styles.calendarParent, {
-                flexDirection: 'row'
-            }]}>
-                {renderNavigationButton(i18n.locale === 'ar' ? 'chevron-right' : 'chevron-left', navPrev, disablePrevButton)}
+        <View style={styles.container}>
+            <View style={[styles.calendarParent, { flexDirection: 'row' }]}>
+                {renderNavigationButton(
+                    isRTL ? 'chevron-right' : 'chevron-left', 
+                    () => navigateMonth(-1), 
+                    disablePrevButton
+                )}
                 <Text variant="titleLarge">{monthName} {year}</Text>
-                {renderNavigationButton(i18n.locale === 'ar' ? 'chevron-left' : 'chevron-right', navNext, disableNextButton)}
+                {renderNavigationButton(
+                    isRTL ? 'chevron-left' : 'chevron-right', 
+                    () => navigateMonth(1), 
+                    disableNextButton
+                )}
             </View>
-            <MealChartComponent />
-            <FastingChartComponent />
-            <WaterChartComponent />
-            <SleepChartComponent />
-            <WeightChartComponent />
-        </ScrollView>
+
+            <ScrollView>
+                {CHART_CONFIG.map(({ type, color, titleKey, noDataKey }) => (
+                    <ChartComponent
+                        key={type}
+                        type={type}
+                        color={color}
+                        title={i18n.t(titleKey)}
+                        noDataText={i18n.t(noDataKey)}
+                    />
+                ))}
+            </ScrollView>
+        </View>
     );
 }
 
@@ -136,19 +141,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    headerPlaceholder: {
-        height: 250,
-        width: 400,
-        backgroundColor: '#ccc'
-    },
     calendarParent: {
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 30,
         paddingVertical: 10,
         marginTop: 43
-    },
-    divider: {
-        marginBottom: 10
     }
 });
