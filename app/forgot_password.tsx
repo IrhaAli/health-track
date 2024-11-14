@@ -3,7 +3,7 @@ import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import { Link } from "expo-router";
 import { TextInput, Button, Text, Surface, useTheme, HelperText } from "react-native-paper";
 import { StyleSheet, View, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

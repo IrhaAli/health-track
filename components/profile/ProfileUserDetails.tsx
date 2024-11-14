@@ -12,7 +12,7 @@ import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 export default function ProfileUserDetails() {
   const [isEdit, setIsEdit] = useState(false);

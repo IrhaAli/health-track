@@ -10,7 +10,7 @@ import WaterChartComponent from "./water";
 import SleepChartComponent from "./sleep";
 import WeightChartComponent from "./weight";
 import FastingChartComponent from "./fasting";
-import i18n from "@/i18n";
+import i18n from "@/services/i18n";
 
 export default function HomeComponent() {
     const [disablePrevButton, setDisablePrevButton] = useState(false);

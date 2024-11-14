@@ -11,7 +11,7 @@ import { AppDispatch } from "@/store/store";
 import { View, StyleSheet, ScrollView, InteractionManager } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 export default function ProfileComponent() {
   const [isReady, setIsReady] = useState(false);

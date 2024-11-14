@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { Avatar, Surface, Text, useTheme } from "react-native-paper";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 export default function ProfileHeader() {
   const [userName, setUserName] = useState<string | null>(null);

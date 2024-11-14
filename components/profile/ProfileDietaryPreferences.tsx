@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme } from 'react-native-paper';
 
 export default function ProfileDietaryPreferences() {

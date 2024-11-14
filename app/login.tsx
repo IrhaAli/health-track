@@ -13,7 +13,7 @@ import { useDispatch } from "react-redux";
 import { setUser, setUserId } from "@/store/userSlice";
 import { useSession } from "@/ctx";
 import { AppDispatch } from "@/store/store";
-import i18n from "@/i18n";
+import i18n from "@/services/i18n";
 import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { I18nManager } from 'react-native';

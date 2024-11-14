@@ -11,7 +11,7 @@ import { AppDispatch, RootState } from "@/store/store";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 import { I18nManager } from 'react-native';
 
 export default function ProfileFooterLinks() {

@@ -5,7 +5,7 @@ import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { WeightDataState } from "@/types/track";
-import i18n from "@/i18n";
+import i18n from "@/services/i18n";
 
 export default function WeightChartComponent() {
   const currentMonth = useSelector((state: RootState) => state.track.currentMonth);

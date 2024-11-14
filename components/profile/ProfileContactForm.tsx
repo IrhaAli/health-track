@@ -6,7 +6,7 @@ import { db } from "@/services/firebaseConfig";
 import React from "react";
 import { Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 export default function ProfileContactForm() {
   const theme = useTheme();

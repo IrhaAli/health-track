@@ -14,7 +14,7 @@ import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 export default function ProfileMedicalHistory() {
   const [isEdit, setIsEdit] = useState(false);

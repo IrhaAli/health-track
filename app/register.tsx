@@ -4,7 +4,7 @@ import { Link, router } from "expo-router";
 import "../services/firebaseConfig";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { TextInput, Button, Text, Surface, useTheme, HelperText } from "react-native-paper";
-import i18n from '@/i18n';
+import i18n from '@/services/i18n';
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
