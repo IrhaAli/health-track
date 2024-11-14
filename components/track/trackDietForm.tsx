@@ -125,22 +125,6 @@ export default function TrackDietForm() {
         setShowError(false);
         setErrorString(null);
 
-        const existingEntry = weightDataForMonth.find(
-            entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-        );
-
-        if (dialogType !== DialogType.EDIT && existingEntry) {
-            setShowError(true);
-            setErrorString('Water data already exists!');
-            return;
-        }
-
-        if (dialogType === DialogType.EDIT && !existingEntry) {
-            setShowError(true);
-            setErrorString("Water data doesn't exists, add water first!");
-            return;
-        }
-
         if (currentUser?.uid) {
             if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
