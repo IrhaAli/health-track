@@ -10,619 +10,320 @@ const initialState: TrackState = {
   sleepData: {},
   weightData: {},
   dietData: {},
-  loadingTrackWaterData: true, // Changed initial loading states to false
+  loadingTrackWaterData: true,
   loadingTrackDietData: true,
   loadingTrackSleepData: true,
   loadingTrackWeightData: true
 };
 
-// Fetch.
-export const fetchWaterData = createAsyncThunk( // Fetch Water Data
-  'track/fetchWaterData',
-  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
-    const formattedMonth = `${year}-${month}`;
-    const [firstDate, lastDate] = [
-      new Date(Date.UTC(+year, +month - 1, 1)),
-      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
-    ];
+// Generic fetch function for tracking data with optimized query and caching
+const fetchTrackingData = async <T extends { id: string }>(
+  collectionName: string,
+  firstDate: Date,
+  lastDate: Date,
+  userId: string,
+  dateField: string,
+  mapFunction: (item: any) => T
+) => {
+  const q = query(
+    collection(db, collectionName),
+    where(dateField, ">=", firstDate),
+    where(dateField, "<=", lastDate),
+    where("user_id", "==", userId)
+  );
 
-    const { track: { waterData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
+  const docSnap = await getDocs(q);
+  return docSnap.docs.map(mapFunction);
+};
 
-    if (waterData[formattedMonth]) { return { formattedMonth, docData: waterData[formattedMonth] }; }
+// Helper function to create date range
+const getDateRange = (year: string, month: string) => {
+  const firstDate = new Date(Date.UTC(+year, +month - 1, 1));
+  const lastDate = new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999));
+  return [firstDate, lastDate];
+};
 
-    try {
-      const collectionData = query(
-        collection(db, "water_tracking"),
-        where("date", ">=", firstDate),
-        where("date", "<=", lastDate),
-        where("user_id", "==", userId)
-      );
+// Generic fetch thunk creator
+const createFetchThunk = <T extends { id: string }>(
+  name: string,
+  collectionName: string,
+  dateField: string,
+  mapFunction: (item: any) => T,
+  dataSelector: (state: TrackState) => Record<string, T[]>
+) => {
+  return createAsyncThunk(
+    `track/fetch${name}Data`,
+    async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
+      const formattedMonth = `${year}-${month}`;
+      const [firstDate, lastDate] = getDateRange(year, month);
 
-      const docSnap = await getDocs(collectionData);
-      const docData: WaterDataEntry[] = docSnap.docs.map(item => ({
-        id: item.id,
-        date: item.data().date.toDate().toISOString(),
-        intake_amount: item.data().intake_amount,
-        user_id: item.data().user_id,
-        waterType: item.data().waterType
-      }));
+      const state = thunkAPI.getState() as { track: TrackState };
+      const existingData = dataSelector(state.track)[formattedMonth];
 
-      return { formattedMonth, docData };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
+      if (existingData) return { formattedMonth, docData: existingData };
 
-export const fetchSleepData = createAsyncThunk( // Fetch Sleep Data
-  'track/fetchSleepData',
-  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
-    const formattedMonth = `${year}-${month}`;
-    const [firstDate, lastDate] = [
-      new Date(Date.UTC(+year, +month - 1, 1)),
-      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
-    ];
-
-    const { track: { sleepData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
-
-    if (sleepData[formattedMonth]) { return { formattedMonth, docData: sleepData[formattedMonth] }; }
-
-    try {
-      const collectionData = query(
-        collection(db, "sleep_tracking"),
-        where("wakeup_time", ">=", firstDate),
-        where("wakeup_time", "<=", lastDate),
-        where("user_id", "==", userId)
-      );
-
-      const docSnap = await getDocs(collectionData);
-      const docData: SleepDataEntry[] = docSnap.docs.map(item => ({
-        id: item.id,
-        bed_time: item.data().bed_time.toDate().toISOString(),
-        sleep_duration: item.data().sleep_duration,
-        sleep_quality: item.data().sleep_quality,
-        user_id: item.data().user_id,
-        wakeup_time: item.data().wakeup_time.toDate().toISOString()
-      }));
-
-      return { formattedMonth, docData };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
-
-export const fetchWeightData = createAsyncThunk( // Fetch Weight Data
-  'track/fetchWeightData',
-  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
-    const formattedMonth = `${year}-${month}`;
-    const [firstDate, lastDate] = [
-      new Date(Date.UTC(+year, +month - 1, 1)),
-      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
-    ];
-
-    const { track: { weightData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
-
-    if (weightData[formattedMonth]) { return { formattedMonth, docData: weightData[formattedMonth] }; }
-
-    try {
-      const collectionData = query(
-        collection(db, "weight_tracking"),
-        where("date", ">=", firstDate),
-        where("date", "<=", lastDate),
-        where("user_id", "==", userId)
-      );
-
-      const docSnap = await getDocs(collectionData);
-      const docData: WeightDataEntry[] = docSnap.docs.map(item => ({
-        id: item.id,
-        date: item.data().date.toDate().toISOString(),
-        measurement_unit: item.data().measurement_unit,
-        picture: item.data().picture,
-        user_id: item.data().user_id,
-        weight: item.data().weight
-      }));
-
-      return { formattedMonth, docData };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
-
-export const fetchDietData = createAsyncThunk( // Fetch Diet Data
-  'track/fetchDietData',
-  async ({ month, year, userId }: { month: string; year: string; userId: string }, thunkAPI) => {
-    const formattedMonth = `${year}-${month}`;
-    const [firstDate, lastDate] = [
-      new Date(Date.UTC(+year, +month - 1, 1)),
-      new Date(Date.UTC(+year, +month, 0, 23, 59, 59, 999))
-    ];
-
-    const { track: { dietData } } = thunkAPI.getState() as { track: TrackState }; // Access the current state
-
-    if (dietData[formattedMonth]) { return { formattedMonth, docData: dietData[formattedMonth] }; }
-
-    try {
-      const collectionData = query(
-        collection(db, "diet_tracking"),
-        where("date", ">=", firstDate),
-        where("date", "<=", lastDate),
-        where("user_id", "==", userId)
-      );
-
-      const docSnap = await getDocs(collectionData);
-      const docData: DietDataEntry[] = docSnap.docs.map(item => ({
-        id: item.id,
-        date: item.data().date.toDate().toISOString(),
-        meal_picture: item.data().meal_picture,
-        user_id: item.data().user_id,
-      }));
-
-      return { formattedMonth, docData };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
-// Fetch.
-
-// Delete.
-export const deleteWaterData = createAsyncThunk( // Delete Water Data.
-  'track/deleteWaterData',
-  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const waterData = state.track.waterData?.[formattedMonth];
-
-    if (Array.isArray(waterData) && waterData.length > 0) {
-      const existingEntry = waterData.find(
-        (entry) =>
-          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-          entry.id === docId
-      );
-
-      if (existingEntry) {
-        try {
-          await deleteDoc(doc(db, "water_tracking", docId));
-          const docData = waterData.filter(
-            (entry) =>
-              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-                entry.id === docId)
-          );
-          return { formattedMonth, docData };
-        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      }
-    }
-    return { formattedMonth, docData: waterData || [] };
-  }
-);
-
-export const deleteSleepData = createAsyncThunk( // Delete Sleep Data.
-  'track/deleteSleepData',
-  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const sleepData = state.track.sleepData?.[formattedMonth];
-
-    if (Array.isArray(sleepData) && sleepData.length > 0) {
-      const existingEntry = sleepData.find(
-        (entry) =>
-          new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-          entry.id === docId
-      );
-
-      if (existingEntry) {
-        try {
-          await deleteDoc(doc(db, "sleep_tracking", docId));
-          const docData = sleepData.filter(
-            (entry) =>
-              !(new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-                entry.id === docId)
-          );
-          return { formattedMonth, docData };
-        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      }
-    }
-    return { formattedMonth, docData: sleepData || [] };
-  }
-);
-
-export const deleteWeightData = createAsyncThunk( // Delete Weight Data.
-  'track/deleteWeightData',
-  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const weightData = state.track.weightData?.[formattedMonth];
-
-    if (Array.isArray(weightData) && weightData.length > 0) {
-      const existingEntry = weightData.find(
-        (entry) =>
-          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-          entry.id === docId
-      );
-
-      if (existingEntry) {
-        try {
-          await deleteDoc(doc(db, "weight_tracking", docId));
-          const docData = weightData.filter(
-            (entry) =>
-              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-                entry.id === docId)
-          );
-          return { formattedMonth, docData };
-        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      }
-    }
-    return { formattedMonth, docData: weightData || [] };
-  }
-);
-
-export const deleteDietData = createAsyncThunk( // Delete Diet Data.
-  'track/deleteDietData',
-  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const dietData = state.track.dietData?.[formattedMonth];
-
-    if (Array.isArray(dietData) && dietData.length > 0) {
-      const existingEntry = dietData.find(
-        (entry) =>
-          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-          entry.id === docId
-      );
-
-      if (existingEntry) {
-        try {
-          await deleteDoc(doc(db, "diet_tracking", docId));
-          const docData = dietData.filter(
-            (entry) =>
-              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-                entry.id === docId)
-          );
-          return { formattedMonth, docData };
-        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      }
-    }
-    return { formattedMonth, docData: dietData || [] };
-  }
-);
-
-export const deleteWeightImage = createAsyncThunk( // Delete Diet Data.
-  'track/deleteWeightImage',
-  async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const dietData = state.track.dietData?.[formattedMonth];
-
-    if (Array.isArray(dietData) && dietData.length > 0) {
-      const existingEntry = dietData.find(
-        (entry) =>
-          new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-          entry.id === docId
-      );
-
-      if (existingEntry) {
-        try {
-          await deleteDoc(doc(db, "diet_tracking", docId));
-          const docData = dietData.filter(
-            (entry) =>
-              !(new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
-                entry.id === docId)
-          );
-          return { formattedMonth, docData };
-        } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-      }
-    }
-    return { formattedMonth, docData: dietData || [] };
-  }
-);
-// Delete.
-
-// Add.
-export const addWaterData = createAsyncThunk( // Add Water Data.
-  'track/addWaterData',
-  async ({ currentDate, addWater }: { currentDate: string, addWater: WaterDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const waterDataForMonth = state.track.waterData?.[formattedMonth] || [];
-
-    const existingEntry = waterDataForMonth.find(
-      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (existingEntry) {
-      return { formattedMonth, docData: waterDataForMonth };
-    }
-
-    try {
-      const newWaterDocumentRef = await addDoc(collection(db, "water_tracking"), addWater);
-      const newEntry = { ...addWater, id: newWaterDocumentRef.id, date: new Date(addWater.date).toISOString() };
-      return { formattedMonth, docData: [...waterDataForMonth, newEntry] };
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
-  }
-);
-
-export const addSleepData = createAsyncThunk( // Add Sleep Data.
-  'track/addSleepData',
-  async ({ currentDate, addSleep }: { currentDate: string, addSleep: SleepDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const sleepDataForMonth = state.track.sleepData?.[formattedMonth] || [];
-
-    const existingEntry = sleepDataForMonth.find(
-      entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (existingEntry) {
-      return { formattedMonth, docData: sleepDataForMonth };
-    }
-
-    try {
-      const newSleepDocumentRef = await addDoc(collection(db, "sleep_tracking"), addSleep);
-      const newEntry = { ...addSleep, id: newSleepDocumentRef.id, wakeup_time: new Date(addSleep.wakeup_time).toISOString(), bed_time: new Date(addSleep.bed_time).toISOString() };
-      return { formattedMonth, docData: [...sleepDataForMonth, newEntry] };
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message);
-    }
-  }
-);
-
-export const addWeightData = createAsyncThunk( // Add Weight Data.
-  'track/addWeightData',
-  async ({ currentDate, addWeight }: { currentDate: string, addWeight: WeightDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const weightDataForMonth = state.track.weightData?.[formattedMonth] || [];
-
-    const existingEntry = weightDataForMonth.find(
-      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (existingEntry) { return { formattedMonth, docData: weightDataForMonth }; }
-
-    try {
-      const newWeightDocumentRef = await addDoc(collection(db, "weight_tracking"), addWeight);
-      const newEntry = { ...addWeight, id: newWeightDocumentRef.id, date: new Date(addWeight.date).toISOString() };
-      return { formattedMonth, docData: [...weightDataForMonth, newEntry] };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
-
-export const addDietData = createAsyncThunk( // Add Diet Data.
-  'track/addDietData',
-  async ({ currentDate, addDiet }: { currentDate: string, addDiet: DietDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const dietDataForMonth = state.track.dietData?.[formattedMonth] || [];
-
-    // const existingEntry = dietDataForMonth.find(
-    //   entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    // );
-
-    // if (existingEntry) { return { formattedMonth, docData: dietDataForMonth }; }
-
-    try {
-      const newDietDocumentRef = await addDoc(collection(db, "diet_tracking"), addDiet);
-      const newEntry = { ...addDiet, id: newDietDocumentRef.id, date: new Date(addDiet.date).toISOString() };
-      return { formattedMonth, docData: [...dietDataForMonth, newEntry] };
-    } catch (error: any) { return thunkAPI.rejectWithValue(error.message); }
-  }
-);
-// Add.
-
-// Update.
-export const updateWaterData = createAsyncThunk( // Update Water Data.
-  'track/updateWaterData',
-  async ({ currentDate, updateWater }: { currentDate: string, updateWater: WaterDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const waterDataForMonth = state.track.waterData?.[formattedMonth] || [];
-
-    const existingEntry = waterDataForMonth.find(
-      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (!existingEntry || !updateWater) {
-      return { formattedMonth, docData: waterDataForMonth };
-    }
-
-    if (updateWater.id) {
       try {
-        const updateWaterRef = doc(db, "water_tracking", updateWater.id);
-        await updateDoc(updateWaterRef, (({ id, date, ...rest }) => rest)(updateWater));
-
-        // Find the index of the entry to update in the array
-        const entryIndex = waterDataForMonth.findIndex(entry => entry.id === updateWater.id);
-        if (entryIndex !== -1) {
-          // Create a new entry with the updated data
-          const updatedEntry = { ...waterDataForMonth[entryIndex], ...updateWater };
-
-          // Create a new array with the updated entry
-          const updatedWaterDataForMonth = [
-            ...waterDataForMonth.slice(0, entryIndex),
-            updatedEntry,
-            ...waterDataForMonth.slice(entryIndex + 1)
-          ];
-
-          return { formattedMonth, docData: updatedWaterDataForMonth };
-        } else {
-          // If the entry is not found, you might want to handle this case
-          console.error("Entry not found for update");
-          return { formattedMonth, docData: waterDataForMonth };
-        }
-
-
+        const docData = await fetchTrackingData<T>(
+          collectionName,
+          firstDate,
+          lastDate,
+          userId,
+          dateField,
+          mapFunction
+        );
+        return { formattedMonth, docData };
       } catch (error: any) {
         return thunkAPI.rejectWithValue(error.message);
       }
-    } else { return { formattedMonth, docData: waterDataForMonth }; }
-  }
+    }
+  );
+};
+
+// Data mapping functions
+const mappers = {
+  water: (item: any) => ({
+    id: item.id,
+    date: item.data().date.toDate().toISOString(),
+    intake_amount: item.data().intake_amount,
+    user_id: item.data().user_id,
+    waterType: item.data().waterType
+  }),
+  sleep: (item: any) => ({
+    id: item.id,
+    bed_time: item.data().bed_time.toDate().toISOString(),
+    sleep_duration: item.data().sleep_duration,
+    sleep_quality: item.data().sleep_quality,
+    user_id: item.data().user_id,
+    wakeup_time: item.data().wakeup_time.toDate().toISOString()
+  }),
+  weight: (item: any) => ({
+    id: item.id,
+    date: item.data().date.toDate().toISOString(),
+    measurement_unit: item.data().measurement_unit,
+    picture: item.data().picture,
+    user_id: item.data().user_id,
+    weight: item.data().weight
+  }),
+  diet: (item: any) => ({
+    id: item.id,
+    date: item.data().date.toDate().toISOString(),
+    meal_picture: item.data().meal_picture,
+    user_id: item.data().user_id,
+  })
+};
+
+// Create fetch thunks
+export const fetchWaterData = createFetchThunk<WaterDataEntry & { id: string }>(
+  'Water', 'water_tracking', 'date', mappers.water,
+  state => state.waterData as Record<string, (WaterDataEntry & { id: string })[]>
 );
 
-export const updateWeightData = createAsyncThunk( // Update Weight Data.
-  'track/updateWeightData',
-  async ({ currentDate, updateWeight }: { currentDate: string, updateWeight: WeightDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const weightDataForMonth = state.track.weightData?.[formattedMonth] || [];
+export const fetchSleepData = createFetchThunk<SleepDataEntry & { id: string }>(
+  'Sleep', 'sleep_tracking', 'wakeup_time', mappers.sleep,
+  state => state.sleepData as Record<string, (SleepDataEntry & { id: string })[]>
+);
 
-    const existingEntry = weightDataForMonth.find(
-      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+export const fetchWeightData = createFetchThunk<WeightDataEntry & { id: string }>(
+  'Weight', 'weight_tracking', 'date', mappers.weight,
+  state => state.weightData as Record<string, (WeightDataEntry & { id: string })[]>
+);
+
+export const fetchDietData = createFetchThunk<DietDataEntry & { id: string }>(
+  'Diet', 'diet_tracking', 'date', mappers.diet,
+  state => state.dietData as Record<string, (DietDataEntry & { id: string })[]>
+);
+
+// Generic delete helper
+const deleteDataHelper = async (
+  docId: string,
+  currentDate: string,
+  collectionName: string,
+  data: any[],
+  dateField: string
+) => {
+  if (!Array.isArray(data) || !data.length) return [];
+
+  const existingEntry = data.find(entry => 
+    new Date(entry[dateField]).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+    entry.id === docId
+  );
+
+  if (!existingEntry) return data;
+
+  try {
+    await deleteDoc(doc(db, collectionName, docId));
+    return data.filter(entry => 
+      !(new Date(entry[dateField]).toLocaleDateString().split('/').reverse().join('-') === currentDate &&
+        entry.id === docId)
     );
+  } catch (error) {
+    throw error;
+  }
+};
 
-    if (!existingEntry || !updateWeight) {
-      return { formattedMonth, docData: weightDataForMonth };
-    }
-
-    if (updateWeight.id) {
+// Generic delete thunk creator
+const createDeleteThunk = (name: string, collectionName: string, dateField: string) => {
+  return createAsyncThunk(
+    `track/delete${name}Data`,
+    async ({ docId, currentDate }: { docId: string; currentDate: string }, thunkAPI) => {
+      const [year, month] = currentDate.split('-');
+      const formattedMonth = `${year}-${month}`;
+      const state = thunkAPI.getState() as { track: TrackState };
+      const dataKey = `${name.toLowerCase()}Data` as keyof TrackState;
+      
       try {
-        const updateWeightRef = doc(db, "weight_tracking", updateWeight.id);
-        await updateDoc(updateWeightRef, (({ id, date, ...rest }) => rest)(updateWeight));
-
-        // Find the index of the entry to update in the array
-        const entryIndex = weightDataForMonth.findIndex(entry => entry.id === updateWeight.id);
-        if (entryIndex !== -1) {
-          // Create a new entry with the updated data
-          const updatedEntry = { ...weightDataForMonth[entryIndex], ...updateWeight };
-
-          // Create a new array with the updated entry
-          const updatedWeightDataForMonth = [
-            ...weightDataForMonth.slice(0, entryIndex),
-            updatedEntry,
-            ...weightDataForMonth.slice(entryIndex + 1)
-          ];
-
-          return { formattedMonth, docData: updatedWeightDataForMonth };
-        } else {
-          // If the entry is not found, you might want to handle this case
-          console.error("Entry not found for update");
-          return { formattedMonth, docData: weightDataForMonth };
-        }
-
-
+        const docData = await deleteDataHelper(
+          docId,
+          currentDate,
+          collectionName,
+          (state.track[dataKey] as any)?.[formattedMonth],
+          dateField
+        );
+        return { formattedMonth, docData };
       } catch (error: any) {
         return thunkAPI.rejectWithValue(error.message);
       }
-    } else { return { formattedMonth, docData: weightDataForMonth }; }
-  }
-);
-
-export const updateDietData = createAsyncThunk( // Update Diet Data.
-  'track/updateDietData',
-  async ({ currentDate, updateDiet }: { currentDate: string, updateDiet: DietDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const dietDataForMonth = state.track.dietData?.[formattedMonth] || [];
-
-    const existingEntry = dietDataForMonth.find(
-      entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (!existingEntry || !updateDiet) {
-      return { formattedMonth, docData: dietDataForMonth };
     }
+  );
+};
 
-    if (updateDiet.id) {
+// Create delete thunks
+export const deleteWaterData = createDeleteThunk('Water', 'water_tracking', 'date');
+export const deleteSleepData = createDeleteThunk('Sleep', 'sleep_tracking', 'wakeup_time');
+export const deleteWeightData = createDeleteThunk('Weight', 'weight_tracking', 'date');
+export const deleteDietData = createDeleteThunk('Diet', 'diet_tracking', 'date');
+export const deleteWeightImage = createDeleteThunk('Weight', 'diet_tracking', 'date');
+
+// Helper functions for add/update operations
+const prepareMonthlyData = (currentDate: string, state: { track: TrackState }, dataKey: keyof TrackState) => {
+  const [year, month] = currentDate.split('-');
+  return {
+    formattedMonth: `${year}-${month}`,
+    dataForMonth: (state.track[dataKey] as any)?.[`${year}-${month}`] || []
+  };
+};
+
+const findExistingEntry = (dataArray: any[], currentDate: string, dateField: string = 'date') => {
+  return dataArray.find(entry => 
+    new Date(entry[dateField]).toLocaleDateString().split('/').reverse().join('-') === currentDate
+  );
+};
+
+// Generic add document helper
+const addNewDocument = async (collectionName: string, data: any, dateFields: string[] = ['date']) => {
+  const newDocRef = await addDoc(collection(db, collectionName), data);
+  return { 
+    ...data, 
+    id: newDocRef.id,
+    ...Object.fromEntries(
+      dateFields.map(field => [field, new Date(data[field]).toISOString()])
+    )
+  };
+};
+
+// Generic add thunk creator
+const createAddThunk = (name: string, collectionName: string, dateFields: string[] = ['date'], checkExisting = true) => {
+  return createAsyncThunk(
+    `track/add${name}Data`,
+    async ({ currentDate, [`add${name}`]: addData }: { currentDate: string, [key: string]: any }, thunkAPI) => {
+      const state = thunkAPI.getState() as { track: TrackState };
+      const { formattedMonth, dataForMonth } = prepareMonthlyData(
+        currentDate, 
+        state, 
+        `${name.toLowerCase()}Data` as keyof TrackState
+      );
+
+      if (checkExisting) {
+        const existingEntry = findExistingEntry(dataForMonth, currentDate, dateFields[0]);
+        if (existingEntry) return { formattedMonth, docData: dataForMonth };
+      }
+
       try {
-        const updateDietRef = doc(db, "diet_tracking", updateDiet.id);
-        await updateDoc(updateDietRef, (({ id, ...rest }) => rest)(updateDiet));
-        
-        // Find the index of the entry to update in the array
-        const entryIndex = dietDataForMonth.findIndex(entry => entry.id === updateDiet.id);
-        if (entryIndex !== -1) {
-          // Converting data into string again.
-          let updatedCurrentEntry = { ...updateDiet, date: (updateDiet.date instanceof Date ? updateDiet.date : new Date(updateDiet.date)).toISOString() }
-
-          // Create a new entry with the updated data
-          const updatedEntry = { ...dietDataForMonth[entryIndex], ...updatedCurrentEntry };
-        
-          // Create a new array with the updated entry
-          const updatedDietDataForMonth = [
-            ...dietDataForMonth.slice(0, entryIndex),
-            updatedEntry,
-            ...dietDataForMonth.slice(entryIndex + 1)
-          ];
-
-          return { formattedMonth, docData: updatedDietDataForMonth };
-        } else {
-          // If the entry is not found, you might want to handle this case
-          console.error("Entry not found for update");
-          return { formattedMonth, docData: dietDataForMonth };
-        }
-
-
+        const newEntry = await addNewDocument(collectionName, addData, dateFields);
+        return { formattedMonth, docData: [...dataForMonth, newEntry] };
       } catch (error: any) {
-        console.log('error', error);
         return thunkAPI.rejectWithValue(error.message);
       }
-    } else { return { formattedMonth, docData: dietDataForMonth }; }
-  }
-);
-
-export const updateSleepData = createAsyncThunk( // Update Sleep Data.
-  'track/updateSleepData',
-  async ({ currentDate, updateSleep }: { currentDate: string, updateSleep: SleepDataEntry }, thunkAPI) => {
-    const [year, month] = currentDate.split('-');
-    const formattedMonth = `${year}-${month}`;
-    const state = thunkAPI.getState() as { track: TrackState };
-    const sleepDataForMonth = state.track.sleepData?.[formattedMonth] || [];
-
-    const existingEntry = sleepDataForMonth.find(
-      entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
-    );
-
-    if (!existingEntry || !updateSleep) {
-      return { formattedMonth, docData: sleepDataForMonth };
     }
+  );
+};
 
-    if (updateSleep.id) {
+// Create add thunks
+export const addWaterData = createAddThunk('Water', 'water_tracking');
+export const addSleepData = createAddThunk('Sleep', 'sleep_tracking', ['wakeup_time', 'bed_time']);
+export const addWeightData = createAddThunk('Weight', 'weight_tracking');
+export const addDietData = createAddThunk('Diet', 'diet_tracking', ['date'], false);
+
+// Generic update helper
+const handleUpdateOperation = async (
+  collectionName: string,
+  updateData: any,
+  dataForMonth: any[],
+  dateTransforms?: { [key: string]: boolean }
+) => {
+  const { id, ...updateFields } = updateData;
+  await updateDoc(doc(db, collectionName, id), updateFields);
+
+  let processedData = { ...updateData };
+  if (dateTransforms) {
+    Object.entries(dateTransforms).forEach(([field, shouldTransform]) => {
+      if (shouldTransform) {
+        processedData[field] = (updateData[field] instanceof Date ? 
+          updateData[field] : new Date(updateData[field])).toISOString();
+      }
+    });
+  }
+
+  const entryIndex = dataForMonth.findIndex(entry => entry.id === id);
+  return entryIndex === -1 ? dataForMonth : [
+    ...dataForMonth.slice(0, entryIndex),
+    processedData,
+    ...dataForMonth.slice(entryIndex + 1)
+  ];
+};
+
+// Generic update thunk creator
+const createUpdateThunk = (
+  name: string, 
+  collectionName: string, 
+  dateField: string = 'date',
+  dateTransforms?: { [key: string]: boolean }
+) => {
+  return createAsyncThunk(
+    `track/update${name}Data`,
+    async ({ currentDate, [`update${name}`]: updateData }: { currentDate: string, [key: string]: any }, thunkAPI) => {
+      const { formattedMonth, dataForMonth } = prepareMonthlyData(
+        currentDate, 
+        thunkAPI.getState() as { track: TrackState }, 
+        `${name.toLowerCase()}Data` as keyof TrackState
+      );
+
+      const existingEntry = findExistingEntry(dataForMonth, currentDate, dateField);
+      if (!existingEntry || !updateData?.id) return { formattedMonth, docData: dataForMonth };
+
       try {
-        const updateSleepRef = doc(db, "sleep_tracking", updateSleep.id);
-        await updateDoc(updateSleepRef, (({ id, ...rest }) => rest)(updateSleep));
-        
-        // Find the index of the entry to update in the array
-        const entryIndex = sleepDataForMonth.findIndex(entry => entry.id === updateSleep.id);
-        if (entryIndex !== -1) {
-          // Converting data into string again.
-          let updatedCurrentEntry = { 
-            ...updateSleep, 
-            wakeup_time: (updateSleep.wakeup_time instanceof Date ? updateSleep.wakeup_time : new Date(updateSleep.wakeup_time)).toISOString(),
-            bed_time: (updateSleep.bed_time instanceof Date ? updateSleep.bed_time : new Date(updateSleep.bed_time)).toISOString() 
-          }
-
-          // Create a new entry with the updated data
-          const updatedEntry = { ...sleepDataForMonth[entryIndex], ...updatedCurrentEntry };
-        
-          // Create a new array with the updated entry
-          const updatedSleepDataForMonth = [
-            ...sleepDataForMonth.slice(0, entryIndex),
-            updatedEntry,
-            ...sleepDataForMonth.slice(entryIndex + 1)
-          ];
-
-          return { formattedMonth, docData: updatedSleepDataForMonth };
-        } else {
-          // If the entry is not found, you might want to handle this case
-          console.error("Entry not found for update");
-          return { formattedMonth, docData: sleepDataForMonth };
-        }
-
-
+        const docData = await handleUpdateOperation(
+          collectionName, 
+          updateData, 
+          dataForMonth, 
+          dateTransforms
+        );
+        return { formattedMonth, docData };
       } catch (error: any) {
-        console.log('error', error);
         return thunkAPI.rejectWithValue(error.message);
       }
-    } else { return { formattedMonth, docData: sleepDataForMonth }; }
-  }
-);
-// Update.
+    }
+  );
+};
+
+// Create update thunks
+export const updateWaterData = createUpdateThunk('Water', 'water_tracking');
+export const updateWeightData = createUpdateThunk('Weight', 'weight_tracking');
+export const updateDietData = createUpdateThunk('Diet', 'diet_tracking', 'date', { date: true });
+export const updateSleepData = createUpdateThunk('Sleep', 'sleep_tracking', 'wakeup_time', {
+  wakeup_time: true,
+  bed_time: true
+});
 
 const trackSlice = createSlice({
   name: 'track',
@@ -637,209 +338,72 @@ const trackSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch
-      .addCase(fetchWaterData.fulfilled, (state, action) => {   // Fetch Water Data
-        const { formattedMonth, docData } = action.payload;
-        state.waterData[formattedMonth] = docData;
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(fetchWaterData.rejected, (state, action) => {    // Fetch Water Data - Error
-        console.error('Error fetching water data:', action.payload);
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(fetchWaterData.pending, (state) => {
-        state.loadingTrackWaterData = true;
-      })
-      .addCase(fetchSleepData.fulfilled, (state, action) => {   // Fetch Sleep Data
-        const { formattedMonth, docData } = action.payload;
-        state.sleepData[formattedMonth] = docData;
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(fetchSleepData.rejected, (state, action) => {    // Fetch Sleep Data - Error
-        console.error('Error fetching sleep data:', action.payload);
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(fetchSleepData.pending, (state) => {
-        state.loadingTrackSleepData = true;
-      })
-      .addCase(fetchWeightData.fulfilled, (state, action) => {   // Fetch Weight Data
-        const { formattedMonth, docData } = action.payload;
-        state.weightData[formattedMonth] = docData;
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(fetchWeightData.rejected, (state, action) => {    // Fetch Weight Data - Error
-        console.error('Error fetching weight data:', action.payload);
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(fetchWeightData.pending, (state) => {
-        state.loadingTrackWeightData = true;
-      })
-      .addCase(fetchDietData.fulfilled, (state, action) => {   // Fetch Diet Data
-        const { formattedMonth, docData } = action.payload;
-        state.dietData[formattedMonth] = docData;
-        state.loadingTrackDietData = false;
-      })
-      .addCase(fetchDietData.rejected, (state, action) => {    // Fetch Diet Data - Error
-        console.error('Error fetching diet data:', action.payload);
-        state.loadingTrackDietData = false;
-      })
-      .addCase(fetchDietData.pending, (state) => {
-        state.loadingTrackDietData = true;
-      })
-      // Fetch
+    // Helper function to handle loading states
+    const setLoading = (state: TrackState, type: string, isLoading: boolean) => {
+      const loadingKey = `loadingTrack${type}Data` as keyof TrackState;
+      (state[loadingKey] as boolean) = isLoading;
+    };
 
-      // Delete
-      .addCase(deleteWaterData.pending, (state) => {
-        state.loadingTrackWaterData = true;
-      })
-      .addCase(deleteWaterData.fulfilled, (state, action) => {  // Delete Water Data
-        const { formattedMonth, docData } = action.payload;
-        state.waterData[formattedMonth] = docData;
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(deleteWaterData.rejected, (state, action) => {   // Delete Water Data - Error
-        console.error('Error deleting water data:', action.payload);
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(deleteSleepData.pending, (state) => {
-        state.loadingTrackSleepData = true;
-      })
-      .addCase(deleteSleepData.fulfilled, (state, action) => {  // Delete Sleep Data
-        const { formattedMonth, docData } = action.payload;
-        state.sleepData[formattedMonth] = docData;
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(deleteSleepData.rejected, (state, action) => {   // Delete Sleep Data - Error
-        console.error('Error deleting sleep data:', action.payload);
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(deleteWeightData.pending, (state) => {
-        state.loadingTrackWeightData = true;
-      })
-      .addCase(deleteWeightData.fulfilled, (state, action) => {  // Delete Weight Data
-        const { formattedMonth, docData } = action.payload;
-        state.weightData[formattedMonth] = docData;
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(deleteWeightData.rejected, (state, action) => {   // Delete Weight Data - Error
-        console.error('Error deleting weight data:', action.payload);
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(deleteDietData.pending, (state) => {
-        state.loadingTrackDietData = true;
-      })
-      .addCase(deleteDietData.fulfilled, (state, action) => {  // Delete Diet Data
-        const { formattedMonth, docData } = action.payload;
-        state.dietData[formattedMonth] = docData;
-        state.loadingTrackDietData = false;
-      })
-      .addCase(deleteDietData.rejected, (state, action) => {   // Delete Diet Data - Error
-        console.error('Error deleting diet data:', action.payload);
-        state.loadingTrackDietData = false;
-      })
-      // Delete
+    // Helper function to handle data updates
+    const updateStateData = (state: TrackState, type: string, formattedMonth: string, docData: any[]) => {
+      const dataKey = `${type.toLowerCase()}Data` as keyof TrackState;
+      (state[dataKey] as any)[formattedMonth] = docData;
+    };
 
-      // Add
-      .addCase(addWaterData.pending, (state) => {
-        state.loadingTrackWaterData = true;
-      })
-      .addCase(addWaterData.fulfilled, (state, action) => {  // Add Water Data
-        const { formattedMonth, docData } = action.payload;
-        state.waterData[formattedMonth] = docData;
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(addWaterData.rejected, (state, action) => {   // Add Water Data - Error
-        console.error('Error adding water data:', action.payload);
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(addSleepData.pending, (state) => {
-        state.loadingTrackSleepData = true;
-      })
-      .addCase(addSleepData.fulfilled, (state, action) => {  // Add Sleep Data
-        const { formattedMonth, docData } = action.payload;
-        state.sleepData[formattedMonth] = docData;
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(addSleepData.rejected, (state, action) => {   // Add Sleep Data - Error
-        console.error('Error adding sleep data:', action.payload);
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(addWeightData.pending, (state) => {
-        state.loadingTrackWeightData = true;
-      })
-      .addCase(addWeightData.fulfilled, (state, action) => {  // Add Weight Data
-        const { formattedMonth, docData } = action.payload;
-        state.weightData[formattedMonth] = docData;
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(addWeightData.rejected, (state, action) => {   // Add Weight Data - Error
-        console.error('Error adding weight data:', action.payload);
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(addDietData.pending, (state) => {
-        state.loadingTrackDietData = true;
-      })
-      .addCase(addDietData.fulfilled, (state, action) => {  // Add Diet Data
-        const { formattedMonth, docData } = action.payload;
-        state.dietData[formattedMonth] = docData;
-        state.loadingTrackDietData = false;
-      })
-      .addCase(addDietData.rejected, (state, action) => {   // Add Diet Data - Error
-        console.error('Error adding diet data:', action.payload);
-        state.loadingTrackDietData = false;
-      })
-      // Add
+    // Helper function to handle errors
+    const handleError = (state: TrackState, type: string, payload: any) => {
+      console.error(`Error handling ${type} data:`, payload);
+      setLoading(state, type as keyof TrackState, false);
+    };
 
-      // Update
-      .addCase(updateWaterData.pending, (state) => {
-        state.loadingTrackWaterData = true;
-      })
-      .addCase(updateWaterData.fulfilled, (state, action) => {  // Update Water Data
-        const { formattedMonth, docData } = action.payload;
-        state.waterData[formattedMonth] = docData;
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(updateWaterData.rejected, (state, action) => {   // Update Water Data - Error
-        console.error('Error updating water data:', action.payload);
-        state.loadingTrackWaterData = false;
-      })
-      .addCase(updateWeightData.pending, (state) => {
-        state.loadingTrackWeightData = true;
-      })
-      .addCase(updateWeightData.fulfilled, (state, action) => {  // Update Weight Data
-        const { formattedMonth, docData } = action.payload;
-        state.weightData[formattedMonth] = docData;
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(updateWeightData.rejected, (state, action) => {   // Update Weight Data - Error
-        console.error('Error updating weight data:', action.payload);
-        state.loadingTrackWeightData = false;
-      })
-      .addCase(updateDietData.pending, (state) => {
-        state.loadingTrackDietData = true;
-      })
-      .addCase(updateDietData.fulfilled, (state, action) => {  // Update Diet Data
-        const { formattedMonth, docData } = action.payload;
-        state.dietData[formattedMonth] = docData;
-        state.loadingTrackDietData = false;
-      })
-      .addCase(updateDietData.rejected, (state, action) => {   // Update Diet Data - Error
-        console.error('Error updating diet data:', action.payload);
-        state.loadingTrackDietData = false;
-      })
-      .addCase(updateSleepData.pending, (state) => {
-        state.loadingTrackSleepData = true;
-      })
-      .addCase(updateSleepData.fulfilled, (state, action) => {  // Update Sleep Data
-        const { formattedMonth, docData } = action.payload;
-        state.sleepData[formattedMonth] = docData;
-        state.loadingTrackSleepData = false;
-      })
-      .addCase(updateSleepData.rejected, (state, action) => {   // Update Sleep Data - Error
-        console.error('Error updating sleep data:', action.payload);
-        state.loadingTrackSleepData = false;
-      })
-    // Update
+    // Generic case handler creator
+    const createCaseHandlers = (type: string) => ({
+      [`fetch${type}Data`]: {
+        pending: (state: TrackState) => setLoading(state, type as keyof TrackState, true),
+        fulfilled: (state: TrackState, { payload: { formattedMonth, docData } }: any) => {
+          updateStateData(state, type, formattedMonth, docData);
+          setLoading(state, type as keyof TrackState, false);
+        },
+        rejected: (state: TrackState, { payload }: any) => handleError(state, type, payload)
+      },
+      [`delete${type}Data`]: {
+        pending: (state: TrackState) => setLoading(state, type as keyof TrackState, true),
+        fulfilled: (state: TrackState, { payload: { formattedMonth, docData } }: any) => {
+          updateStateData(state, type, formattedMonth, docData);
+          setLoading(state, type as keyof TrackState, false);
+        },
+        rejected: (state: TrackState, { payload }: any) => handleError(state, type, payload)
+      },
+      [`add${type}Data`]: {
+        pending: (state: TrackState) => setLoading(state, type as keyof TrackState, true),
+        fulfilled: (state: TrackState, { payload: { formattedMonth, docData } }: any) => {
+          updateStateData(state, type, formattedMonth, docData);
+          setLoading(state, type as keyof TrackState, false);
+        },
+        rejected: (state: TrackState, { payload }: any) => handleError(state, type, payload)
+      },
+      [`update${type}Data`]: {
+        pending: (state: TrackState) => setLoading(state, type as keyof TrackState, true),
+        fulfilled: (state: TrackState, { payload: { formattedMonth, docData } }: any) => {
+          updateStateData(state, type, formattedMonth, docData);
+          setLoading(state, type as keyof TrackState, false);
+        },
+        rejected: (state: TrackState, { payload }: any) => handleError(state, type, payload)
+      }
+    });
+
+    // Apply handlers for each data type
+    ['Water', 'Sleep', 'Weight', 'Diet'].forEach(type => {
+      const handlers = createCaseHandlers(type);
+      Object.entries(handlers).forEach(([action, cases]) => {
+        Object.entries(cases).forEach(([status, handler]) => {
+          builder.addCase(
+            `track/${action}/${status}` as any,
+            handler as any
+          );
+        });
+      });
+    });
   }
 });
 
