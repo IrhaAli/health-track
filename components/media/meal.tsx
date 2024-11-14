@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { Divider, Text, Surface, Portal, Modal, IconButton } from "react-native-paper";
 import { Image, View, ScrollView, StyleSheet, Dimensions, Animated, TouchableOpacity, Platform } from "react-native";
 import { ImageModal } from "./imageModal";
+import i18n from "@/services/i18n";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.3;
@@ -47,6 +48,13 @@ export default function AppMediaMealComponent() {
     }).start();
   }, [formattedMonth]);
 
+  const formatDate = (date: Date) => {
+    const day = date.getDate();
+    const weekday = i18n.t(`media.weekdays.${date.toLocaleDateString('en-US', {weekday: 'long'}).toLowerCase()}`);
+    const month = i18n.t(`media.months.${date.toLocaleDateString('en-US', {month: 'long'}).toLowerCase()}`);
+    return `${weekday}, ${month} ${day}`;
+  };
+
   if (Array.isArray(dietData) || !dietData[formattedMonth]?.length) {
     return null;
   }
@@ -59,11 +67,7 @@ export default function AppMediaMealComponent() {
             <View style={styles.dateContainer}>
               <Surface style={styles.dateSurface} elevation={1}>
                 <Text variant="titleLarge" style={styles.dateText}>
-                  {new Date(group.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {formatDate(new Date(group.date))}
                 </Text>
               </Surface>
             </View>
@@ -98,11 +102,49 @@ export default function AppMediaMealComponent() {
                       />
                       <View style={styles.timeContainer}>
                         <Text variant="titleSmall" style={styles.timeText}>
-                          {new Date(meal.date).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit', 
-                            hour12: true 
-                          }).toUpperCase()}
+                          {(() => {
+                            const date = new Date(meal.date);
+                            if (isNaN(date.getTime())) {
+                              return '';
+                            }
+                            
+                            const currentLang = i18n.locale as 'ar' | 'fr' | 'en';
+                            
+                            // Get time in 24h format first
+                            const time24h = date.toLocaleTimeString('en-US', {
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              hour12: false
+                            });
+                            
+                            // Convert to 12h format and handle translations
+                            const hour = parseInt(time24h.split(':')[0]);
+                            const minutes = time24h.split(':')[1];
+                            const hour12 = hour % 12 || 12;
+                            const period = hour < 12 ? 'AM' : 'PM';
+                            
+                            const translations = {
+                              'AM': {
+                                'ar': 'ص',
+                                'fr': 'AM',
+                                'en': 'AM'
+                              },
+                              'PM': {
+                                'ar': 'م',
+                                'fr': 'PM',
+                                'en': 'PM'
+                              }
+                            } as const;
+
+                            const translatedPeriod = translations[period][currentLang];
+                            const timeString = `${hour12}:${minutes}`;
+
+                            if (currentLang === 'ar') {
+                              return `${translatedPeriod} ${timeString}`;
+                            }
+                            
+                            return `${timeString} ${translatedPeriod}`;
+                          })()}
                         </Text>
                       </View>
                     </Surface>
