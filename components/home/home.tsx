@@ -96,7 +96,7 @@ export default function HomeComponent() {
             )}
             mode="text"
             onPress={onPress}
-            disabled={disabled} children={undefined}        />
+            disabled={disabled} children={undefined} />
     ), []);
 
     const monthName = useMemo(() => {
@@ -114,7 +114,7 @@ export default function HomeComponent() {
                     () => navigateMonth(-1), 
                     disablePrevButton
                 )}
-                <Text variant="titleLarge">{monthName} {year}</Text>
+                <Text variant="titleLarge">{monthName.charAt(0).toUpperCase() + monthName.slice(1)} {year}</Text>
                 {renderNavigationButton(
                     isRTL ? 'chevron-left' : 'chevron-right', 
                     () => navigateMonth(1), 
@@ -146,6 +146,5 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 30,
         paddingVertical: 10,
-        marginTop: 43
     }
 });
