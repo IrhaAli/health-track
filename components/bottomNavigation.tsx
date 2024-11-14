@@ -5,7 +5,6 @@ import { View, Text, StyleSheet, Animated, useColorScheme } from "react-native";
 import { TouchableRipple } from "react-native-paper";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { useDispatch } from "react-redux";
-import { getLocales } from 'expo-localization';
 import i18n from '@/services/i18n';
 import { usePathname, useRouter } from "expo-router";
 
@@ -50,9 +49,8 @@ export const BottomTabBar = React.memo(({ onIndexChange, currentIndex }: BottomT
         }).start(() => {
             slideAnim.setValue(0);
         });
-
         onIndexChange(newIndex);
-        router.push(routes[newIndex].path);
+        router.push(routes[newIndex].path as any); // Type assertion needed for router.push
 
         if (newIndex === 1) { // Only update date/month for Track tab
             const now = new Date();
