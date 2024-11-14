@@ -1,43 +1,38 @@
 import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from "react-native";
-import { useCameraPermissions } from "expo-camera";
-import { Camera, CameraType, AutoFocus } from "expo-camera/legacy";
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { setHideCamera, setImageURI } from "@/store/cameraSlice";
 import { Portal, Button, Avatar } from "react-native-paper";
 import { useWindowDimensions } from "react-native";
-import { useIsFocused } from '@react-navigation/native';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 export default function AppCamera() {
     const showCamera = useSelector((state: RootState) => state.camera.showCamera)
     const [permission, requestPermission] = useCameraPermissions();
-    const cameraRef = useRef<Camera | null>(null);
-    const [cameraSide, setCameraSide] = useState(CameraType.back);
+    const cameraRef = useRef<any>(null);
+    const [facing, setFacing] = useState<CameraType>('back');
     const dispatch = useDispatch<AppDispatch>();
     const { width, height: windowHeight } = useWindowDimensions();
     // Calculate camera height to maintain 16:9 aspect ratio
     const cameraHeight = Math.round((width * 16) / 9);
-    const isFocused = useIsFocused();
     const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         if (showCamera) {
             // Pre-warm the camera
-            Camera.requestCameraPermissionsAsync();
+            requestPermission();
         }
     }, [showCamera]);
 
     const toggleCameraFacing = () => {
-        setCameraSide((current) =>
-            current === CameraType.front ? CameraType.back : CameraType.front
-        );
+        setFacing(current => current === 'back' ? 'front' : 'back');
     };
 
-    const handleFocus = async (event: any) => {
-        // Remove focus handling since it's causing crashes
-        return;
+    // Remove focus handling since it's not supported in expo-camera
+    const handleFocus = () => {
+        // No-op since focus is not supported
     };
 
     const takePhoto = async () => {
@@ -46,18 +41,14 @@ export default function AppCamera() {
         }
 
         try {
-            const options = {
-                quality: 0.5,
-                base64: false,
-                skipProcessing: true,
-                exif: false,
-                fixOrientation: true
-            };
-
             // Disable camera before taking picture to prevent race conditions
             setIsReady(false);
             
-            const photo = await cameraRef.current.takePictureAsync(options);
+            const photo = await cameraRef.current.takePictureAsync({
+                quality: 0.5,
+                skipProcessing: true,
+                exif: false,
+            });
             
             if (photo?.uri) {
                 // Compress and resize the image
@@ -75,7 +66,7 @@ export default function AppCamera() {
                 dispatch(setImageURI(manipulatedImage.uri));
                 handleCloseCamera();
             } else {
-                throw new Error('No image URI returned');
+                throw new Error('No image uri returned');
             }
 
         } catch (error) {
@@ -105,7 +96,7 @@ export default function AppCamera() {
                 <Button onPress={requestPermission}>Grant Permission</Button>
             </View>
         );
-    } else if (isFocused && showCamera) {
+    } else if (showCamera) {
         return (
             <Portal>
                 <Modal 
@@ -116,14 +107,12 @@ export default function AppCamera() {
                 >
                     <View style={[styles.cameraContainer, { height: windowHeight }]}>
                         <View style={[styles.camera, { height: cameraHeight }]}>
-                            <Camera 
+                            <CameraView 
                                 style={StyleSheet.absoluteFill} 
-                                type={cameraSide} 
-                                ratio="16:9" 
+                                facing={facing}
                                 ref={cameraRef}
                                 onCameraReady={onCameraReady}
-                                useCamera2Api={false} // Set to false to avoid Android native camera API issues
-                                autoFocus={AutoFocus.on}
+                                onTouchEnd={handleFocus}
                             >
                                 <View style={styles.buttonContainer}>
                                     <TouchableOpacity 
@@ -148,7 +137,7 @@ export default function AppCamera() {
                                         <Avatar.Icon size={48} icon="close" color="#fff" style={styles.buttonIcon} />
                                     </TouchableOpacity>
                                 </View>
-                            </Camera>
+                            </CameraView>
                         </View>
                     </View>
                 </Modal>
