@@ -167,7 +167,7 @@ export default function ProfileFooterLinks() {
               >
                 Français
               </Button>
-              <Button
+              {/* <Button
                 mode="contained-tonal"
                 onPress={() => handleLanguageSelect('ar')}
                 style={[styles.dialogButton, i18n.locale === 'ar' && styles.selectedLanguage]}
@@ -175,7 +175,7 @@ export default function ProfileFooterLinks() {
                 icon="check-circle"
               >
                 عربي
-              </Button>
+              </Button> */}
             </Dialog.Content>
           </Dialog>
 
