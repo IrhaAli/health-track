@@ -20,7 +20,7 @@ interface TrackDialogState {
 
 const initialState: TrackDialogState = {
     showDialog: false,
-    dialogType: null, 
+    dialogType: null,
     dialogTab: null
 };
 
@@ -28,22 +28,29 @@ const trackDialogSlice = createSlice({
     name: 'trackDialog',
     initialState,
     reducers: {
-        setShowDialog: (state: TrackDialogState) => {
-            state.showDialog = true;
+        // Combine show/hide into single toggle action
+        toggleDialog: (state: TrackDialogState, action: PayloadAction<boolean>) => {
+            state.showDialog = action.payload;
         },
-        setHideDialog: (state: TrackDialogState) => {
-            state.showDialog = false;
+        
+        // Optimized setDialog with destructuring and single update
+        setDialog: (state: TrackDialogState, action: PayloadAction<{
+            showDialog: boolean,
+            dialogType?: DialogType | null,
+            dialogTab?: DialogTab | null
+        }>) => {
+            const { showDialog, dialogType, dialogTab } = action.payload;
+            state.showDialog = showDialog;
+            if (dialogType !== undefined) state.dialogType = dialogType;
+            if (dialogTab !== undefined) state.dialogTab = dialogTab;
         },
-        setDialog: (state: TrackDialogState, action: PayloadAction<{ showDialog: boolean, dialogType?: DialogType | null, dialogTab?: DialogTab | null }>) => {
-            state.showDialog = action.payload.showDialog;
-            if (action.payload.dialogType) { state.dialogType = action.payload.dialogType; }
-            if (action.payload.dialogTab) { state.dialogTab = action.payload.dialogTab };
-        },
+
+        // Simplified setTab
         setTab: (state: TrackDialogState, action: PayloadAction<DialogTab>) => {
-            state.dialogTab = action.payload
+            state.dialogTab = action.payload;
         }
-    },
+    }
 });
 
-export const { setShowDialog, setHideDialog, setDialog, setTab } = trackDialogSlice.actions;
+export const { toggleDialog, setDialog, setTab } = trackDialogSlice.actions;
 export default trackDialogSlice.reducer;
