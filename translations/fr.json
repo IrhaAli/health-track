@@ -56,7 +56,6 @@
     "noSleepData": "Aucune donnée de sommeil disponible pour ce mois",
     "home": "Accueil",
     "track": "Suivi",
-    "media": "Médias",
     "profile": "Profil",
     "logout": "Se déconnecter",
     "deleteAccount": "Supprimer mon compte",
@@ -111,10 +110,38 @@
     "dateOfBirth": "Date de Naissance",
     "gender": "Genre",
     "height": "Taille",
-    "weight": "Poids", 
+    "weight": "Poids",
     "bodyType": "Type de Corps",
     "activityType": "Type d'Activité",
     "wakeupTime": "Heure de Réveil",
     "sleepTime": "Heure de Coucher",
-    "healthGoal": "Objectif de Santé"
+    "healthGoal": "Objectif de Santé",
+    "media": {
+        "meal": "Repas",
+        "weight": "Poids",
+        "title": "Média",
+        "months": {
+            "january": "Janvier",
+            "february": "Février",
+            "march": "Mars",
+            "april": "Avril",
+            "may": "Mai",
+            "june": "Juin",
+            "july": "Juillet",
+            "august": "Août",
+            "september": "Septembre",
+            "october": "Octobre",
+            "november": "Novembre",
+            "december": "Décembre"
+        },
+        "weekdays": {
+            "monday": "Lundi",
+            "tuesday": "Mardi",
+            "wednesday": "Mercredi",
+            "thursday": "Jeudi",
+            "friday": "Vendredi",
+            "saturday": "Samedi",
+            "sunday": "Dimanche"
+        }
+    }
 }
