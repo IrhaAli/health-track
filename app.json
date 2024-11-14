@@ -62,6 +62,7 @@
       "en": "./translations/en.json",
       "fr": "./translations/fr.json", 
       "ar": "./translations/ar.json"
-    }
+    },
+    "newArchEnabled": true
   }
 }
