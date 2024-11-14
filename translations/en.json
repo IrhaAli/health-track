@@ -56,7 +56,6 @@
     "noSleepData": "No sleep data available for this month",
     "home": "Home",
     "track": "Track",
-    "media": "Media", 
     "profile": "Profile",
     "logout": "Logout",
     "deleteAccount": "Delete My Account",
@@ -109,12 +108,40 @@
     "noMedicalHistory": "No Medical History",
     "notes": "Notes",
     "dateOfBirth": "Date of Birth",
-    "gender": "Gender", 
+    "gender": "Gender",
     "height": "Height",
     "weight": "Weight",
     "bodyType": "Body Type",
     "activityType": "Activity Type",
     "wakeupTime": "Wakeup Time",
     "sleepTime": "Sleep Time",
-    "healthGoal": "Health Goal"
+    "healthGoal": "Health Goal",
+    "media": {
+        "meal": "Meal",
+        "weight": "Weight",
+        "title": "Media",
+        "months": {
+            "january": "January",
+            "february": "February",
+            "march": "March",
+            "april": "April",
+            "may": "May",
+            "june": "June",
+            "july": "July",
+            "august": "August",
+            "september": "September",
+            "october": "October",
+            "november": "November",
+            "december": "December"
+        },
+        "weekdays": {
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday",
+            "sunday": "Sunday"
+        }
+    }
 }
