@@ -4,7 +4,7 @@ import store from "../store/store";
 import { PaperProvider } from 'react-native-paper';
 import { SessionProvider } from '../ctx';
 import React from "react";
-import { theme } from "./theme";
+import theme from "./theme"; // Changed from { theme } to default import
 
 export default function Layout() {
   return (

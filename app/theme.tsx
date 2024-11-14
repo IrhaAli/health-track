@@ -4,7 +4,7 @@ import AppLoading from 'expo-app-loading';
 import { MD3LightTheme as DefaultTheme } from 'react-native-paper';
 import React from 'react';
 
-export const theme = {
+const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
@@ -13,10 +13,10 @@ export const theme = {
   },
 };
 
-export const themeColor = theme.colors.primary;
-export const lightThemeColor = '#f2f7f7';
+const themeColor = theme.colors.primary;
+const lightThemeColor = '#f2f7f7';
 
-export function getTheme() {
+function getTheme() {
   const disabledColor = 'grey';
   const [fontsLoaded] = useFonts({ 'HelveticaNeue': require('../assets/fonts/HelveticaNeueMedium.otf'), });
 
@@ -59,3 +59,6 @@ export function getTheme() {
     dotStyle: {marginTop: -2}
   };
 }
+
+export default theme;
+export { themeColor, lightThemeColor, getTheme };
