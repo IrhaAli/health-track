@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { StyleSheet, Platform, Pressable, View, ActivityIndicator, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../../services/firebaseConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
@@ -16,209 +14,141 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
-    const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const [sleepDateTime, setSleepDateTime] = useState<Date>(() => {
+    const { currentDate, sleepData } = useSelector((state: RootState) => state.track);
+    const dialogType = useSelector((state: RootState) => state.trackDialog.dialogType);
+
+    const [sleepDateTime, setSleepDateTime] = useState(() => {
         const date = new Date(currentDate);
-        date.setDate(date.getDate() - 1); // Set to the previous day
-        date.setHours(22, 0, 0, 0); // Set time to 10:00 PM
+        date.setDate(date.getDate() - 1);
+        date.setHours(22, 0, 0, 0);
         return date;
     });
-    const [wakeupTime, setWakeupTime] = useState<Date>(() => {
-        const date = new Date(currentDate); // Initialize with the current date
-        const now = new Date(); // Get the current time
 
-        // Set the hours, minutes, and seconds to the current time
-        date.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-
+    const [wakeupTime, setWakeupTime] = useState(() => {
+        const date = new Date(currentDate);
+        const now = new Date();
+        date.setHours(now.getHours(), now.getMinutes(), 0, 0);
         return date;
     });
-    const [sleepQuality, setSleepQuality] = useState<number>(0);
-    const [sleepDuration, setSleepDuration] = useState<number>(0);
-    const [showSleepDateSelector, setShowSleepDateSelector] = useState<boolean>(false);
-    const [showSleepTimeSelector, setShowSleepTimeSelector] = useState<boolean>(false);
-    const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [showError, setShowError] = useState<boolean>(false);
+
+    const [sleepQuality, setSleepQuality] = useState(0);
+    const [sleepDuration, setSleepDuration] = useState(0);
+    const [showSleepDateSelector, setShowSleepDateSelector] = useState(false);
+    const [showSleepTimeSelector, setShowSleepTimeSelector] = useState(false);
+    const [showWakeupTimeSelector, setShowWakeupTimeSelector] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showError, setShowError] = useState(false);
     const [errorString, setErrorString] = useState<string | null>(null);
-    const sleepData = useSelector((state: RootState) => state.track.sleepData);
     const [currentSleepData, setCurrentSleepData] = useState<SleepDataEntry | {}>({});
-    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
-        const getUser = async () => {
-            const userString = await AsyncStorage.getItem('session');
-            if (userString) {
-                const user = JSON.parse(userString);
-                setCurrentUser(user);
-            }
-        };
-        getUser();
+        AsyncStorage.getItem('session').then(userString => {
+            if (userString) setCurrentUser(JSON.parse(userString));
+        });
     }, []);
 
-    const convertMinutesToHoursAndMinutes = (totalMinutes: number): string =>
-        `${Math.floor(totalMinutes / 60)} hours and ${totalMinutes % 60} minutes`;
+    const convertMinutesToHoursAndMinutes = (mins: number) => 
+        `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
 
     const calculateSleepDuration = () => {
-        // Convert both times to UTC timestamps for comparison
-        const sleepTimeMs = sleepDateTime.getTime();
-        const wakeupTimeMs = wakeupTime.getTime();
-        
-        // Handle case where sleep time is after wakeup time (crosses midnight)
-        let differenceMs = wakeupTimeMs - sleepTimeMs;
-        if (differenceMs < 0) {
-            // Add 24 hours worth of milliseconds
-            differenceMs += 24 * 60 * 60 * 1000;
-        }
-        
-        const differenceMinutes = Math.floor(differenceMs / (1000 * 60));
-        return differenceMinutes;
+        let diff = wakeupTime.getTime() - sleepDateTime.getTime();
+        if (diff < 0) diff += 24 * 60 * 60 * 1000;
+        return Math.floor(diff / (1000 * 60));
     };
 
     const getSleepDataObject = (): SleepDataEntry | {} => {
         const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-
-        if (!Array.isArray(sleepData)) {
-            if (formattedMonth in sleepData) {
-                if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
-
-                    const entry = sleepData[formattedMonth].find((entry: SleepDataEntry) => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate);
-                    if (entry) { return entry; }
-                }
-            }
-        }
-        return {}; // Return an empty object if conditions are not met
-    }
+        const monthData = sleepData[`${year}-${month}`];
+        if (!monthData?.length) return {};
+        
+        const entry = monthData.find(entry => 
+            new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
+        );
+        return entry || {};
+    };
 
     useEffect(() => {
         if (dialogType === DialogType.EDIT) {
-            const entry: SleepDataEntry | {} = getSleepDataObject();
-            if (entry && isSleepDataEntry(entry)) {
+            const entry = getSleepDataObject();
+            if (isSleepDataEntry(entry)) {
                 setCurrentSleepData(entry);
                 setSleepDateTime(new Date(entry.bed_time));
-                setWakeupTime(new Date(entry.wakeup_time))
-                setSleepQuality(entry.sleep_quality)
+                setWakeupTime(new Date(entry.wakeup_time));
+                setSleepQuality(entry.sleep_quality);
             }
         }
-    }, [dialogType, currentDate, sleepData]); // Dependencies to re-run the effect
+    }, [dialogType, currentDate, sleepData]);
 
     useEffect(() => {
         setSleepDuration(calculateSleepDuration());
     }, [wakeupTime, sleepDateTime]);
 
-    const onSleepDateChange = (event: DateTimePickerEvent, date?: Date): void => {
-        if (event.type === "dismissed" || event.type === "set") { setShowSleepDateSelector(false); }
-        if (date) {
-            setSleepDateTime(prev => {
-                const newDateTime = new Date(prev || date);
-                newDateTime.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-                return newDateTime;
-            });
-        }
-    }
-
-    const onSleepTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
-        if (event.type === "dismissed" || event.type === "set") { setShowSleepTimeSelector(false); }
-        if (date) {
-            // Calculate the difference in milliseconds
-            const differenceInMillis = wakeupTime.getTime() - date.getTime();
-
-            // Convert milliseconds to hours
-            const differenceInHours = differenceInMillis / (1000 * 60 * 60);
-
-            if (differenceInHours < 1) {
-                const adjustedWakeupTime = new Date(date.getTime() + (60 * 60 * 1000));
-                setWakeupTime(adjustedWakeupTime);
-                setSleepDateTime(prev => {
-                    const newDateTime = new Date(prev || date);
-                    newDateTime.setHours(date.getHours(), date.getMinutes());
-                    return newDateTime;
-                });
-            } else {
-                setSleepDateTime(prev => {
-                    const newDateTime = new Date(prev || date);
-                    newDateTime.setHours(date.getHours(), date.getMinutes());
-                    return newDateTime;
-                });
+    const handleTimeChange = (setter: Function, otherTime: Date, minGap = 60) => 
+        (event: DateTimePickerEvent, date?: Date) => {
+            if (!date) return;
+            const diffHours = Math.abs(date.getTime() - otherTime.getTime()) / (1000 * 60 * 60);
+            
+            if (diffHours < 1) {
+                const adjustment = minGap * 60 * 1000;
+                const adjustedTime = new Date(date.getTime() + adjustment);
+                setter(adjustedTime);
             }
-        }
-    }
-
-    const onWakeupTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
-        if (event.type === "dismissed" || event.type === "set") { setShowWakeupTimeSelector(false); }
-        if (date) {
-            // Calculate the difference in milliseconds
-            const differenceInMillis = date.getTime() - sleepDateTime.getTime();
-
-            // Convert milliseconds to hours
-            const differenceInHours = differenceInMillis / (1000 * 60 * 60);
-
-            if (differenceInHours < 1) {
-                // Otherwise, adjust sleep time by subtracting one hour
-                const adjustedSleepTime = new Date(date.getTime() - (60 * 60 * 1000));
-                setSleepDateTime(adjustedSleepTime);
-                setWakeupTime(date);
-            } else {
-                // If the sleepDateTime is less than 1 hour from the date, set only wakeup time
-                setWakeupTime(date);
-            }
-        }
-    }
+            setter(date);
+        };
 
     const onSubmit = async () => {
+        if (!currentUser?.uid) {
+            router.push("/register");
+            return;
+        }
+
         const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-        const sleepDataForMonth = sleepData?.[formattedMonth] || [];
-
-        setShowError(false);
-        setErrorString(null);
-
-        const existingEntry = sleepDataForMonth.find(
-            entry => new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
+        const monthData = sleepData[`${year}-${month}`] || [];
+        const existingEntry = monthData.find(entry => 
+            new Date(entry.wakeup_time).toLocaleDateString().split('/').reverse().join('-') === currentDate
         );
 
-        if (dialogType !== DialogType.EDIT && existingEntry) {
+        if ((dialogType !== DialogType.EDIT && existingEntry) || 
+            (dialogType === DialogType.EDIT && !existingEntry)) {
             setShowError(true);
-            setErrorString('Sleep data already exists!');
+            setErrorString(dialogType !== DialogType.EDIT ? 
+                'Sleep data already exists!' : 
+                "Sleep data doesn't exist, add sleep first!"
+            );
             return;
         }
 
-        if (dialogType === DialogType.EDIT && !existingEntry) {
-            setShowError(true);
-            setErrorString("Sleep data doesn't exists, add water first!");
-            return;
+        setLoading(true);
+        try {
+            const sleepEntry = {
+                user_id: currentUser.uid,
+                bed_time: sleepDateTime,
+                wakeup_time: wakeupTime,
+                sleep_quality: sleepQuality,
+                sleep_duration: sleepDuration
+            };
+
+            if (dialogType === DialogType.EDIT && isSleepDataEntry(currentSleepData)) {
+                dispatch(updateSleepData({ 
+                    updateSleep: { ...currentSleepData, ...sleepEntry }, 
+                    currentDate 
+                }));
+            } else {
+                dispatch(addSleepData({ 
+                    currentDate, 
+                    addSleep: sleepEntry 
+                }));
+            }
+
+            dispatch(clearImageURI());
+            dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
-
-        if (currentUser?.uid) {
-            setLoading(true);
-
-            try {
-                if (dialogType !== DialogType.EDIT) {
-                    let addSleep: SleepDataEntry = { user_id: currentUser.uid, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                    dispatch(addSleepData({ currentDate: currentDate, addSleep: addSleep }));
-                }
-                if (dialogType === DialogType.EDIT && isSleepDataEntry(currentSleepData)) {
-                    let updateSleep: SleepDataEntry = { ...currentSleepData, bed_time: sleepDateTime, wakeup_time: wakeupTime, sleep_quality: sleepQuality, sleep_duration: sleepDuration }
-                    dispatch(updateSleepData({ updateSleep, currentDate }))
-                }
-
-                // Ressetting Fields.
-                setSleepDateTime(new Date());
-                setWakeupTime(new Date());
-                setSleepQuality(0);
-                setSleepDuration(0);
-                setShowSleepDateSelector(false);
-                setShowSleepTimeSelector(false);
-                setShowWakeupTimeSelector(false);
-                setLoading(false);
-                dispatch(clearImageURI());
-                // Ressetting Fields.
-
-                dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
-            } catch (error) { setLoading(false); }
-        } else { router.push({ pathname: "/register" }); }
-    }
+    };
 
     return (
         <View>
@@ -271,7 +201,10 @@ export default function TrackSleepForm() {
                         <DateTimePicker
                             mode="date"
                             value={sleepDateTime}
-                            onChange={onSleepDateChange}
+                            onChange={(e, d) => {
+                                setShowSleepDateSelector(false);
+                                if (d) setSleepDateTime(d);
+                            }}
                             maximumDate={new Date(currentDate)}
                             minimumDate={new Date(new Date(currentDate).setDate(new Date(currentDate).getDate() - 1))}
                         />
@@ -280,7 +213,7 @@ export default function TrackSleepForm() {
                         <DateTimePicker
                             mode="time"
                             value={sleepDateTime}
-                            onChange={onSleepTimeChange}
+                            onChange={handleTimeChange(setSleepDateTime, wakeupTime)}
                         />
                     )}
                 </View>
@@ -313,7 +246,7 @@ export default function TrackSleepForm() {
                         <DateTimePicker
                             mode="time"
                             value={wakeupTime}
-                            onChange={onWakeupTimeChange}
+                            onChange={handleTimeChange(setWakeupTime, sleepDateTime, -60)}
                         />
                     )}
                 </View>
@@ -327,7 +260,7 @@ export default function TrackSleepForm() {
                             minimumValue={1}
                             maximumValue={5}
                             step={1}
-                            onValueChange={(value: number) => setSleepQuality(value)}
+                            onValueChange={setSleepQuality}
                             disabled={loading}
                             thumbTintColor="#6200ee"
                             minimumTrackTintColor="#6200ee"
