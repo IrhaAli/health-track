@@ -1,250 +1,187 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Platform, Image } from "react-native";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setHideCamera, setShowCamera, setImageURI, clearImageURI } from "@/store/cameraSlice";
 import { DialogType, setDialog } from "@/store/trackDialogSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { Divider, Button, Text, HelperText, Avatar, Surface } from 'react-native-paper';
+import { Divider, Button, Text, HelperText, Surface } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDietData, updateDietData } from "@/store/trackSlice";
-import { DietDataEntry, DietDataState, isDietDataEntry, TrackState } from "@/types/track";
+import { DietDataEntry, isDietDataEntry } from "@/types/track";
 
 export default function TrackDietForm() {
     const dispatch = useDispatch<AppDispatch>();
-    const imageURI: string | null = useSelector((state: RootState) => state.camera.imageURI);
-    const currentDate: string = useSelector((state: RootState) => state.track.currentDate);
-    const dietData: DietDataState = useSelector((state: RootState) => state.track.dietData);
+    const { imageURI } = useSelector((state: RootState) => state.camera);
+    const { currentDate, dietData } = useSelector((state: RootState) => state.track);
+    const dialogType = useSelector((state: RootState) => state.trackDialog.dialogType);
 
     const storage = getStorage();
-    const [mealTime, setMealTime] = useState<Date>(() => {
-        // Create date object in local timezone using currentDate
-        const localDate = new Date(currentDate + 'T00:00:00');
+    const [mealTime, setMealTime] = useState(() => {
+        const date = new Date(currentDate + 'T00:00:00');
         const now = new Date();
-        
-        // Set time components while preserving the date
-        localDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-        
-        return localDate;
+        date.setHours(now.getHours(), now.getMinutes());
+        return date;
     });
-    const [showMealTimeSelector, setShowMealTimeSelector] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [showError, setShowError] = useState<boolean>(false);
+    const [showMealTimeSelector, setShowMealTimeSelector] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showError, setShowError] = useState(false);
     const [errorString, setErrorString] = useState<string | null>(null);
-    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [imageToBeDelete, setImageToBeDelete] = useState<string | null>(null);
     const [currentDietData, setCurrentDietData] = useState<DietDataEntry | {}>({});
 
     useEffect(() => {
-        const getUser = async () => {
-            const userString = await AsyncStorage.getItem('session');
-            if (userString) {
-                const user = JSON.parse(userString);
-                setCurrentUser(user);
-            }
-        };
-        getUser();
+        AsyncStorage.getItem('session').then(userString => {
+            if (userString) setCurrentUser(JSON.parse(userString));
+        });
     }, []);
-
-    const getDietDataObject = (): DietDataEntry | {} => {
-        const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-
-        if (!Array.isArray(dietData)) {
-            if (formattedMonth in dietData) {
-                if (dietData[formattedMonth] && dietData[formattedMonth].length > 0) {
-
-                    const entry = dietData[formattedMonth].find((entry: DietDataEntry) => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate);
-                    if (entry) { return entry; }
-                }
-            }
-        }
-        return {}; // Return an empty object if conditions are not met
-    }
 
     useEffect(() => {
         if (dialogType === DialogType.EDIT) {
-            const entry: DietDataEntry | {} = getDietDataObject();
+            const [year, month] = currentDate.split('-');
+            const formattedMonth = `${year}-${month}`;
+            
+            const entry = dietData[formattedMonth]?.find((entry: DietDataEntry) => 
+                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
+            );
+
             if (entry && isDietDataEntry(entry)) {
                 setCurrentDietData(entry);
-                setMealTime(prev => {
-                    // Create date object in local timezone
-                    const localDate = new Date(currentDate + 'T00:00:00');
-                    const entryDate = new Date(entry.date);
-                    
-                    // Set time while preserving the date
-                    localDate.setHours(entryDate.getHours(), entryDate.getMinutes());
-                    return localDate;
-                });
+                const date = new Date(currentDate + 'T00:00:00');
+                const entryDate = new Date(entry.date);
+                date.setHours(entryDate.getHours(), entryDate.getMinutes());
+                setMealTime(date);
             }
         }
-    }, [dialogType, currentDate, dietData]); // Dependencies to re-run the effect
+    }, [dialogType, currentDate, dietData]);
 
-    const onMealTimeChange = (event: DateTimePickerEvent, date?: Date): void => {
-        if (event.type === "dismissed" || event.type === "set") { setShowMealTimeSelector(false); }
+    const onMealTimeChange = (_: any, date?: Date) => {
+        setShowMealTimeSelector(false);
         if (date) {
-            setMealTime(prev => {
-                // Create new date object in local timezone
-                const localDate = new Date(currentDate + 'T00:00:00');
-                
-                // Set time while preserving the date
-                localDate.setHours(date.getHours(), date.getMinutes());
-                return localDate;
-            });
+            const newDate = new Date(currentDate + 'T00:00:00');
+            newDate.setHours(date.getHours(), date.getMinutes());
+            setMealTime(newDate);
         }
-    }
+    };
 
-    const deleteImage = async () => {
+    const deleteImage = () => {
         if (isDietDataEntry(currentDietData) && currentDietData.meal_picture) {
             setImageToBeDelete(currentDietData.meal_picture);
             setCurrentDietData({ ...currentDietData, meal_picture: null });
         }
-        else { throw new Error(`Image not available for the current weight card!`); }
     };
 
     const uploadImage = async () => {
-        if (!imageURI) { throw new Error(`Invalid URI for Diet`); }
-
-        const response = await fetch(imageURI);
-
-        const blob = await response.blob();
-        let refer = ref(storage, `diet/${new Date().getTime()}`);
-        return uploadBytes(refer, blob)
-            .then((snapshot) => { return getDownloadURL(snapshot.ref); })
-            .then((downloadUrl) => { return downloadUrl; });
+        if (!imageURI) throw new Error('Invalid URI for Diet');
+        const blob = await (await fetch(imageURI)).blob();
+        const refer = ref(storage, `diet/${Date.now()}`);
+        const snapshot = await uploadBytes(refer, blob);
+        return getDownloadURL(snapshot.ref);
     };
 
     const onSubmit = async () => {
-        const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-        const weightDataForMonth = dietData?.[formattedMonth] || [];
-
         setShowError(false);
         setErrorString(null);
 
-        if (currentUser?.uid) {
-            if ((dialogType !== DialogType.EDIT) && !imageURI) {
-                setShowError(true);
-                setErrorString('Please add meal picture!');
-                return;
-            }
+        if (!currentUser?.uid) {
+            router.push({ pathname: "/register" });
+            return;
+        }
 
-            if ((dialogType === DialogType.EDIT) && isDietDataEntry(currentDietData)) {
-                if (!imageURI && !currentDietData.meal_picture) {
-                    setShowError(true);
-                    setErrorString('Please add meal picture!');
-                    return;
-                }
-            }
+        if ((!dialogType || dialogType !== DialogType.EDIT) && !imageURI) {
+            setShowError(true);
+            setErrorString('Please add meal picture!');
+            return;
+        }
 
-            setLoading(true);
+        if (dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && !currentDietData.meal_picture) {
+            setShowError(true);
+            setErrorString('Please add meal picture!');
+            return;
+        }
 
-            try {
-                if (dialogType !== DialogType.EDIT) {
-                    let addDiet = { user_id: currentUser.uid, date: mealTime, meal_picture: await uploadImage() }
-                    dispatch(addDietData({ currentDate: currentDate, addDiet: addDiet }));
-                }
-                if (dialogType === DialogType.EDIT && isDietDataEntry(currentDietData)) {
-                    if (imageToBeDelete) {
-                        const match = imageToBeDelete.match(/diet%2F([^?]+)/);
-                        if (match && match[1]) {
-                            const id = match[1];
-                            let dietImageRef = ref(storage, `diet/${id}`);
-                            await deleteObject(dietImageRef);
-                        } else { console.error("ID not found in the URL"); }
+        setLoading(true);
+
+        try {
+            if (dialogType !== DialogType.EDIT) {
+                const addDiet = { 
+                    user_id: currentUser.uid, 
+                    date: mealTime, 
+                    meal_picture: await uploadImage() 
+                };
+                dispatch(addDietData({ currentDate, addDiet }));
+            } else if (isDietDataEntry(currentDietData)) {
+                if (imageToBeDelete) {
+                    const id = imageToBeDelete.match(/diet%2F([^?]+)/)?.[1];
+                    if (id) {
+                        await deleteObject(ref(storage, `diet/${id}`));
                     }
-
-                    let updateDiet: DietDataEntry = { ...currentDietData, date: mealTime, meal_picture: imageURI ? await uploadImage() : currentDietData.meal_picture ? currentDietData.meal_picture : '' }
-                    dispatch(updateDietData({ updateDiet, currentDate }));
                 }
 
-                // Ressetting Fields.
-                const resetDate = new Date(currentDate + 'T00:00:00');
-                const now = new Date();
-                resetDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-                setMealTime(resetDate);
-                setShowMealTimeSelector(false);
-                dispatch(setHideCamera());
-                dispatch(setImageURI(''));
-                setLoading(false);
-                dispatch(clearImageURI());
-                // Ressetting Fields.
+                const updateDiet = {
+                    ...currentDietData,
+                    date: mealTime,
+                    meal_picture: imageURI ? await uploadImage() : currentDietData.meal_picture || ''
+                };
+                dispatch(updateDietData({ updateDiet, currentDate }));
+            }
 
-                dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
-            } catch (error) { console.log('error', error); setLoading(false); }
-        } else { router.push({ pathname: "/register" }); }
-    }
+            const resetDate = new Date(currentDate + 'T00:00:00');
+            const now = new Date();
+            resetDate.setHours(now.getHours(), now.getMinutes());
+            setMealTime(resetDate);
+            setShowMealTimeSelector(false);
+            dispatch(setHideCamera());
+            dispatch(setImageURI(''));
+            dispatch(clearImageURI());
+            dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCameraPress = () => {
+        dispatch(clearImageURI());
+        setTimeout(() => dispatch(setShowCamera()), 100);
+    };
 
     return (
         <View style={styles.trackDietForm}>
             <Surface style={styles.formContainer} elevation={3}>
                 <View style={styles.timeSection}>
                     <Text variant="titleLarge" style={styles.sectionTitle}>Time of Meal</Text>
-                    {Platform.OS == "android" ? (
-                        <View style={styles.timePickerContainer}>
-                            <Button 
-                                mode="outlined" 
-                                icon="clock" 
-                                onPress={() => { setShowMealTimeSelector(true); }} 
-                                disabled={loading} 
-                                loading={loading}
-                                style={styles.timeButton}
-                            >
-                                {`${mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
-                            </Button>
-                            {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
-                        </View>
-                    ) : (
-                        <View style={styles.timePickerContainer}>
+                    <View style={styles.timePickerContainer}>
+                        {Platform.OS === "android" ? (
+                            <>
+                                <Button 
+                                    mode="outlined" 
+                                    icon="clock"
+                                    onPress={() => setShowMealTimeSelector(true)}
+                                    disabled={loading}
+                                    loading={loading}
+                                    style={styles.timeButton}
+                                >
+                                    {mealTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                                </Button>
+                                {showMealTimeSelector && <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />}
+                            </>
+                        ) : (
                             <DateTimePicker mode="time" value={mealTime} onChange={onMealTimeChange} />
-                        </View>
-                    )}
+                        )}
+                    </View>
                 </View>
 
                 <View style={styles.imageSection}>
-                    {dialogType !== DialogType.EDIT && (!imageURI ? (
+                    {!imageURI && (!isDietDataEntry(currentDietData) || !currentDietData.meal_picture) && (
                         <Button 
-                            icon="camera" 
+                            icon="camera"
                             mode="contained-tonal"
-                            onPress={() => {
-                                dispatch(clearImageURI());
-                                setTimeout(() => {
-                                    dispatch(setShowCamera());
-                                }, 100);
-                            }} 
-                            disabled={loading}
-                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
-                            textColor="white"
-                        >
-                            Add Meal Picture
-                        </Button>
-                    ) : (
-                        <Surface style={styles.imageContainer} elevation={2}>
-                            <Button 
-                                icon="delete"
-                                mode="contained-tonal"
-                                onPress={() => dispatch(setImageURI(''))}
-                                disabled={loading}
-                                style={styles.deleteButton}
-                                children={undefined}
-                            />
-                            <Image source={{ uri: imageURI }} style={styles.image} />
-                        </Surface>
-                    ))}
-
-                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
-                        <Button 
-                            icon="camera" 
-                            mode="contained-tonal"
-                            onPress={() => {
-                                dispatch(clearImageURI());
-                                setTimeout(() => {
-                                    dispatch(setShowCamera());
-                                }, 100);
-                            }} 
+                            onPress={handleCameraPress}
                             disabled={loading}
                             style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
                             textColor="white"
@@ -253,31 +190,18 @@ export default function TrackDietForm() {
                         </Button>
                     )}
 
-                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && imageURI && (!currentDietData.meal_picture || !currentDietData.meal_picture.length) && (
+                    {(imageURI || (isDietDataEntry(currentDietData) && currentDietData.meal_picture)) && (
                         <Surface style={styles.imageContainer} elevation={2}>
                             <Button 
                                 icon="delete"
                                 mode="contained-tonal"
-                                onPress={() => dispatch(setImageURI(''))}
+                                onPress={() => imageURI ? dispatch(setImageURI('')) : deleteImage()}
                                 disabled={loading}
-                                style={styles.deleteButton}
-                                children={undefined}
+                                style={styles.deleteButton} children={undefined} />
+                            <Image 
+                                source={{ uri: imageURI || (isDietDataEntry(currentDietData) ? currentDietData.meal_picture : '') }} 
+                                style={styles.image} 
                             />
-                            <Image source={{ uri: imageURI }} style={styles.image} />
-                        </Surface>
-                    )}
-
-                    {dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && currentDietData.meal_picture && currentDietData.meal_picture.length && (
-                        <Surface style={styles.imageContainer} elevation={2}>
-                            <Button 
-                                icon="delete"
-                                mode="contained-tonal"
-                                onPress={() => deleteImage()}
-                                disabled={loading}
-                                style={styles.deleteButton}
-                                children={undefined}
-                            />
-                            <Image source={{ uri: currentDietData.meal_picture }} style={styles.image} />
                         </Surface>
                     )}
                 </View>
@@ -288,18 +212,18 @@ export default function TrackDietForm() {
             <View style={styles.formSubmission}>
                 <Button 
                     mode="text" 
-                    onPress={() => { 
-                        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null })); 
-                        dispatch(clearImageURI()); 
-                    }} 
+                    onPress={() => {
+                        dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
+                        dispatch(clearImageURI());
+                    }}
                     disabled={loading}
                 >
                     Cancel
                 </Button>
                 <Button 
-                    mode="contained" 
-                    onPress={onSubmit} 
-                    disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)} 
+                    mode="contained"
+                    onPress={onSubmit}
+                    disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)}
                     loading={loading}
                     style={styles.button}
                 >
@@ -309,13 +233,11 @@ export default function TrackDietForm() {
 
             {showError && <HelperText type="error" visible={showError}>{errorString}</HelperText>}
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
-    trackDietForm: {
-        padding: 16,
-    },
+    trackDietForm: { padding: 16 },
     formContainer: {
         backgroundColor: '#fff',
         borderRadius: 12,
@@ -364,9 +286,7 @@ const styles = StyleSheet.create({
         height: 300,
         resizeMode: 'cover'
     },
-    divider: {
-        marginVertical: 16
-    },
+    divider: { marginVertical: 16 },
     formSubmission: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
@@ -376,4 +296,4 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         minWidth: 100
     }
-})
+});
