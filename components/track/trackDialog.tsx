@@ -1,37 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
-import TrackForms from "./trackForms";
 import { useDispatch, useSelector } from "react-redux";
+import { Button, Dialog, Portal, Divider, Text, SegmentedButtons } from 'react-native-paper';
 import { AppDispatch, RootState } from "@/store/store";
 import { setDialog, setTab, DialogTab, DialogType } from "@/store/trackDialogSlice";
-import AppCamera from "../camera";
-import { SegmentedButtons } from 'react-native-paper';
-import { Button, Dialog, Portal, Divider, Text } from 'react-native-paper';
 import { clearImageURI } from "@/store/cameraSlice";
-import { DietDataEntry, DietDataState, SleepDataEntry, SleepDataState, WaterDataEntry, WaterDataState, WeightDataEntry, WeightDataState, isDietDataEntry, isSleepDataEntry, isWaterDataEntry, isWeightDataEntry } from "@/types/track";
+import { DietDataEntry, SleepDataEntry, WaterDataEntry, WeightDataEntry, isDietDataEntry, isSleepDataEntry, isWaterDataEntry, isWeightDataEntry } from "@/types/track";
+import TrackForms from "./trackForms";
+import AppCamera from "../camera";
 
 export default function TrackDialog() {
-    const dialogStatus = useSelector((state: RootState) => state.trackDialog.showDialog);
     const dispatch = useDispatch<AppDispatch>();
-    const currentDate = useSelector((state: RootState) => state.track.currentDate);
-    const dialogTab: DialogTab | null = useSelector((state: RootState) => state.trackDialog.dialogTab);
-    const dialogType: DialogType | null = useSelector((state: RootState) => state.trackDialog.dialogType);
-    const waterData: WaterDataState | [] = useSelector((state: RootState) => state.track.waterData);
-    const weightData: WeightDataState | [] = useSelector((state: RootState) => state.track.weightData);
-    const sleepData: SleepDataState | [] = useSelector((state: RootState) => state.track.sleepData);
-    const dietData: DietDataState | [] = useSelector((state: RootState) => state.track.dietData);
-    const [currentWaterData, setCurrentWaterData] = useState<WaterDataEntry | {}>({});
-    const [currentWeightData, setCurrentWeightData] = useState<WeightDataEntry | {}>({});
-    const [currentSleepData, setCurrentSleepData] = useState<SleepDataEntry | {}>({});
-    const [currentDietData, setCurrentDietData] = useState<DietDataEntry | {}>({});
+    const { currentDate, waterData, weightData, sleepData, dietData } = useSelector((state: RootState) => state.track);
+    const { showDialog: dialogStatus, dialogTab, dialogType } = useSelector((state: RootState) => state.trackDialog);
+    const [currentData, setCurrentData] = useState({
+        water: {} as WaterDataEntry | {},
+        weight: {} as WeightDataEntry | {},
+        sleep: {} as SleepDataEntry | {},
+        diet: {} as DietDataEntry | {}
+    });
 
-    const onTabValueChange = (value: string) => {
-        const tab = value as DialogTab;
-        dispatch(setTab(tab));
-        dispatch(clearImageURI());
-    }
-
-    // Helper function to convert date to user's local timezone
     const convertToLocalDate = (date: string | Date): string => {
         const d = new Date(date);
         return new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
@@ -39,144 +27,103 @@ export default function TrackDialog() {
             .split('T')[0];
     }
 
-    const getWaterDataObject = (): WaterDataEntry | {} => {
+    const getDataForMonth = (data: any, dateField = 'date') => {
         const [year, month] = currentDate.split('-');
         const formattedMonth = `${year}-${month}`;
 
-        if (!Array.isArray(waterData)) {
-            if (formattedMonth in waterData) {
-                if (waterData[formattedMonth] && waterData[formattedMonth].length > 0) {
-                    const entry = waterData[formattedMonth].find((entry: WaterDataEntry) => 
-                        convertToLocalDate(entry.date) === currentDate
-                    );
-                    if (entry) { return entry; }
-                }
-            }
-        }
-        return {};
-    };
-
-    const getWeightDataObject = (): WeightDataEntry | {} => {
-        const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-
-        if (!Array.isArray(weightData)) {
-            if (formattedMonth in weightData) {
-                if (weightData[formattedMonth] && weightData[formattedMonth].length > 0) {
-                    const entry = weightData[formattedMonth].find((entry: WeightDataEntry) => 
-                        convertToLocalDate(entry.date) === currentDate
-                    );
-                    if (entry) { return entry; }
-                }
-            }
-        }
-        return {};
-    };
-
-    const getSleepDataObject = (): SleepDataEntry | {} => {
-        const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-
-        if (!Array.isArray(sleepData)) {
-            if (formattedMonth in sleepData) {
-                if (sleepData[formattedMonth] && sleepData[formattedMonth].length > 0) {
-                    const entry = sleepData[formattedMonth].find((entry: SleepDataEntry) => 
-                        convertToLocalDate(entry.wakeup_time) === currentDate
-                    );
-                    if (entry) { return entry; }
-                }
-            }
-        }
-        return {};
-    };
-
-    const getDietDataObject = (): DietDataEntry | {} => {
-        const [year, month] = currentDate.split('-');
-        const formattedMonth = `${year}-${month}`;
-
-        if (!Array.isArray(dietData)) {
-            if (formattedMonth in dietData) {
-                if (dietData[formattedMonth] && dietData[formattedMonth].length > 0) {
-                    const entry = dietData[formattedMonth].find((entry: DietDataEntry) => 
-                        convertToLocalDate(entry.date) === currentDate
-                    );
-                    if (entry) { return entry; }
-                }
+        if (!Array.isArray(data) && formattedMonth in data) {
+            const monthData = data[formattedMonth];
+            if (monthData?.length > 0) {
+                return monthData.find((entry: any) => 
+                    convertToLocalDate(entry[dateField]) === currentDate
+                ) || {};
             }
         }
         return {};
     };
 
     const tabButtons = [
-        { value: DialogTab.SLEEP, label: 'Sleep', icon: 'moon-waning-crescent', condition: !isSleepDataEntry(currentSleepData) },
-        { value: DialogTab.WATER, label: 'Water', icon: 'glass-pint-outline', condition: !isWaterDataEntry(currentWaterData) },
-        { value: DialogTab.WEIGHT, label: 'Weight', icon: 'weight', condition: !isWeightDataEntry(currentWeightData) }, 
-        { value: DialogTab.DIET, label: 'Diet', icon: 'food', condition: true }, // Always show
+        { value: DialogTab.SLEEP, label: 'Sleep', icon: 'moon-waning-crescent', condition: !isSleepDataEntry(currentData.sleep) },
+        { value: DialogTab.WATER, label: 'Water', icon: 'glass-pint-outline', condition: !isWaterDataEntry(currentData.water) },
+        { value: DialogTab.WEIGHT, label: 'Weight', icon: 'weight', condition: !isWeightDataEntry(currentData.weight) },
+        { value: DialogTab.DIET, label: 'Diet', icon: 'food', condition: true }
     ];
 
     const filteredButtons = tabButtons.filter(button => button.condition);
 
     useEffect(() => {
         if (dialogType !== DialogType.EDIT) {
-            const waterEntry: WaterDataEntry | {} = getWaterDataObject();
-            if (waterEntry) { setCurrentWaterData(waterEntry); }
-    
-            const weightEntry: WeightDataEntry | {} = getWeightDataObject();
-            if (weightEntry) { setCurrentWeightData(weightEntry); }
-    
-            const sleepEntry: SleepDataEntry | {} = getSleepDataObject();
-            if (sleepEntry) { setCurrentSleepData(sleepEntry); }
-    
-            const dietEntry: DietDataEntry | {} = getDietDataObject();
-            if (dietEntry) { setCurrentDietData(dietEntry); }
-    
-            if (isWaterDataEntry(waterEntry) && isWeightDataEntry(weightEntry) && isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.DIET)); } 
-            else if (!isWaterDataEntry(waterEntry) && !isWeightDataEntry(weightEntry) && !isSleepDataEntry(sleepEntry)) { return; }
-            else if (dialogTab === DialogTab.WATER && !isWaterDataEntry(waterData)) { return;}
-            else if (dialogTab === DialogTab.WEIGHT && !isWeightDataEntry(weightData)) { return;}
-            else if (dialogTab === DialogTab.SLEEP && !isSleepDataEntry(sleepData)) { return;} 
-            else if (dialogTab === DialogTab.DIET) { return;}
-            else if (!isSleepDataEntry(sleepEntry)) { dispatch(setTab(DialogTab.SLEEP)); } 
-            else if (!isWaterDataEntry(waterEntry)) { dispatch(setTab(DialogTab.WATER)); } 
-            else if (!isWeightDataEntry(weightEntry)) { dispatch(setTab(DialogTab.WEIGHT)); } 
-            else { dispatch(setTab(DialogTab.DIET)); }
+            const newData = {
+                water: getDataForMonth(waterData),
+                weight: getDataForMonth(weightData),
+                sleep: getDataForMonth(sleepData, 'wakeup_time'),
+                diet: getDataForMonth(dietData)
+            };
+            setCurrentData(newData);
+
+            // Set the first available tab from filtered buttons
+            if (filteredButtons.length > 0) {
+                dispatch(setTab(filteredButtons[0].value));
+            }
         }
-    }, [currentDate, waterData, weightData, sleepData, dietData, dialogTab]);
+    }, [currentDate, waterData, weightData, sleepData, dietData]);
 
     return (
         <>
-            <Button mode="contained" icon="book-plus" style={[{ alignSelf: 'flex-end', position: "absolute", bottom: 5, right: 5 }]} uppercase onPress={() => dispatch(setDialog({ showDialog: true, dialogTab: DialogTab.SLEEP, dialogType: DialogType.ADD }))}>Add {filteredButtons.length > 1 ? 'Track' : 'Meal'}</Button>
+            <Button 
+                mode="contained" 
+                icon="book-plus" 
+                style={styles.addButton}
+                onPress={() => {
+                    const initialTab = filteredButtons.length > 0 ? filteredButtons[0].value : DialogTab.DIET;
+                    dispatch(setDialog({ showDialog: true, dialogTab: initialTab, dialogType: DialogType.ADD }));
+                }}
+            >
+                Add {filteredButtons.length > 1 ? 'Track' : 'Meal'}
+            </Button>
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
                     <Dialog.Title>
-                        {`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' })}, ${new Date(currentDate).toLocaleDateString(undefined, { day: 'numeric', timeZone: 'UTC' })} 's `}
-                        <Text style={[{ textTransform: 'capitalize' }]}>{dialogTab}</Text>
+                        {`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })} 's `}
+                        <Text style={styles.capitalize}>{dialogTab}</Text>
                         {` Details`}
                     </Dialog.Title>
                     <Dialog.Content>
-                        {dialogType !== DialogType.EDIT && filteredButtons.length > 1 && <>
-                            <SegmentedButtons
-                                value={dialogTab ? dialogTab : DialogTab.SLEEP}
-                                onValueChange={onTabValueChange}
-                                buttons={filteredButtons}
-                            />
-                            <Divider style={[{ marginTop: 10 }]} />
-                        </>}
-                        <TrackForms></TrackForms>
+                        {dialogType !== DialogType.EDIT && filteredButtons.length > 1 && (
+                            <>
+                                <SegmentedButtons
+                                    value={dialogTab || filteredButtons[0].value}
+                                    onValueChange={(value) => {
+                                        dispatch(setTab(value as DialogTab));
+                                        dispatch(clearImageURI());
+                                    }}
+                                    buttons={filteredButtons}
+                                />
+                                <Divider style={styles.divider} />
+                            </>
+                        )}
+                        <TrackForms />
                     </Dialog.Content>
                 </Dialog>
             </Portal>
 
-            <AppCamera></AppCamera>
+            <AppCamera />
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    tabButton: {
-        flex: 1,
-        justifyContent: 'center',
-        alignContent: 'center'
+    addButton: {
+        alignSelf: 'flex-end',
+        position: "absolute",
+        bottom: 5,
+        right: 5
     },
-})
+    capitalize: {
+        textTransform: 'capitalize'
+    },
+    divider: {
+        marginTop: 10
+    }
+});
