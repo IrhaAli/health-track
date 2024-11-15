@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { deleteWeightData } from "@/store/trackSlice";
-import { WeightDataEntry, WeightDataState } from "../../types/track";
+import { WeightDataEntry } from "../../types/track";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 
@@ -11,12 +11,10 @@ export default function TrackWeightCard() {
     const dispatch = useDispatch<AppDispatch>();
     const { currentMonth, weightData, currentDate } = useSelector((state: RootState) => state.track);
     const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-    const fadeAnim = React.useRef(new Animated.Value(1)).current;
-    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-    const [selectedWeightId, setSelectedWeightId] = useState<string | null>(null);
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+    const [deleteDialog, setDeleteDialog] = React.useState({ visible: false, id: null as string | null });
 
     React.useEffect(() => {
-        fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 600,
@@ -25,51 +23,36 @@ export default function TrackWeightCard() {
     }, [currentDate]);
 
     const weightEntries = useMemo(() => {
-        if (!Array.isArray(weightData) && weightData[formattedMonth]?.length > 0) {
+        if (!Array.isArray(weightData) && weightData[formattedMonth]?.length) {
             return weightData[formattedMonth].filter((entry: WeightDataEntry) => {
-                // Create date object in user's timezone
-                const entryDate = new Date(entry.date);
-                // Get user's locale and timezone
-                const userLocale = Intl.DateTimeFormat().resolvedOptions().locale;
-                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                // Format date in ISO format YYYY-MM-DD in user's timezone
-                const localDate = entryDate.toLocaleDateString(userLocale, {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    timeZone: userTimezone
-                }).split('/').reverse().join('-');
-                return localDate === currentDate;
+                const date = new Date(entry.date);
+                const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
+                return date.toLocaleDateString('en-CA', { timeZone }) === currentDate;
             });
         }
         return [];
     }, [weightData, formattedMonth, currentDate]);
 
-    const handleDeletePress = (weightId: string) => {
-        setSelectedWeightId(weightId);
-        setDeleteDialogVisible(true);
-    };
-
-    const handleConfirmDelete = () => {
-        if (selectedWeightId) {
-            dispatch(deleteWeightData({ currentDate, docId: selectedWeightId }));
-        }
-        setDeleteDialogVisible(false);
-    };
-
     if (!weightEntries.length) return null;
+
+    const handleDelete = () => {
+        if (deleteDialog.id) {
+            dispatch(deleteWeightData({ currentDate, docId: deleteDialog.id }));
+            setDeleteDialog({ visible: false, id: null });
+        }
+    };
 
     return (
         <View>
             <Portal>
-                <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
+                <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({ ...deleteDialog, visible: false })}>
                     <Dialog.Title>Confirm Delete</Dialog.Title>
                     <Dialog.Content>
                         <Text>Are you sure you want to delete this weight entry?</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
-                        <Button mode="contained" onPress={handleConfirmDelete}>Confirm</Button>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ ...deleteDialog, visible: false })}>Cancel</Button>
+                        <Button mode="contained" onPress={handleDelete}>Confirm</Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -91,43 +74,24 @@ export default function TrackWeightCard() {
                     <Surface style={styles.surface} elevation={0}>
                         <View style={styles.contentContainer}>
                             <View style={styles.headerContainer}>
-                                <Avatar.Icon 
-                                    size={40} 
-                                    icon="weight" 
-                                    color="#fff" 
-                                    style={styles.avatar}
-                                />
+                                <Avatar.Icon size={40} icon="weight" color="#fff" style={styles.avatar} />
                                 <Text variant="titleLarge" style={styles.title}>
                                     {`Weight: ${weight.weight} ${weight.measurement_unit}`}
                                 </Text>
                             </View>
                             
-                            {(weight.picture && weight.picture.length) && (
+                            {weight.picture && (
                                 <Image 
-                                    style={{
-                                        width: '100%',
-                                        height: 200,
-                                        borderRadius: 12,
-                                        resizeMode: 'contain',
-                                        shadowColor: '#000',
-                                        shadowOffset: {
-                                            width: 0,
-                                            height: 2,
-                                        },
-                                        shadowOpacity: 0.25,
-                                        shadowRadius: 3.84,
-                                        overflow: 'hidden', // Ensure border radius is visible
-                                        backgroundColor: '#fff' // Add background color to help with shadow
-                                    }}
+                                    style={styles.weightImage}
                                     source={{ uri: weight.picture }} 
                                 />
                             )}
                             
-                            <View style={[styles.buttonContainer, { width: '50%', alignSelf: 'flex-start' }]}>
+                            <View style={styles.buttonContainer}>
                                 <Button
                                     mode="contained-tonal"
                                     icon="delete"
-                                    onPress={() => weight.id && handleDeletePress(weight.id)}
+                                    onPress={() => weight.id && setDeleteDialog({ visible: true, id: weight.id })}
                                     style={styles.button}
                                 >
                                     Delete
@@ -169,21 +133,29 @@ const styles = StyleSheet.create({
         gap: 12
     },
     avatar: {
-        backgroundColor: '#9C27B0' // Purple color for weight/fitness
+        backgroundColor: '#9C27B0'
     },
     title: {
         flex: 1,
         fontWeight: '600'
     },
-    image: {
-        width: 100,
-        height: 150,
-        objectFit: 'contain',
-        alignSelf: 'center'
+    weightImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 12,
+        resizeMode: 'contain',
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        overflow: 'hidden'
     },
     buttonContainer: {
         flexDirection: 'row',
-        gap: 8
+        gap: 8,
+        width: '50%',
+        alignSelf: 'flex-start'
     },
     button: {
         flex: 1
