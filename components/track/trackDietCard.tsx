@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { DietDataEntry, DietDataState } from "../../types/track";
+import { DietDataEntry } from "../../types/track";
 import { deleteDietData } from "@/store/trackSlice";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
@@ -11,12 +11,10 @@ export default function TrackDietCard() {
     const dispatch = useDispatch<AppDispatch>();
     const { currentMonth, dietData, currentDate } = useSelector((state: RootState) => state.track);
     const formattedMonth = `${currentMonth.year}-${currentMonth.month}`;
-    const fadeAnim = React.useRef(new Animated.Value(1)).current;
-    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-    const [selectedDietId, setSelectedDietId] = useState<string | null>(null);
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+    const [deleteDialog, setDeleteDialog] = React.useState({ visible: false, id: null as string | null });
 
     React.useEffect(() => {
-        fadeAnim.setValue(0);
         Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 600,
@@ -24,98 +22,56 @@ export default function TrackDietCard() {
         }).start();
     }, [currentDate]);
 
-    const dietEntries = useMemo(() => {
-        if (!Array.isArray(dietData) && dietData[formattedMonth]?.length > 0) {
-            return dietData[formattedMonth].filter((entry: DietDataEntry) =>
-                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
-            );
-        }
-        return [];
-    }, [dietData, formattedMonth, currentDate]);
-
-    const handleDeletePress = (dietId: string) => {
-        setSelectedDietId(dietId);
-        setDeleteDialogVisible(true);
-    };
-
-    const handleConfirmDelete = () => {
-        if (selectedDietId) {
-            dispatch(deleteDietData({ currentDate, docId: selectedDietId }));
-        }
-        setDeleteDialogVisible(false);
-    };
+    const dietEntries = useMemo(() => (
+        (!Array.isArray(dietData) && dietData[formattedMonth]?.length > 0) 
+            ? dietData[formattedMonth].filter((entry: DietDataEntry) => 
+                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
+            : []
+    ), [dietData, formattedMonth, currentDate]);
 
     if (!dietEntries.length) return null;
+
+    const handleDelete = (id: string) => {
+        dispatch(deleteDietData({ currentDate, docId: id }));
+        setDeleteDialog({ visible: false, id: null });
+    };
 
     return (
         <View>
             <Portal>
-                <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
+                <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({ visible: false, id: null })}>
                     <Dialog.Title>Confirm Delete</Dialog.Title>
                     <Dialog.Content>
                         <Text>Are you sure you want to delete this meal entry?</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
-                        <Button mode="contained" onPress={handleConfirmDelete}>Confirm</Button>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ visible: false, id: null })}>Cancel</Button>
+                        <Button mode="contained" onPress={() => deleteDialog.id && handleDelete(deleteDialog.id)}>Confirm</Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
 
             {dietEntries.map((diet: DietDataEntry, index: number) => (
-                <Animated.View
-                    key={diet.id || index}
-                    style={{
-                        opacity: fadeAnim,
-                        transform: [{
-                            translateY: fadeAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [20, 0]
-                            })
-                        }]
-                    }}
-                >
+                <Animated.View key={diet.id || index} style={[styles.fadeIn, { opacity: fadeAnim }]}>
                     <Divider />
                     <Surface style={styles.surface} elevation={0}>
                         <View style={styles.contentContainer}>
                             <View style={styles.headerContainer}>
-                                <Avatar.Icon 
-                                    size={40} 
-                                    icon="food" 
-                                    color="#fff" 
-                                    style={styles.avatar}
-                                />
+                                <Avatar.Icon size={40} icon="food" color="#fff" style={styles.avatar} />
                                 <Text variant="titleLarge" style={styles.title}>
                                     {`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                 </Text>
                             </View>
                             
                             {diet.meal_picture && (
-                                <Image 
-                                    style={{ 
-                                        width: '100%',
-                                        height: 200,
-                                        borderRadius: 12,
-                                        resizeMode: 'contain',
-                                        shadowColor: '#000',
-                                        shadowOffset: {
-                                            width: 0,
-                                            height: 2,
-                                        },
-                                        shadowOpacity: 0.25,
-                                        shadowRadius: 3.84,
-                                        overflow: 'hidden', // Ensure border radius is visible
-                                        backgroundColor: '#fff' // Add background color to help with shadow
-                                    }} 
-                                    source={{ uri: diet.meal_picture }}
-                                />
+                                <Image style={styles.mealImage} source={{ uri: diet.meal_picture }} />
                             )}
                             
-                            <View style={[styles.buttonContainer, { width: '50%', alignSelf: 'flex-start' }]}>
+                            <View style={styles.buttonContainer}>
                                 <Button
                                     mode="contained-tonal"
                                     icon="delete"
-                                    onPress={() => diet.id && handleDeletePress(diet.id)}
+                                    onPress={() => diet.id && setDeleteDialog({ visible: true, id: diet.id })}
                                     style={styles.button}
                                 >
                                     Delete
@@ -157,7 +113,7 @@ const styles = StyleSheet.create({
         gap: 12
     },
     avatar: {
-        backgroundColor: '#FF9800' // Orange color for food/meals
+        backgroundColor: '#FF9800'
     },
     title: {
         flex: 1,
@@ -165,9 +121,28 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flexDirection: 'row',
-        gap: 8
+        gap: 8,
+        width: '50%',
+        alignSelf: 'flex-start'
     },
     button: {
         flex: 1
+    },
+    mealImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 12,
+        resizeMode: 'contain',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        overflow: 'hidden',
+        backgroundColor: '#fff'
+    },
+    fadeIn: {
+        transform: [{
+            translateY: 20
+        }]
     }
 });
