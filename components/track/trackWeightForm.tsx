@@ -259,7 +259,7 @@ export default function TrackWeightForm() {
                                     mode="contained-tonal"
                                     onPress={() => dispatch(setImageURI(''))}
                                     disabled={loading}
-                                    style={styles.deleteButton} children={undefined}                            />
+                                    style={styles.deleteButton} children={undefined} />
                             <Image 
                                 source={{ uri: imageURI }} 
                                 style={styles.image} 
@@ -292,7 +292,7 @@ export default function TrackWeightForm() {
                                 mode="contained-tonal"
                                 onPress={() => dispatch(setImageURI(''))}
                                 disabled={loading}
-                                style={styles.deleteButton} children={undefined}                            />
+                                style={styles.deleteButton} children={undefined} />
                             <Image 
                                 source={{ uri: imageURI }} 
                                 style={styles.image} 
@@ -307,7 +307,7 @@ export default function TrackWeightForm() {
                                 mode="contained-tonal"
                                 onPress={() => deleteImage()}
                                 disabled={loading}
-                                style={styles.deleteButton} children={undefined}                            />
+                                style={styles.deleteButton} children={undefined} />
                             <Image 
                                 source={{ uri: currentWeightData.picture }} 
                                 style={styles.image} 
