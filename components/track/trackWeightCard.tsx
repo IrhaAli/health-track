@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-native-paper';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { deleteWeightData } from "@/store/trackSlice";
+import { deleteWeightData, getWeightDataForDate } from "@/store/trackSlice";
 import { WeightDataEntry } from "../../types/track";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
@@ -23,16 +23,7 @@ export default function TrackWeightCard() {
         }).start();
     }, [currentDate]);
 
-    const weightEntries = useMemo(() => {
-        if (!Array.isArray(weightData) && weightData[formattedMonth]?.length) {
-            return weightData[formattedMonth].filter((entry: WeightDataEntry) => {
-                const date = new Date(entry.date);
-                const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
-                return date.toLocaleDateString('en-CA', { timeZone }) === currentDate;
-            });
-        }
-        return [];
-    }, [weightData, formattedMonth, currentDate]);
+    const weightEntries = useMemo(() => getWeightDataForDate(weightData, currentDate), [weightData, currentDate]);
 
     if (!weightEntries.length) return null;
 
