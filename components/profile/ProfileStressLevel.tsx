@@ -6,15 +6,21 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, SafeAreaView } from "react-native";
 import { useEffect, useState } from "react";
 import StressLevel from "@/components/user_info/StressLevel";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '@/services/i18n';
+import { Appbar, Button, Surface, Text, useTheme } from 'react-native-paper';
+import { router } from 'expo-router';
 
-export default function ProfileStressLevel() {
+interface ProfileStressLevelProps {
+  showNavigation?: boolean;
+}
+
+export default function ProfileStressLevel({ showNavigation = false }: ProfileStressLevelProps) {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -23,6 +29,7 @@ export default function ProfileStressLevel() {
     stressLevel: 0,
     notes: "",
   });
+  const theme = useTheme();
 
   useEffect(() => {
     const initialize = async () => {
@@ -91,84 +98,112 @@ export default function ProfileStressLevel() {
   };
 
   return (
-    <>
-      {isEdit ? (
-        <>
-          <View
-            style={styles.buttonView}
-            pointerEvents={isDisabled ? "none" : "auto"}
-          >
-            <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{i18n.t('submit')}</Text>
-            </Pressable>
-            <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{i18n.t('cancel')}</Text>
-            </Pressable>
-          </View>
-          <StressLevel
-            stressLevel={stressLevel}
-            setStressLevel={setStressLevel}
-          />
-        </>
-      ) : (
-        <>
-          <View style={styles.buttonView}>
-            <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{i18n.t('edit')}</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>{i18n.t('stressLevel')}</Text>
-          <Text>{i18n.t('stressLevel')}: {stressLevel.stressLevel}</Text>
-          <Text>{i18n.t('notes')}: {stressLevel.notes}</Text>
-        </>
+    <SafeAreaView style={styles.container}>
+      {showNavigation && (
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.push('/profile')} />
+          <Appbar.Content title={i18n.t('stressLevel')} style={{alignItems: 'center'}} />
+        </Appbar.Header>
       )}
-    </>
+      <Surface style={styles.surface}>
+        {isEdit ? (
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                mode="contained"
+                onPress={onSubmit}
+                disabled={isDisabled}
+                style={styles.button}
+              >
+                {i18n.t('submit')}
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={() => setIsEdit(false)}
+                disabled={isDisabled}
+                style={styles.button}
+              >
+                {i18n.t('cancel')}
+              </Button>
+            </View>
+            <StressLevel
+              stressLevel={stressLevel}
+              setStressLevel={setStressLevel}
+            />
+          </>
+        ) : (
+          <>
+            <Button
+              mode="contained"
+              onPress={() => setIsEdit(true)}
+              style={styles.editButton}
+            >
+              {i18n.t('edit')}
+            </Button>
+            <Text variant="headlineMedium" style={styles.title}>
+              {i18n.t('stressLevel')}
+            </Text>
+            <View style={styles.infoContainer}>
+              <Text variant="titleMedium" style={styles.label}>
+                {i18n.t('stressLevel')}:
+              </Text>
+              <Text variant="bodyLarge" style={styles.value}>
+                {stressLevel.stressLevel}
+              </Text>
+            </View>
+            <View style={styles.infoContainer}>
+              <Text variant="titleMedium" style={styles.label}>
+                {i18n.t('notes')}:
+              </Text>
+              <Text variant="bodyLarge" style={styles.value}>
+                {stressLevel.notes}
+              </Text>
+            </View>
+          </>
+        )}
+      </Surface>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  appLogo: {
-    height: 250,
-    width: 400,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5'
   },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
+  surface: {
+    flex: 1,
+    padding: 16
   },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16
   },
   button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    minWidth: 120
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+  editButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 16
   },
-  buttonTextRed: {
-    color: "red",
+  title: {
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: 'bold'
   },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
+  infoContainer: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 2
   },
+  label: {
+    marginBottom: 8,
+    color: '#666'
+  },
+  value: {
+    paddingLeft: 8
+  }
 });
