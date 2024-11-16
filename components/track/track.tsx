@@ -1,9 +1,10 @@
 import React, { memo, useEffect, useState } from "react";
-import { Divider } from 'react-native-paper';
+import { Divider, Text } from 'react-native-paper';
 import { InteractionManager } from 'react-native';
 import TrackDialog from "./trackDialog";
 import TrackCalendar from "./trackCalendar";
 import TrackCards from "./trackCards";
+import i18n from "@/services/i18n";
 
 const MemoizedTrackCards = memo(TrackCards);
 
@@ -18,7 +19,11 @@ export default function TrackComponent() {
     <>
       <TrackCalendar />
       <Divider style={{ marginTop: 10 }} />
-      {isReady && <MemoizedTrackCards />}
+      {!isReady ? (
+        <Text>{i18n.t('loading')}</Text>
+      ) : (
+        <MemoizedTrackCards />
+      )}
       <TrackDialog />
     </>
   );
