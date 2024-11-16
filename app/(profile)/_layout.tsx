@@ -3,8 +3,8 @@ import React from "react";
 
 export default function Layout() {
   return (
-    <Stack>
-      <Stack.Screen name="background_information" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="background_information" />
     </Stack>
   );
 }
