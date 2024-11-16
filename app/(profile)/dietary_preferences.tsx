@@ -1,5 +1,6 @@
+import React from "react";
 import ProfileDietaryPreferences from "@/components/profile/ProfileDietaryPreferences";
 
 export default function DietaryPreferences() {
-  return <ProfileDietaryPreferences></ProfileDietaryPreferences>;
+  return <ProfileDietaryPreferences showNavigation={true}></ProfileDietaryPreferences>;
 }
