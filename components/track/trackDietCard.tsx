@@ -3,7 +3,7 @@ import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-na
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { DietDataEntry } from "../../types/track";
-import { deleteDietData } from "@/store/trackSlice";
+import { deleteDietData, getDietDataForDate } from "@/store/trackSlice";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
@@ -23,12 +23,7 @@ export default function TrackDietCard() {
         }).start();
     }, [currentDate]);
 
-    const dietEntries = useMemo(() => (
-        (!Array.isArray(dietData) && dietData[formattedMonth]?.length > 0) 
-            ? dietData[formattedMonth].filter((entry: DietDataEntry) => 
-                new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate)
-            : []
-    ), [dietData, formattedMonth, currentDate]);
+    const dietEntries = useMemo(() => getDietDataForDate(dietData, currentDate), [dietData, currentDate]);
 
     if (!dietEntries.length) return null;
 
