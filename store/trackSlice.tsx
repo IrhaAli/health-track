@@ -4,8 +4,14 @@ import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } 
 import { DietDataEntry, SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
 
 const initialState: TrackState = {
-  currentDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`,
-  currentMonth: { month: String(new Date().getMonth() + 1).padStart(2, "0"), year: String(new Date().getFullYear()) },
+  currentDate: `${new Date().toISOString().split('T')[0]}`,
+  // currentDate: `${new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).split('/').join('-')}`,
+  currentMonth: { 
+    month: new Date().toLocaleString('default', { month: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }), 
+    year: new Date().toLocaleString('default', { year: 'numeric', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    // month: new Date().toLocaleDateString('en-CA', { month: '2-digit', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }), 
+    // year: new Date().toLocaleDateString('en-CA', { year: 'numeric', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+  },
   waterData: {},
   sleepData: {},
   weightData: {},
