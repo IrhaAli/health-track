@@ -8,6 +8,7 @@ import { clearImageURI } from "@/store/cameraSlice";
 import { DietDataEntry, SleepDataEntry, WaterDataEntry, WeightDataEntry, isDietDataEntry, isSleepDataEntry, isWaterDataEntry, isWeightDataEntry } from "@/types/track";
 import TrackForms from "./trackForms";
 import AppCamera from "../camera";
+import i18n from "@/services/i18n";
 
 export default function TrackDialog() {
     const dispatch = useDispatch<AppDispatch>();
@@ -43,10 +44,10 @@ export default function TrackDialog() {
     };
 
     const tabButtons = [
-        { value: DialogTab.SLEEP, label: 'Sleep', icon: 'moon-waning-crescent', condition: !isSleepDataEntry(currentData.sleep) },
-        { value: DialogTab.WATER, label: 'Water', icon: 'glass-pint-outline', condition: !isWaterDataEntry(currentData.water) },
-        { value: DialogTab.WEIGHT, label: 'Weight', icon: 'weight', condition: !isWeightDataEntry(currentData.weight) },
-        { value: DialogTab.DIET, label: 'Diet', icon: 'food', condition: true }
+        { value: DialogTab.SLEEP, label: i18n.t('trackDialog.sleep'), icon: 'moon-waning-crescent', condition: !isSleepDataEntry(currentData.sleep) },
+        { value: DialogTab.WATER, label: i18n.t('trackDialog.water'), icon: 'glass-pint-outline', condition: !isWaterDataEntry(currentData.water) },
+        { value: DialogTab.WEIGHT, label: i18n.t('trackDialog.weight'), icon: 'weight', condition: !isWeightDataEntry(currentData.weight) },
+        { value: DialogTab.DIET, label: i18n.t('trackDialog.diet'), icon: 'food', condition: true }
     ];
 
     const filteredButtons = tabButtons.filter(button => button.condition);
@@ -61,7 +62,6 @@ export default function TrackDialog() {
             };
             setCurrentData(newData);
 
-            // Set the first available tab from filtered buttons
             if (filteredButtons.length > 0) {
                 dispatch(setTab(filteredButtons[0].value));
             }
@@ -79,15 +79,13 @@ export default function TrackDialog() {
                     dispatch(setDialog({ showDialog: true, dialogTab: initialTab, dialogType: DialogType.ADD }));
                 }}
             >
-                Add {filteredButtons.length > 1 ? 'Track' : 'Meal'}
+                {i18n.t(filteredButtons.length > 1 ? 'trackDialog.addTrack' : 'trackDialog.addMeal')}
             </Button>
 
             <Portal>
                 <Dialog visible={dialogStatus} dismissable={false} onDismiss={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}>
                     <Dialog.Title>
-                        {`${dialogType === DialogType.EDIT ? 'Edit' : 'Add'} ${new Date(currentDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })} 's `}
-                        <Text style={styles.capitalize}>{dialogTab}</Text>
-                        {` Details`}
+                        {`${i18n.t(dialogType === DialogType.EDIT ? 'trackDialog.edit' : 'trackDialog.add')} ${new Date(currentDate).toLocaleDateString(i18n.locale, { month: 'short', day: 'numeric', timeZone: 'UTC' })} ${i18n.t('trackDialog.details')}`}
                     </Dialog.Title>
                     <Dialog.Content>
                         {dialogType !== DialogType.EDIT && filteredButtons.length > 1 && (
