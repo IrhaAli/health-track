@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
-import Dialog from "react-native-dialog";
+import { View, StyleSheet, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,11 +8,11 @@ import { clearImageURI, setHideCamera, setImageURI, setShowCamera } from "@/stor
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { AppDispatch, RootState } from "@/store/store";
 import { router } from "expo-router";
-import { Divider, Button, HelperText, Avatar, Surface, TextInput } from 'react-native-paper';
+import { Divider, Button, HelperText, Surface, TextInput } from 'react-native-paper';
 import { addWeightData, updateWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, isWeightDataEntry } from "@/types/track";
-import { compose } from "redux";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from "@/services/i18n";
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -65,7 +64,7 @@ export default function TrackWeightForm() {
                 }
             }
         }
-        return {}; // Return an empty object if conditions are not met
+        return {};
     };
 
     useEffect(() => {
@@ -73,7 +72,7 @@ export default function TrackWeightForm() {
             const entry: WeightDataEntry | {} = getWeightDataObject();
             if (entry && isWeightDataEntry(entry)) { setCurrentWeightData(entry); setWeight(String(entry.weight)); }
         }
-    }, [dialogType, currentDate, weightData]); // Dependencies to re-run the effect
+    }, [dialogType, currentDate, weightData]);
 
     const uploadImage = async () => {
         if (!imageURI) { throw new Error(`Invalid URI for Weight:`); }
@@ -88,9 +87,7 @@ export default function TrackWeightForm() {
     };
 
     const deleteImage = async () => {
-        console.log('delete image called');
         if (isWeightDataEntry(currentWeightData) && currentWeightData.picture) {
-            console.log('condition meet');
             setImageToBeDelete(currentWeightData.picture);
             setCurrentWeightData({ ...currentWeightData, picture: null });
         }
@@ -112,27 +109,27 @@ export default function TrackWeightForm() {
 
         if (dialogType !== DialogType.EDIT && existingEntry) {
             setShowError(true);
-            setErrorString('Water data already exists!');
+            setErrorString(i18n.t('trackWeight.errors.existingData'));
             return;
         }
 
         if (dialogType === DialogType.EDIT && !existingEntry) {
             setShowError(true);
-            setErrorString("Water data doesn't exists, add water first!");
+            setErrorString(i18n.t('trackWeight.errors.noData'));
             return;
         }
 
         if (currentUser?.uid) {
             if ((dialogType !== DialogType.EDIT) && !imageURI) {
                 setShowError(true);
-                setErrorString('Please add weight picture!');
+                setErrorString(i18n.t('trackWeight.errors.addPicture'));
                 return;
             }
 
             if ((dialogType === DialogType.EDIT) && isWeightDataEntry(currentWeightData)) {
                 if (!imageURI && !currentWeightData.picture) {
                     setShowError(true);
-                    setErrorString('Please add weight picture!');
+                    setErrorString(i18n.t('trackWeight.errors.addPicture'));
                     return;
                 }
             }
@@ -154,14 +151,13 @@ export default function TrackWeightForm() {
                             const id = match[1];
                             let weightImageRef = ref(storage, `weight/${id}`);
                             await deleteObject(weightImageRef);
-                        } else { console.error("ID not found in the URL"); }
+                        }
                     }
 
                     let updateWeight: WeightDataEntry = { ...currentWeightData, weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : currentWeightData.picture ? currentWeightData.picture : '' }
                     dispatch(updateWeightData({ updateWeight, currentDate }));
                 }
 
-                // Ressetting Fields.
                 setWeightType(WeightTypeEnum.KG);
                 setWeight("");
                 setIsWeightTypeFocus(false);
@@ -169,7 +165,6 @@ export default function TrackWeightForm() {
                 dispatch(setImageURI(''));
                 setLoading(false);
                 dispatch(clearImageURI());
-                // Ressetting Fields.
 
                 dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }));
             } catch (error) { setLoading(false); }
@@ -195,7 +190,7 @@ export default function TrackWeightForm() {
                         <View style={styles.weightInputSection}>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Add Weight"
+                                placeholder={i18n.t('trackWeight.addWeight')}
                                 value={weight}
                                 onChangeText={setWeight}
                                 autoCorrect={false}
@@ -215,7 +210,7 @@ export default function TrackWeightForm() {
                                 maxHeight={300}
                                 labelField="label"
                                 valueField="value"
-                                placeholder={!isWeightTypeFocus ? "Select Unit" : "..."}
+                                placeholder={!isWeightTypeFocus ? i18n.t('trackWeight.selectUnit') : "..."}
                                 value={weightType}
                                 onFocus={() => setIsWeightTypeFocus(true)}
                                 onBlur={() => setIsWeightTypeFocus(false)}
@@ -250,7 +245,7 @@ export default function TrackWeightForm() {
                             style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
                             textColor="white"
                         >
-                            Add Weight Picture
+                            {i18n.t('trackWeight.addWeightPicture')}
                         </Button>
                     ) : (
                         <Surface style={styles.imageContainer} elevation={2}>
@@ -281,7 +276,7 @@ export default function TrackWeightForm() {
                             style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
                             textColor="white"
                         >
-                            Add Weight Picture
+                            {i18n.t('trackWeight.addWeightPicture')}
                         </Button>
                     )}
 
@@ -324,7 +319,7 @@ export default function TrackWeightForm() {
                         onPress={handleCancel} 
                         disabled={loading}
                     >
-                        Cancel
+                        {i18n.t('trackWeight.cancel')}
                     </Button>
                     <Button 
                         mode="contained" 
@@ -333,7 +328,7 @@ export default function TrackWeightForm() {
                         loading={loading}
                         style={styles.button}
                     >
-                        {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                        {dialogType === DialogType.EDIT ? i18n.t('trackWeight.update') : i18n.t('trackWeight.submit')}
                     </Button>
                 </View>
 
