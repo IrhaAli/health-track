@@ -3,7 +3,7 @@ import { Button, Text, Avatar, Divider, Surface, Portal, Dialog } from 'react-na
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { SleepDataEntry } from "../../types/track";
-import { deleteSleepData } from "@/store/trackSlice";
+import { deleteSleepData, getSleepDataForDate } from "@/store/trackSlice";
 import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
@@ -25,16 +25,7 @@ export default function TrackSleepCard() {
 
     const formatDuration = (mins: number) => `${Math.floor(mins / 60)}h ${mins % 60}m`;
 
-    const sleepEntries = useMemo(() => {
-        if (!Array.isArray(sleepData) && sleepData[formattedMonth]?.length) {
-            return sleepData[formattedMonth].filter((entry: SleepDataEntry) => {
-                const date = new Date(entry.wakeup_time);
-                const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
-                return date.toLocaleDateString('en-CA', { timeZone }) === currentDate;
-            });
-        }
-        return [];
-    }, [sleepData, formattedMonth, currentDate]);
+    const sleepEntries = useMemo(() => getSleepDataForDate(sleepData, currentDate), [sleepData, currentDate]);
 
     if (!sleepEntries.length) return null;
 
