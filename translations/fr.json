@@ -143,5 +143,115 @@
             "saturday": "Samedi",
             "sunday": "Dimanche"
         }
-    }
+    },
+    "trackWeight": {
+        "addWeight": "Ajouter un poids",
+        "selectUnit": "Sélectionner l'unité",
+        "addWeightPicture": "Ajouter une photo du poids",
+        "cancel": "Annuler",
+        "submit": "Soumettre",
+        "update": "Mettre à jour",
+        "errors": {
+            "existingData": "Les données de poids existent déjà!",
+            "noData": "Les données de poids n'existent pas, ajoutez d'abord le poids!",
+            "addPicture": "Veuillez ajouter une photo du poids!"
+        }
+    },
+    "trackWeightCard": {
+        "title": "Poids: {{weight}} {{unit}}",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "confirmDelete": "Confirmer la suppression",
+        "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette entrée de poids ?",
+        "cancel": "Annuler",
+        "confirm": "Confirmer"
+    },
+    "trackWater": {
+        "addWater": "Ajouter de l'eau",
+        "consumed": "{{amount}} {{type}} consommés aujourd'hui",
+        "addMore": "Ajouter plus?",
+        "cancel": "Annuler",
+        "submit": "Soumettre",
+        "update": "Mettre à jour",
+        "errors": {
+            "generic": "Une erreur s'est produite"
+        }
+    },
+    "trackWaterCard": {
+        "confirmDelete": {
+            "title": "Confirmer la Suppression",
+            "message": "Êtes-vous sûr de vouloir supprimer cette entrée d'eau ?",
+            "cancel": "Annuler",
+            "confirm": "Confirmer"
+        },
+        "delete": "Supprimer",
+        "edit": "Modifier"
+    },
+    "trackSleep": {
+        "lastNightSleep": "Sommeil de la Nuit Dernière",
+        "date": "Date",
+        "time": "Heure",
+        "wakeupTime": "Heure de Réveil",
+        "sleepQuality": "Qualité du Sommeil",
+        "poor": "Mauvais",
+        "excellent": "Excellent",
+        "totalSleep": "Sommeil Total",
+        "hoursAndMinutes": "{{hours}} heures et {{minutes}} minutes",
+        "cancel": "Annuler",
+        "submit": "Soumettre",
+        "update": "Mettre à jour",
+        "errors": {
+            "existingData": "Les données de sommeil existent déjà!",
+            "noData": "Les données de sommeil n'existent pas, ajoutez d'abord le sommeil!"
+        }
+    },
+    "trackSleepCard": {
+        "sleepDuration": "Durée du Sommeil",
+        "quality": "Qualité",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "confirmDelete": {
+            "title": "Confirmer la Suppression",
+            "message": "Êtes-vous sûr de vouloir supprimer cette entrée de sommeil ?",
+            "cancel": "Annuler",
+            "confirm": "Confirmer"
+        }
+    },
+    "trackDiet": {
+        "timeOfMeal": "Heure du Repas",
+        "addMealPicture": "Ajouter une Photo du Repas",
+        "cancel": "Annuler",
+        "submit": "Soumettre",
+        "errors": {
+            "addPicture": "Veuillez ajouter une photo du repas!"
+        }
+    },
+    "trackDietCard": {
+        "mealAt": "Repas à",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "confirmDelete": "Confirmer la suppression",
+        "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette entrée de repas ?",
+        "cancel": "Annuler",
+        "confirm": "Confirmer"
+    },
+    "trackDialog": {
+        "add": "Ajouter",
+        "edit": "Modifier",
+        "details": "Détails",
+        "addTrack": "Ajouter un suivi",
+        "addMeal": "Ajouter un repas",
+        "sleep": "Sommeil",
+        "water": "Eau",
+        "weight": "Poids",
+        "diet": "Régime"
+    },
+    "monthsFormat": {
+        "long": "{{month}} {{year}}"
+    },
+    "calendar": {
+        "today": "Aujourd'hui",
+        "selected": "Sélectionné"
+    },
+    "loading": "Chargement..."
 }
