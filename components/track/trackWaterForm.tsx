@@ -11,10 +11,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addWaterData, updateWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState, isWaterDataEntry } from "@/types/track";
 import { clearImageURI } from "@/store/cameraSlice";
+import i18n from "@/services/i18n";
 
 const WaterTypeEnum = {
     MILLILITRES: "millilitres",
-    LITRES: "litres",
+    LITRES: "litres", 
     CUPS: "cups"
 } as const;
 
@@ -104,10 +105,13 @@ export default function TrackWaterForm() {
                 error: { show: false, message: null }
             }));
         } catch (error) {
-            setFormState(prev => ({ 
-                ...prev, 
+            setFormState(prev => ({
+                ...prev,
                 loading: false,
-                error: { show: true, message: null }
+                error: { 
+                    show: true, 
+                    message: i18n.t('trackWater.errors.generic') as null // Type assertion to match expected null type
+                }
             }));
         }
     };
@@ -117,9 +121,14 @@ export default function TrackWaterForm() {
             {isWaterDataEntry(formState.currentWaterData) && (
                 <Surface style={styles.currentIntakeCard} elevation={2}>
                     <Text variant="bodyLarge" style={styles.intakeText}>
-                        {`Consumed ${formState.currentWaterData.intake_amount} ${formState.currentWaterData.waterType} today`}
+                        {i18n.t('trackWater.consumed', {
+                            amount: formState.currentWaterData.intake_amount,
+                            type: formState.currentWaterData.waterType
+                        })}
                     </Text>
-                    <Text variant="bodyMedium" style={styles.addMoreText}>Add more?</Text>
+                    <Text variant="bodyMedium" style={styles.addMoreText}>
+                        {i18n.t('trackWater.addMore')}
+                    </Text>
                 </Surface>
             )}
 
@@ -127,7 +136,7 @@ export default function TrackWaterForm() {
                 <View style={styles.inputWrapper}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Add Water"
+                        placeholder={i18n.t('trackWater.addWater')}
                         value={formState.water}
                         onChangeText={water => setFormState(prev => ({ ...prev, water }))}
                         keyboardType="numeric"
@@ -160,7 +169,7 @@ export default function TrackWaterForm() {
                     onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}
                     disabled={formState.loading}
                 >
-                    Cancel
+                    {i18n.t('trackWater.cancel')}
                 </Button>
                 <Button 
                     mode="contained" 
@@ -168,7 +177,7 @@ export default function TrackWaterForm() {
                     disabled={formState.loading || !formState.water}
                     loading={formState.loading}
                 >
-                    {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                    {dialogType === DialogType.EDIT ? i18n.t('trackWater.update') : i18n.t('trackWater.submit')}
                 </Button>
             </View>
 
