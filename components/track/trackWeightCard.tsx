@@ -6,6 +6,7 @@ import { deleteWeightData } from "@/store/trackSlice";
 import { WeightDataEntry } from "../../types/track";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
+import i18n from "@/services/i18n";
 
 export default function TrackWeightCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -46,13 +47,17 @@ export default function TrackWeightCard() {
         <View>
             <Portal>
                 <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({ ...deleteDialog, visible: false })}>
-                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Title>{i18n.t('trackWeightCard.confirmDelete')}</Dialog.Title>
                     <Dialog.Content>
-                        <Text>Are you sure you want to delete this weight entry?</Text>
+                        <Text>{i18n.t('trackWeightCard.confirmDeleteMessage')}</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ ...deleteDialog, visible: false })}>Cancel</Button>
-                        <Button mode="contained" onPress={handleDelete}>Confirm</Button>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ ...deleteDialog, visible: false })}>
+                            {i18n.t('trackWeightCard.cancel')}
+                        </Button>
+                        <Button mode="contained" onPress={handleDelete}>
+                            {i18n.t('trackWeightCard.confirm')}
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -76,7 +81,7 @@ export default function TrackWeightCard() {
                             <View style={styles.headerContainer}>
                                 <Avatar.Icon size={40} icon="weight" color="#fff" style={styles.avatar} />
                                 <Text variant="titleLarge" style={styles.title}>
-                                    {`Weight: ${weight.weight} ${weight.measurement_unit}`}
+                                    {i18n.t('trackWeightCard.title', { weight: weight.weight, unit: weight.measurement_unit })}
                                 </Text>
                             </View>
                             
@@ -94,7 +99,7 @@ export default function TrackWeightCard() {
                                     onPress={() => weight.id && setDeleteDialog({ visible: true, id: weight.id })}
                                     style={styles.button}
                                 >
-                                    Delete
+                                    {i18n.t('trackWeightCard.delete')}
                                 </Button>
                                 <Button
                                     mode="contained"
@@ -106,7 +111,7 @@ export default function TrackWeightCard() {
                                     }))}
                                     style={styles.button}
                                 >
-                                    Edit
+                                    {i18n.t('trackWeightCard.edit')}
                                 </Button>
                             </View>
                         </View>
