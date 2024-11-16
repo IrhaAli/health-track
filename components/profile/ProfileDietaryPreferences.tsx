@@ -12,7 +12,7 @@ import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '@/services/i18n';
-import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme, Appbar } from 'react-native-paper';
+import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme, Appbar, Card, Title } from 'react-native-paper';
 import { router } from "expo-router";
 
 interface ProfileDietaryPreferencesProps {
@@ -138,15 +138,19 @@ export default function ProfileDietaryPreferences({ showNavigation = false }: Pr
       {showNavigation && (
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.push('/profile')} />
-          <Appbar.Content title={i18n.t('dietaryPreferences.title')} style={{alignSelf: 'center', alignItems: 'center', flex: 1}} />
+          <Appbar.Content 
+            title={i18n.t('dietaryPreferences.title')} 
+            style={{
+              alignItems: 'center',
+              position: 'absolute',
+              left: 0,
+              right: 0
+            }} 
+          />
         </Appbar.Header>
       )}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Surface style={styles.mainSurface} elevation={2}>
-          <Text variant="headlineMedium" style={styles.title}>
-            {i18n.t('dietaryPreferences.title')}
-          </Text>
-
+      <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           {isEdit ? (
             <>
               <View style={styles.buttonContainer}>
@@ -154,16 +158,17 @@ export default function ProfileDietaryPreferences({ showNavigation = false }: Pr
                   mode="contained" 
                   onPress={onSubmit}
                   disabled={isDisabled}
-                  style={styles.actionButton}
+                  style={styles.button}
                 >
-                  {i18n.t('profile.submit')}
+                  {i18n.t('submit')}
                 </Button>
                 <Button 
                   mode="outlined"
                   onPress={() => setIsEdit(false)}
-                  style={styles.actionButton}
+                  disabled={isDisabled}
+                  style={styles.button}
                 >
-                  {i18n.t('profile.cancel')}
+                  {i18n.t('cancel')}
                 </Button>
               </View>
 
@@ -192,53 +197,52 @@ export default function ProfileDietaryPreferences({ showNavigation = false }: Pr
             </>
           ) : (
             <>
-              <Button 
-                mode="contained"
-                onPress={() => setIsEdit(true)}
-                style={styles.editButton}
-              >
-                {i18n.t('edit')}
-              </Button>
-
-              <Surface style={styles.preferencesListSurface} elevation={1}>
-                {Object.entries(dietaryPreferences)
-                  .filter(([key]) => key !== 'docId')
-                  .map(([key, value]) => (
-                    <View key={key} style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingVertical: 4
-                    }}>
-                      <Text variant="bodyLarge" style={styles.preferenceItem}>
-                        • {i18n.t(`dietaryPreferences.${key}`)}
-                      </Text>
-                      <Text variant="bodyLarge" style={{
-                        fontWeight: '500',
-                        color: value ? theme.colors.primary : theme.colors.error
-                      }}>
-                        {value ? 'Yes' : 'No'}
-                      </Text>
-                    </View>
-                  ))
-                }
-              </Surface>
+              <Card style={styles.card}>
+                <Card.Content>
+                  <View style={styles.titleContainer}>
+                    <Title style={styles.title}>{i18n.t('dietaryPreferences.title')}</Title>
+                    <Button
+                      mode="contained"
+                      onPress={() => setIsEdit(true)}
+                      style={styles.editButton}
+                      icon="pencil"
+                    >
+                      {i18n.t('edit')}
+                    </Button>
+                  </View>
+                  {Object.entries(dietaryPreferences)
+                    .filter(([key]) => key !== 'docId')
+                    .map(([key, value]) => (
+                      <View key={key} style={styles.infoRow}>
+                        <Text style={styles.label}>
+                          {i18n.t(`dietaryPreferences.${key}`)}:
+                        </Text>
+                        <Text style={{
+                          color: value ? theme.colors.primary : theme.colors.error
+                        }}>
+                          {value ? 'Yes' : 'No'}
+                        </Text>
+                      </View>
+                    ))
+                  }
+                </Card.Content>
+              </Card>
             </>
           )}
-        </Surface>
-      </ScrollView>
 
-      <Portal>
-        <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
-          <Dialog.Title>Success</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Your dietary preferences have been updated successfully!</Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowDialog(false)}>OK</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+          <Portal>
+            <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
+              <Dialog.Title>Success</Dialog.Title>
+              <Dialog.Content>
+                <Paragraph>Your dietary preferences have been updated successfully!</Paragraph>
+              </Dialog.Content>
+              <Dialog.Actions>
+                <Button onPress={() => setShowDialog(false)}>OK</Button>
+              </Dialog.Actions>
+            </Dialog>
+          </Portal>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -246,32 +250,43 @@ export default function ProfileDietaryPreferences({ showNavigation = false }: Pr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
+  },
+  content: {
+    flex: 1,
   },
   scrollContent: {
     padding: 16,
-    flexGrow: 1
-  },
-  mainSurface: {
-    padding: 16,
-    borderRadius: 8
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 24,
-    fontWeight: 'bold'
+    flexGrow: 1,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 24
+    marginBottom: 16
   },
-  actionButton: {
+  button: {
     minWidth: 120
   },
   editButton: {
+    alignSelf: 'flex-end',
     marginBottom: 16,
-    borderRadius: 8
+    borderRadius: 20,
+  },
+  card: {
+    marginVertical: 8,
+    borderRadius: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  label: {
+    fontWeight: '600',
+    color: '#666',
   },
   preferencesGrid: {
     gap: 12
@@ -283,11 +298,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  preferencesListSurface: {
-    padding: 16,
-    borderRadius: 8
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  preferenceItem: {
-    paddingVertical: 4
-  }
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+  },
 });
