@@ -143,5 +143,115 @@
             "saturday": "Saturday",
             "sunday": "Sunday"
         }
-    }
+    },
+    "trackWeight": {
+        "addWeight": "Add Weight",
+        "selectUnit": "Select Unit",
+        "addWeightPicture": "Add Weight Picture",
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "update": "Update",
+        "errors": {
+            "existingData": "Weight data already exists!",
+            "noData": "Weight data doesn't exist, add weight first!",
+            "addPicture": "Please add weight picture!"
+        }
+    },
+    "trackWeightCard": {
+        "title": "Weight: {{weight}} {{unit}}",
+        "delete": "Delete",
+        "edit": "Edit",
+        "confirmDelete": "Confirm Delete",
+        "confirmDeleteMessage": "Are you sure you want to delete this weight entry?",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+    },
+    "trackWater": {
+        "addWater": "Add Water",
+        "consumed": "Consumed {{amount}} {{type}} today",
+        "addMore": "Add more?",
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "update": "Update",
+        "errors": {
+            "generic": "An error occurred"
+        }
+    },
+    "trackWaterCard": {
+        "confirmDelete": {
+            "title": "Confirm Delete",
+            "message": "Are you sure you want to delete this water entry?",
+            "cancel": "Cancel",
+            "confirm": "Confirm"
+        },
+        "delete": "Delete",
+        "edit": "Edit"
+    },
+    "trackSleep": {
+        "lastNightSleep": "Last Night's Sleep",
+        "date": "Date",
+        "time": "Time",
+        "wakeupTime": "Wakeup Time",
+        "sleepQuality": "Sleep Quality",
+        "poor": "Poor",
+        "excellent": "Excellent",
+        "totalSleep": "Total Sleep",
+        "hoursAndMinutes": "{{hours}} hours and {{minutes}} minutes",
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "update": "Update",
+        "errors": {
+            "existingData": "Sleep data already exists!",
+            "noData": "Sleep data doesn't exist, add sleep first!"
+        }
+    },
+    "trackSleepCard": {
+        "sleepDuration": "Sleep Duration",
+        "quality": "Quality",
+        "delete": "Delete",
+        "edit": "Edit",
+        "confirmDelete": {
+            "title": "Confirm Delete",
+            "message": "Are you sure you want to delete this sleep entry?",
+            "cancel": "Cancel",
+            "confirm": "Confirm"
+        }
+    },
+    "trackDiet": {
+        "timeOfMeal": "Time of Meal",
+        "addMealPicture": "Add Meal Picture",
+        "cancel": "Cancel",
+        "submit": "Submit",
+        "errors": {
+            "addPicture": "Please add meal picture!"
+        }
+    },
+    "trackDietCard": {
+        "mealAt": "Meal at",
+        "delete": "Delete",
+        "edit": "Edit",
+        "confirmDelete": "Confirm Delete",
+        "confirmDeleteMessage": "Are you sure you want to delete this meal entry?",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+    },
+    "trackDialog": {
+        "add": "Add",
+        "edit": "Edit",
+        "details": "Details",
+        "addTrack": "Add Track",
+        "addMeal": "Add Meal",
+        "sleep": "Sleep",
+        "water": "Water",
+        "weight": "Weight",
+        "diet": "Diet"
+    },
+    "monthsFormat": {
+        "long": "{{month}} {{year}}"
+    },
+    "calendar": {
+        "today": "Today",
+        "selected": "Selected"
+    },
+    "loading": "Loading..."
 }
