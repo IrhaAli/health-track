@@ -1,5 +1,6 @@
+import React from "react";
 import ProfileStressLevel from "@/components/profile/ProfileStressLevel";
 
 export default function StressLevel() {
-  return <ProfileStressLevel></ProfileStressLevel>;
+  return <ProfileStressLevel showNavigation={true}></ProfileStressLevel>;
 }
