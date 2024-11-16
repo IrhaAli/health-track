@@ -253,5 +253,6 @@
         "today": "Aujourd'hui",
         "selected": "Sélectionné"
     },
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "backToProfile": "Retour au Profil"
 }

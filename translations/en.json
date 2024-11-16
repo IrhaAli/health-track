@@ -253,5 +253,6 @@
         "today": "Today",
         "selected": "Selected"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "backToProfile": "Back to Profile"
 }
