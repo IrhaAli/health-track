@@ -1,9 +1,63 @@
 import React from "react";
-import { Calendar } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Button, Text } from 'react-native-paper';
+import i18n from "@/services/i18n";
+
+// Configure calendar localization
+LocaleConfig.locales[i18n.locale] = {
+  monthNames: [
+    i18n.t('months.january'),
+    i18n.t('months.february'), 
+    i18n.t('months.march'),
+    i18n.t('months.april'),
+    i18n.t('months.may'),
+    i18n.t('months.june'),
+    i18n.t('months.july'),
+    i18n.t('months.august'),
+    i18n.t('months.september'),
+    i18n.t('months.october'),
+    i18n.t('months.november'),
+    i18n.t('months.december')
+  ],
+  monthNamesShort: [
+    i18n.t('months.january').slice(0,3),
+    i18n.t('months.february').slice(0,3),
+    i18n.t('months.march').slice(0,3),
+    i18n.t('months.april').slice(0,3),
+    i18n.t('months.may').slice(0,3),
+    i18n.t('months.june').slice(0,3),
+    i18n.t('months.july').slice(0,3),
+    i18n.t('months.august').slice(0,3),
+    i18n.t('months.september').slice(0,3),
+    i18n.t('months.october').slice(0,3),
+    i18n.t('months.november').slice(0,3),
+    i18n.t('months.december').slice(0,3)
+  ],
+  dayNames: [
+    i18n.t('media.weekdays.sunday'),
+    i18n.t('media.weekdays.monday'),
+    i18n.t('media.weekdays.tuesday'),
+    i18n.t('media.weekdays.wednesday'),
+    i18n.t('media.weekdays.thursday'),
+    i18n.t('media.weekdays.friday'),
+    i18n.t('media.weekdays.saturday')
+  ],
+  dayNamesShort: [
+    i18n.t('media.weekdays.sunday').slice(0,3),
+    i18n.t('media.weekdays.monday').slice(0,3),
+    i18n.t('media.weekdays.tuesday').slice(0,3),
+    i18n.t('media.weekdays.wednesday').slice(0,3),
+    i18n.t('media.weekdays.thursday').slice(0,3),
+    i18n.t('media.weekdays.friday').slice(0,3),
+    i18n.t('media.weekdays.saturday').slice(0,3)
+  ],
+  today: i18n.t('calendar.today')
+};
+
+LocaleConfig.defaultLocale = i18n.locale;
 
 interface DateChangeInterface {
   dateString: string;
@@ -54,7 +108,11 @@ export default function TrackComponent() {
 
   const renderHeader = (date: Date) => (
     <Text variant="titleLarge">
-      {new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)} {date.getFullYear()}
+      {i18n.t('monthsFormat.long', {
+        month: new Intl.DateTimeFormat(i18n.locale, { month: 'long' }).format(date).charAt(0).toUpperCase() + 
+              new Intl.DateTimeFormat(i18n.locale, { month: 'long' }).format(date).slice(1),
+        year: date.getFullYear()
+      })}
     </Text>
   );
 
@@ -69,7 +127,6 @@ export default function TrackComponent() {
       firstDay={1}
       renderHeader={renderHeader}
       renderArrow={renderArrow}
-      style={{ marginTop: 33 }}
       theme={{
         backgroundColor: 'transparent',
         calendarBackground: 'transparent',
