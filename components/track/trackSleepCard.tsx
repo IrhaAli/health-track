@@ -6,6 +6,7 @@ import { SleepDataEntry } from "../../types/track";
 import { deleteSleepData } from "@/store/trackSlice";
 import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
+import i18n from "@/services/i18n";
 
 export default function TrackSleepCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -48,13 +49,17 @@ export default function TrackSleepCard() {
         <View>
             <Portal>
                 <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({ ...deleteDialog, visible: false })}>
-                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Title>{i18n.t('trackSleepCard.confirmDelete.title')}</Dialog.Title>
                     <Dialog.Content>
-                        <Text>Are you sure you want to delete this sleep entry?</Text>
+                        <Text>{i18n.t('trackSleepCard.confirmDelete.message')}</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ ...deleteDialog, visible: false })}>Cancel</Button>
-                        <Button mode="contained" onPress={handleDelete}>Confirm</Button>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ ...deleteDialog, visible: false })}>
+                            {i18n.t('trackSleepCard.confirmDelete.cancel')}
+                        </Button>
+                        <Button mode="contained" onPress={handleDelete}>
+                            {i18n.t('trackSleepCard.confirmDelete.confirm')}
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -71,9 +76,9 @@ export default function TrackSleepCard() {
                                 <Avatar.Icon size={40} icon="moon-waning-crescent" color="#fff" style={styles.avatar} />
                                 <View style={styles.titleBox}>
                                     <Text variant="titleLarge" style={styles.title}>
-                                        Sleep Duration: {formatDuration(sleep.sleep_duration)}
+                                        {i18n.t('trackSleepCard.sleepDuration')}: {formatDuration(sleep.sleep_duration)}
                                     </Text>
-                                    <Text variant="titleMedium">Quality: {sleep.sleep_quality}/5</Text>
+                                    <Text variant="titleMedium">{i18n.t('trackSleepCard.quality')}: {sleep.sleep_quality}/5</Text>
                                 </View>
                             </View>
                             
@@ -84,7 +89,7 @@ export default function TrackSleepCard() {
                                     onPress={() => sleep.id && setDeleteDialog({ visible: true, id: sleep.id })}
                                     style={styles.btn}
                                 >
-                                    Delete
+                                    {i18n.t('trackSleepCard.delete')}
                                 </Button>
                                 <Button
                                     mode="contained"
@@ -96,7 +101,7 @@ export default function TrackSleepCard() {
                                     }))}
                                     style={styles.btn}
                                 >
-                                    Edit
+                                    {i18n.t('trackSleepCard.edit')}
                                 </Button>
                             </View>
                         </View>
