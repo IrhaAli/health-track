@@ -102,7 +102,15 @@ export default function ProfileStressLevel({ showNavigation = false }: ProfileSt
       {showNavigation && (
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.push('/profile')} />
-          <Appbar.Content title={i18n.t('stressLevel')} style={{alignItems: 'center'}} />
+          <Appbar.Content 
+            title={i18n.t('stressLevel')} 
+            style={{
+              alignItems: 'center',
+              position: 'absolute',
+              left: 0,
+              right: 0
+            }} 
+          />
         </Appbar.Header>
       )}
       <Surface style={styles.surface}>
