@@ -8,19 +8,27 @@ import {
   addDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, SafeAreaView } from "react-native";
 import { useEffect, useState } from "react";
 import MedicalHistory from "@/components/user_info/MedicalHistory";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '@/services/i18n';
+import { Appbar, Button, Card, Text, Surface, useTheme } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
-export default function ProfileMedicalHistory() {
+interface ProfileMedicalHistoryProps {
+  showNavigation?: boolean;
+}
+
+export default function ProfileMedicalHistory({ showNavigation = false }: ProfileMedicalHistoryProps) {
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [medicalHistory, setMedicalHistory] = useState([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {
     const initialize = async () => {
@@ -93,98 +101,111 @@ export default function ProfileMedicalHistory() {
   };
 
   return (
-    <View style={[{ marginTop: 0 }]}>
-      {isEdit ? (
-        <>
-          <View
-            style={styles.buttonView}
-            pointerEvents={isDisabled ? "none" : "auto"}
-          >
-            <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{i18n.t('submit')}</Text>
-            </Pressable>
-            <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{i18n.t('cancel')}</Text>
-            </Pressable>
-          </View>
-          <MedicalHistory
-            medicalHistory={medicalHistory}
-            setMedicalHistory={setMedicalHistory}
-          />
-        </>
-      ) : (
-        <>
-          <View style={styles.buttonView}>
-            <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{i18n.t('edit')}</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>{i18n.t('medicalHistory')}</Text>
-          {medicalHistory.length > 0 ? (
-            medicalHistory.map((item: any, index: number) => {
-              return (
-                !item.is_deleted && (
-                  <View key={index}>
-                    <Text>{item.condition}</Text>
-                    <Text>{item.treatment_status}</Text>
-                    <Text>{`${item.diagnosis_date}`}</Text>
-                    <Text>{item.allergies}</Text>
-                  </View>
-                )
-              );
-            })
-          ) : (
-            <Text>{i18n.t('noMedicalHistory')}</Text>
-          )}
-        </>
+    <SafeAreaView style={styles.container}>
+      {showNavigation && (
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.push('/profile')} />
+          <Appbar.Content title={i18n.t('medicalHistory')} style={{alignItems: 'center'}} />
+        </Appbar.Header>
       )}
-    </View>
+      <Surface style={styles.surface}>
+        {isEdit ? (
+          <>
+            <View style={styles.buttonContainer}>
+              <Button 
+                mode="contained" 
+                onPress={onSubmit}
+                disabled={isDisabled}
+                style={styles.button}
+              >
+                {i18n.t('submit')}
+              </Button>
+              <Button 
+                mode="outlined"
+                onPress={() => setIsEdit(false)}
+                disabled={isDisabled}
+                style={styles.button}
+              >
+                {i18n.t('cancel')}
+              </Button>
+            </View>
+            <MedicalHistory
+              medicalHistory={medicalHistory}
+              setMedicalHistory={setMedicalHistory}
+            />
+          </>
+        ) : (
+          <>
+            <Button 
+              mode="contained"
+              onPress={() => setIsEdit(true)}
+              style={styles.editButton}
+            >
+              {i18n.t('edit')}
+            </Button>
+            <Text variant="headlineMedium" style={styles.title}>
+              {i18n.t('medicalHistory')}
+            </Text>
+            {medicalHistory.length > 0 ? (
+              medicalHistory.map((item: any, index: number) => {
+                return (
+                  !item.is_deleted && (
+                    <Card key={index} style={styles.card}>
+                      <Card.Content>
+                        <Text variant="titleMedium">{item.condition}</Text>
+                        <Text variant="bodyMedium">{item.treatment_status}</Text>
+                        <Text variant="bodyMedium">{`${item.diagnosis_date}`}</Text>
+                        <Text variant="bodyMedium">{item.allergies}</Text>
+                      </Card.Content>
+                    </Card>
+                  )
+                );
+              })
+            ) : (
+              <Text variant="bodyLarge" style={styles.noData}>
+                {i18n.t('noMedicalHistory')}
+              </Text>
+            )}
+          </>
+        )}
+      </Surface>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  appLogo: {
-    height: 250,
-    width: 400,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5'
   },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
+  surface: {
+    flex: 1,
+    padding: 16
   },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16
   },
   button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    minWidth: 120
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+  editButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 16
   },
-  buttonTextRed: {
-    color: "red",
+  title: {
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: 'bold'
   },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
+  card: {
+    marginBottom: 12,
+    elevation: 2
   },
+  noData: {
+    textAlign: 'center',
+    marginTop: 24,
+    opacity: 0.6
+  }
 });
