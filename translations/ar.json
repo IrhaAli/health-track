@@ -143,5 +143,115 @@
             "saturday": "السبت",
             "sunday": "الأحد"
         }
-    }
+    },
+    "trackWeight": {
+        "addWeight": "أضف الوزن",
+        "selectUnit": "اختر الوحدة",
+        "addWeightPicture": "أضف صورة الوزن",
+        "cancel": "إلغاء",
+        "submit": "إرسال",
+        "update": "تحديث",
+        "errors": {
+            "existingData": "بيانات الوزن موجودة بالفعل!",
+            "noData": "بيانات الوزن غير موجودة، أضف الوزن أولاً!",
+            "addPicture": "الرجاء إضافة صورة الوزن!"
+        }
+    },
+    "trackWeightCard": {
+        "title": "الوزن: {{weight}} {{unit}}",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "confirmDelete": "تأكيد الحذف",
+        "confirmDeleteMessage": "هل أنت متأكد أنك تريد حذف إدخال الوزن هذا؟",
+        "cancel": "إلغاء",
+        "confirm": "تأكيد"
+    },
+    "trackWater": {
+        "addWater": "أضف ماء",
+        "consumed": "تم استهلاك {{amount}} {{type}} اليوم",
+        "addMore": "أضف المزيد؟",
+        "cancel": "إلغاء",
+        "submit": "إرسال",
+        "update": "تحديث",
+        "errors": {
+            "generic": "حدث خطأ"
+        }
+    },
+    "trackWaterCard": {
+        "confirmDelete": {
+            "title": "تأكيد الحذف",
+            "message": "هل أنت متأكد أنك تريد حذف سجل الماء هذا؟",
+            "cancel": "إلغاء",
+            "confirm": "تأكيد"
+        },
+        "delete": "حذف",
+        "edit": "تعديل"
+    },
+    "trackSleep": {
+        "lastNightSleep": "نوم الليلة الماضية",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "wakeupTime": "وقت الاستيقاظ",
+        "sleepQuality": "جودة النوم",
+        "poor": "سيئ",
+        "excellent": "ممتاز",
+        "totalSleep": "مجموع النوم",
+        "hoursAndMinutes": "{{hours}} ساعات و {{minutes}} دقائق",
+        "cancel": "إلغاء",
+        "submit": "إرسال",
+        "update": "تحديث",
+        "errors": {
+            "existingData": "بيانات النوم موجودة بالفعل!",
+            "noData": "بيانات النوم غير موجودة، أضف النوم أولاً!"
+        }
+    },
+    "trackSleepCard": {
+        "sleepDuration": "مدة النوم",
+        "quality": "الجودة",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "confirmDelete": {
+            "title": "تأكيد الحذف",
+            "message": "هل أنت متأكد أنك تريد حذف سجل النوم هذا؟",
+            "cancel": "إلغاء",
+            "confirm": "تأكيد"
+        }
+    },
+    "trackDiet": {
+        "timeOfMeal": "وقت الوجبة",
+        "addMealPicture": "أضف صورة الوجبة",
+        "cancel": "إلغاء",
+        "submit": "إرسال",
+        "errors": {
+            "addPicture": "الرجاء إضافة صورة الوجبة!"
+        }
+    },
+    "trackDietCard": {
+        "mealAt": "وجبة في",
+        "delete": "حذف",
+        "edit": "تعديل",
+        "confirmDelete": "تأكيد الحذف",
+        "confirmDeleteMessage": "هل أنت متأكد أنك تريد حذف هذه الوجبة؟",
+        "cancel": "إلغاء",
+        "confirm": "تأكيد"
+    },
+    "trackDialog": {
+        "add": "إضافة",
+        "edit": "تعديل",
+        "details": "تفاصيل",
+        "addTrack": "إضافة تتبع",
+        "addMeal": "إضافة وجبة",
+        "sleep": "النوم",
+        "water": "الماء",
+        "weight": "الوزن",
+        "diet": "النظام الغذائي"
+    },
+    "monthsFormat": {
+        "long": "{{month}} {{year}}"
+    },
+    "calendar": {
+        "today": "اليوم",
+        "selected": "محدد"
+    },
+    "loading": "جاري التحميل..."
 }
