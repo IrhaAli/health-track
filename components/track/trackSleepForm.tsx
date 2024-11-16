@@ -11,6 +11,7 @@ import { isSleepDataEntry, SleepDataEntry } from "@/types/track";
 import { addSleepData, updateSleepData } from "@/store/trackSlice";
 import { clearImageURI } from "@/store/cameraSlice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18n from "@/services/i18n";
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -49,7 +50,10 @@ export default function TrackSleepForm() {
     }, []);
 
     const convertMinutesToHoursAndMinutes = (mins: number) => 
-        `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
+        i18n.t('trackSleep.hoursAndMinutes', {
+            hours: Math.floor(mins / 60),
+            minutes: mins % 60
+        });
 
     const calculateSleepDuration = () => {
         let diff = wakeupTime.getTime() - sleepDateTime.getTime();
@@ -113,8 +117,8 @@ export default function TrackSleepForm() {
             (dialogType === DialogType.EDIT && !existingEntry)) {
             setShowError(true);
             setErrorString(dialogType !== DialogType.EDIT ? 
-                'Sleep data already exists!' : 
-                "Sleep data doesn't exist, add sleep first!"
+                i18n.t('trackSleep.errors.existingData') : 
+                i18n.t('trackSleep.errors.noData')
             );
             return;
         }
@@ -154,7 +158,9 @@ export default function TrackSleepForm() {
         <View>
             <View style={styles.trackSleepForm}>
                 <View style={styles.section}>
-                    <Text variant="titleLarge" style={styles.sectionTitle}>Last Night's Sleep</Text>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>
+                        {i18n.t('trackSleep.lastNightSleep')}
+                    </Text>
                     <Surface style={styles.dateTimeContainer} elevation={1}>
                         <TouchableOpacity 
                             style={styles.dateTimeButton}
@@ -162,10 +168,12 @@ export default function TrackSleepForm() {
                             disabled={loading}
                         >
                             <View style={styles.dateTimeContent}>
-                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Date</Text>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>
+                                    {i18n.t('trackSleep.date')}
+                                </Text>
                                 <View style={styles.dateTimeValue}>
                                     <Text variant="bodyLarge" style={styles.dateTimeText}>
-                                        {sleepDateTime.toLocaleDateString("en-US", { 
+                                        {sleepDateTime.toLocaleDateString(i18n.locale, { 
                                             month: "short", 
                                             day: "numeric", 
                                             year: "numeric"
@@ -182,10 +190,12 @@ export default function TrackSleepForm() {
                             disabled={loading}
                         >
                             <View style={styles.dateTimeContent}>
-                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Time</Text>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>
+                                    {i18n.t('trackSleep.time')}
+                                </Text>
                                 <View style={styles.dateTimeValue}>
                                     <Text variant="bodyLarge" style={styles.dateTimeText}>
-                                        {sleepDateTime.toLocaleTimeString("en-US", {
+                                        {sleepDateTime.toLocaleTimeString(i18n.locale, {
                                             hour: "2-digit",
                                             minute: "2-digit",
                                             hour12: true
@@ -219,7 +229,9 @@ export default function TrackSleepForm() {
                 </View>
 
                 <View style={styles.section}>
-                    <Text variant="titleLarge" style={styles.sectionTitle}>Wakeup Time</Text>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>
+                        {i18n.t('trackSleep.wakeupTime')}
+                    </Text>
                     <Surface style={styles.dateTimeContainer} elevation={1}>
                         <TouchableOpacity
                             style={[styles.dateTimeButton, { flex: 1 }]}
@@ -227,10 +239,12 @@ export default function TrackSleepForm() {
                             disabled={loading}
                         >
                             <View style={styles.dateTimeContent}>
-                                <Text variant="titleMedium" style={styles.dateTimeLabel}>Time</Text>
+                                <Text variant="titleMedium" style={styles.dateTimeLabel}>
+                                    {i18n.t('trackSleep.time')}
+                                </Text>
                                 <View style={styles.dateTimeValue}>
                                     <Text variant="bodyLarge" style={styles.dateTimeText}>
-                                        {wakeupTime.toLocaleTimeString("en-US", {
+                                        {wakeupTime.toLocaleTimeString(i18n.locale, {
                                             hour: "2-digit",
                                             minute: "2-digit",
                                             hour12: true
@@ -252,7 +266,9 @@ export default function TrackSleepForm() {
                 </View>
 
                 <View style={styles.section}>
-                    <Text variant="titleLarge" style={styles.sectionTitle}>Sleep Quality: {sleepQuality}</Text>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>
+                        {i18n.t('trackSleep.sleepQuality')}: {sleepQuality}
+                    </Text>
                     <Surface style={styles.sliderContainer} elevation={1}>
                         <Slider
                             style={styles.slider}
@@ -266,12 +282,12 @@ export default function TrackSleepForm() {
                             minimumTrackTintColor="#6200ee"
                         />
                         <View style={styles.qualityLabels}>
-                            <Text>Poor</Text>
-                            <Text>Excellent</Text>
+                            <Text>{i18n.t('trackSleep.poor')}</Text>
+                            <Text>{i18n.t('trackSleep.excellent')}</Text>
                         </View>
                     </Surface>
                     <Text variant="titleMedium" style={styles.durationText}>
-                        Total Sleep: {convertMinutesToHoursAndMinutes(sleepDuration)}
+                        {i18n.t('trackSleep.totalSleep')}: {convertMinutesToHoursAndMinutes(sleepDuration)}
                     </Text>
                 </View>
             </View>
@@ -286,7 +302,7 @@ export default function TrackSleepForm() {
                     }}
                     disabled={loading}
                 >
-                    Cancel
+                    {i18n.t('trackSleep.cancel')}
                 </Button>
                 <Button 
                     mode="contained" 
@@ -295,7 +311,7 @@ export default function TrackSleepForm() {
                     loading={loading}
                     style={styles.button}
                 >
-                    {dialogType === DialogType.EDIT ? 'Update' : 'Submit'}
+                    {dialogType === DialogType.EDIT ? i18n.t('trackSleep.update') : i18n.t('trackSleep.submit')}
                 </Button>
             </View>
 
