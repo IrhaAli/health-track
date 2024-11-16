@@ -105,7 +105,15 @@ export default function ProfileMedicalHistory({ showNavigation = false }: Profil
       {showNavigation && (
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.push('/profile')} />
-          <Appbar.Content title={i18n.t('medicalHistory')} style={{alignItems: 'center'}} />
+          <Appbar.Content 
+            title={i18n.t('medicalHistory')} 
+            style={{
+              alignItems: 'center',
+              position: 'absolute',
+              left: 0,
+              right: 0
+            }} 
+          />
         </Appbar.Header>
       )}
       <Surface style={styles.surface}>
@@ -152,10 +160,10 @@ export default function ProfileMedicalHistory({ showNavigation = false }: Profil
                   !item.is_deleted && (
                     <Card key={index} style={styles.card}>
                       <Card.Content>
-                        <Text variant="titleMedium">{item.condition}</Text>
-                        <Text variant="bodyMedium">{item.treatment_status}</Text>
-                        <Text variant="bodyMedium">{`${item.diagnosis_date}`}</Text>
-                        <Text variant="bodyMedium">{item.allergies}</Text>
+                        <Text variant="titleMedium">{item.condition.split(/[_-]/).map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Text>
+                        <Text variant="bodyMedium">{item.treatment_status.split(/[_-]/).map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Text>
+                        <Text variant="bodyMedium">{new Date(item.diagnosis_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                        <Text variant="bodyMedium">{item.allergies.charAt(0).toUpperCase() + item.allergies.slice(1)}</Text>
                       </Card.Content>
                     </Card>
                   )
