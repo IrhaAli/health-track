@@ -6,15 +6,34 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, View, SafeAreaView } from "react-native";
 import { useEffect, useState } from "react";
 import UserDetails from "@/components/user_info/UserDetails";
 import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '@/services/i18n';
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { 
+  Button,
+  Text,
+  Surface,
+  Portal,
+  Card,
+  Title,
+  Paragraph,
+  Appbar,
+  useTheme,
+  IconButton
+} from 'react-native-paper';
 
-export default function ProfileUserDetails() {
+interface ProfileUserDetailsProps {
+  showNavigation?: boolean;
+}
+
+export default function ProfileUserDetails({ showNavigation = false }: ProfileUserDetailsProps) {
+  const theme = useTheme();
   const [isEdit, setIsEdit] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -125,92 +144,146 @@ export default function ProfileUserDetails() {
   };
 
   return (
-    <View style={[{ marginTop: 80 }]}>
-      {isEdit ? (
-        <>
-          <View
-            style={styles.buttonView}
-            pointerEvents={isDisabled ? "none" : "auto"}
-          >
-            <Pressable style={styles.button} onPress={onSubmit}>
-              <Text style={styles.buttonText}>{i18n.t('submit')}</Text>
-            </Pressable>
-            <Pressable style={styles.button} onPress={() => setIsEdit(false)}>
-              <Text style={styles.buttonText}>{i18n.t('cancel')}</Text>
-            </Pressable>
-          </View>
-          <UserDetails
-            userDetails={userDetails}
-            setUserDetails={setUserDetails}
-            isSignUpPage={false}
-          />
-        </>
-      ) : (
-        <>
-          <View style={styles.buttonView}>
-            <Pressable style={styles.button} onPress={() => setIsEdit(true)}>
-              <Text style={styles.buttonText}>{i18n.t('edit')}</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.title}>{i18n.t('backgroundInformation')}</Text>
-          <Text>{i18n.t('dateOfBirth')}: {`${userDetails.dob}`}</Text>
-          <Text>{i18n.t('gender')}: {userDetails.gender}</Text>
-          <Text>{i18n.t('height')}: {userDetails.height}</Text>
-          <Text>{i18n.t('weight')}: {userDetails.weight}</Text>
-          <Text>{i18n.t('bodyType')}: {userDetails.bodyType}</Text>
-          <Text>{i18n.t('activityType')}: {userDetails.activityType}</Text>
-          <Text>{i18n.t('wakeupTime')}: {`${userDetails.wakeupTime}`}</Text>
-          <Text>{i18n.t('sleepTime')}: {`${userDetails.sleepTime}`}</Text>
-          <Text>{i18n.t('healthGoal')}: {userDetails.healthGoal}</Text>
-        </>
+    <SafeAreaView style={styles.container}>
+      {showNavigation && (
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.push('/profile')} />
+          <Appbar.Content title={i18n.t('backgroundInformation')} style={{alignSelf: 'center', alignItems: 'center', flex: 1}} />
+        </Appbar.Header>
       )}
-    </View>
+      <View style={styles.content}>
+        {isEdit ? (
+          <>
+            <Surface style={styles.buttonView} elevation={1}>
+              <Button 
+                mode="contained" 
+                onPress={onSubmit}
+                disabled={isDisabled}
+                style={styles.button}
+              >
+                {i18n.t('submit')}
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={() => setIsEdit(false)}
+                style={styles.button}
+              >
+                {i18n.t('cancel')}
+              </Button>
+            </Surface>
+            <UserDetails
+              userDetails={userDetails}
+              setUserDetails={setUserDetails}
+              isSignUpPage={false}
+            />
+          </>
+        ) : (
+          <>
+            <Surface style={styles.buttonView} elevation={1}>
+              <Button
+                mode="contained"
+                onPress={() => setIsEdit(true)}
+                style={styles.button}
+                icon="pencil"
+              >
+                {i18n.t('edit')}
+              </Button>
+            </Surface>
+
+            <Card style={styles.card}>
+              <Card.Content>
+                <Title style={styles.title}>{i18n.t('backgroundInformation')}</Title>
+                
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('dateOfBirth')}:</Paragraph>
+                  <Text>{`${userDetails.dob}`}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('gender')}:</Paragraph>
+                  <Text>{userDetails.gender}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('height')}:</Paragraph>
+                  <Text>{userDetails.height}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('weight')}:</Paragraph>
+                  <Text>{userDetails.weight}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('bodyType')}:</Paragraph>
+                  <Text>{userDetails.bodyType}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('activityType')}:</Paragraph>
+                  <Text>{userDetails.activityType}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('wakeupTime')}:</Paragraph>
+                  <Text>{`${userDetails.wakeupTime}`}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('sleepTime')}:</Paragraph>
+                  <Text>{`${userDetails.sleepTime}`}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Paragraph style={styles.label}>{i18n.t('healthGoal')}:</Paragraph>
+                  <Text>{userDetails.healthGoal}</Text>
+                </View>
+              </Card.Content>
+            </Card>
+          </>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  appLogo: {
-    height: 250,
-    width: 400,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
   },
-  input: {
-    height: 200,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+  content: {
+    flex: 1,
+    padding: 16,
   },
   buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
+    marginBottom: 20,
+    padding: 10,
+    borderRadius: 8,
   },
   button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    marginVertical: 5,
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+  card: {
+    marginVertical: 8,
+    borderRadius: 12,
   },
-  buttonTextRed: {
-    color: "red",
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 20,
+    textAlign: "center",
   },
-  buttonTextBlue: {
-    color: "blue",
-    textDecorationLine: "underline",
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
+  label: {
+    fontWeight: '600',
+    color: '#666',
+  }
 });
