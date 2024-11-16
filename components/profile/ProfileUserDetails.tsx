@@ -148,7 +148,15 @@ export default function ProfileUserDetails({ showNavigation = false }: ProfileUs
       {showNavigation && (
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.push('/profile')} />
-          <Appbar.Content title={i18n.t('backgroundInformation')} style={{alignSelf: 'center', alignItems: 'center', flex: 1}} />
+          <Appbar.Content 
+            title={i18n.t('backgroundInformation')} 
+            style={{
+              alignItems: 'center',
+              position: 'absolute',
+              left: 0,
+              right: 0
+            }} 
+          />
         </Appbar.Header>
       )}
       <View style={styles.content}>
@@ -179,29 +187,28 @@ export default function ProfileUserDetails({ showNavigation = false }: ProfileUs
           </>
         ) : (
           <>
-            <Surface style={styles.buttonView} elevation={1}>
-              <Button
-                mode="contained"
-                onPress={() => setIsEdit(true)}
-                style={styles.button}
-                icon="pencil"
-              >
-                {i18n.t('edit')}
-              </Button>
-            </Surface>
-
             <Card style={styles.card}>
               <Card.Content>
-                <Title style={styles.title}>{i18n.t('backgroundInformation')}</Title>
+                <View style={styles.titleContainer}>
+                  <Title style={styles.title}>{i18n.t('backgroundInformation')}</Title>
+                  <Button
+                    mode="contained"
+                    onPress={() => setIsEdit(true)}
+                    style={styles.editButton}
+                    icon="pencil"
+                  >
+                    {i18n.t('edit')}
+                  </Button>
+                </View>
                 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('dateOfBirth')}:</Paragraph>
-                  <Text>{`${userDetails.dob}`}</Text>
+                  <Text>{userDetails.dob ? userDetails.dob.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('gender')}:</Paragraph>
-                  <Text>{userDetails.gender}</Text>
+                  <Text>{userDetails.gender ? userDetails.gender.charAt(0).toUpperCase() + userDetails.gender.slice(1) : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
@@ -216,27 +223,27 @@ export default function ProfileUserDetails({ showNavigation = false }: ProfileUs
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('bodyType')}:</Paragraph>
-                  <Text>{userDetails.bodyType}</Text>
+                  <Text>{userDetails.bodyType ? userDetails.bodyType.charAt(0).toUpperCase() + userDetails.bodyType.slice(1) : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('activityType')}:</Paragraph>
-                  <Text>{userDetails.activityType}</Text>
+                  <Text>{userDetails.activityType ? userDetails.activityType.charAt(0).toUpperCase() + userDetails.activityType.slice(1) : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('wakeupTime')}:</Paragraph>
-                  <Text>{`${userDetails.wakeupTime}`}</Text>
+                  <Text>{userDetails.wakeupTime ? userDetails.wakeupTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase() : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('sleepTime')}:</Paragraph>
-                  <Text>{`${userDetails.sleepTime}`}</Text>
+                  <Text>{userDetails.sleepTime ? userDetails.sleepTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase() : ''}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
                   <Paragraph style={styles.label}>{i18n.t('healthGoal')}:</Paragraph>
-                  <Text>{userDetails.healthGoal}</Text>
+                  <Text>{userDetails.healthGoal ? userDetails.healthGoal.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : ''}</Text>
                 </View>
               </Card.Content>
             </Card>
@@ -268,11 +275,18 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 12,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
+  },
+  editButton: {
+    borderRadius: 20,
   },
   infoRow: {
     flexDirection: 'row',
