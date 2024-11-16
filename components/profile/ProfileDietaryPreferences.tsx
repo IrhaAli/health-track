@@ -12,9 +12,14 @@ import { db } from "../../services/firebaseConfig";
 import React from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '@/services/i18n';
-import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme } from 'react-native-paper';
+import { Button, Switch, Text, Surface, Portal, Dialog, Paragraph, useTheme, Appbar } from 'react-native-paper';
+import { router } from "expo-router";
 
-export default function ProfileDietaryPreferences() {
+interface ProfileDietaryPreferencesProps {
+  showNavigation?: boolean;
+}
+
+export default function ProfileDietaryPreferences({ showNavigation = false }: ProfileDietaryPreferencesProps) {
   const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -130,6 +135,12 @@ export default function ProfileDietaryPreferences() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {showNavigation && (
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.push('/profile')} />
+          <Appbar.Content title={i18n.t('dietaryPreferences.title')} style={{alignSelf: 'center', alignItems: 'center', flex: 1}} />
+        </Appbar.Header>
+      )}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Surface style={styles.mainSurface} elevation={2}>
           <Text variant="headlineMedium" style={styles.title}>
