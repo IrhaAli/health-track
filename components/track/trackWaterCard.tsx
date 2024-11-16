@@ -6,6 +6,7 @@ import { deleteWaterData } from "@/store/trackSlice";
 import { WaterDataEntry } from "../../types/track";
 import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
+import i18n from "@/services/i18n";
 
 export default function TrackWaterCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -47,13 +48,17 @@ export default function TrackWaterCard() {
         <View>
             <Portal>
                 <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({...deleteDialog, visible: false})}>
-                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Title>{i18n.t('trackWaterCard.confirmDelete.title')}</Dialog.Title>
                     <Dialog.Content>
-                        <Text>Are you sure you want to delete this water entry?</Text>
+                        <Text>{i18n.t('trackWaterCard.confirmDelete.message')}</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button onPress={() => setDeleteDialog({...deleteDialog, visible: false})}>Cancel</Button>
-                        <Button mode="contained" onPress={() => handleDelete(deleteDialog.id!)}>Confirm</Button>
+                        <Button onPress={() => setDeleteDialog({...deleteDialog, visible: false})}>
+                            {i18n.t('trackWaterCard.confirmDelete.cancel')}
+                        </Button>
+                        <Button mode="contained" onPress={() => handleDelete(deleteDialog.id!)}>
+                            {i18n.t('trackWaterCard.confirmDelete.confirm')}
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -93,7 +98,7 @@ export default function TrackWaterCard() {
                                     onPress={() => water.id && setDeleteDialog({visible: true, id: water.id})}
                                     style={styles.button}
                                 >
-                                    Delete
+                                    {i18n.t('trackWaterCard.delete')}
                                 </Button>
                                 <Button
                                     mode="contained"
@@ -105,7 +110,7 @@ export default function TrackWaterCard() {
                                     }))}
                                     style={styles.button}
                                 >
-                                    Edit
+                                    {i18n.t('trackWaterCard.edit')}
                                 </Button>
                             </View>
                         </View>
