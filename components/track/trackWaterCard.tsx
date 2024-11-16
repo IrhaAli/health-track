@@ -7,6 +7,7 @@ import { WaterDataEntry } from "../../types/track";
 import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
+import { getWaterDataForDate } from "@/store/trackSlice";
 
 export default function TrackWaterCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -26,14 +27,7 @@ export default function TrackWaterCard() {
         }).start();
     }, [currentDate]);
 
-    const waterEntries = useMemo(() => {
-        if (!waterData[formattedMonth]?.length) return [];
-        
-        return waterData[formattedMonth].filter((entry: WaterDataEntry) => {
-            const entryDate = new Date(entry.date);
-            return entryDate.toLocaleDateString('en-CA') === currentDate;
-        });
-    }, [waterData, formattedMonth, currentDate]);
+    const waterEntries = useMemo(() => getWaterDataForDate(waterData, currentDate), [waterData, currentDate]);
 
     if (!waterEntries.length) return null;
 
