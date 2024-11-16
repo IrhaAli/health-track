@@ -90,8 +90,7 @@ export default function ProfileComponent() {
       href: "/(profile)/stress_level"
     }
   ];
-
-  const handleNavigation = (href: string) => {
+  const handleNavigation = (href: "/(profile)/background_information" | "/(profile)/dietary_preferences" | "/(profile)/medical_history" | "/(profile)/stress_level") => {
     router.push(href);
   };
 
@@ -108,7 +107,7 @@ export default function ProfileComponent() {
               labelStyle={styles.buttonLabel}
               uppercase={false}
               rippleColor={theme.colors.primary}
-              onPress={() => handleNavigation(item.href)}
+              onPress={() => handleNavigation(item.href as "/(profile)/background_information" | "/(profile)/dietary_preferences" | "/(profile)/medical_history" | "/(profile)/stress_level")}
             >
               {item.title}
             </Button>
