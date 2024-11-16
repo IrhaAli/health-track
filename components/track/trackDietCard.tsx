@@ -6,6 +6,7 @@ import { DietDataEntry } from "../../types/track";
 import { deleteDietData } from "@/store/trackSlice";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
+import i18n from "@/services/i18n";
 
 export default function TrackDietCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -40,13 +41,17 @@ export default function TrackDietCard() {
         <View>
             <Portal>
                 <Dialog visible={deleteDialog.visible} onDismiss={() => setDeleteDialog({ visible: false, id: null })}>
-                    <Dialog.Title>Confirm Delete</Dialog.Title>
+                    <Dialog.Title>{i18n.t('trackDietCard.confirmDelete')}</Dialog.Title>
                     <Dialog.Content>
-                        <Text>Are you sure you want to delete this meal entry?</Text>
+                        <Text>{i18n.t('trackDietCard.confirmDeleteMessage')}</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
-                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ visible: false, id: null })}>Cancel</Button>
-                        <Button mode="contained" onPress={() => deleteDialog.id && handleDelete(deleteDialog.id)}>Confirm</Button>
+                        <Button mode="text" textColor="#666" onPress={() => setDeleteDialog({ visible: false, id: null })}>
+                            {i18n.t('trackDietCard.cancel')}
+                        </Button>
+                        <Button mode="contained" onPress={() => deleteDialog.id && handleDelete(deleteDialog.id)}>
+                            {i18n.t('trackDietCard.confirm')}
+                        </Button>
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
@@ -59,7 +64,7 @@ export default function TrackDietCard() {
                             <View style={styles.headerContainer}>
                                 <Avatar.Icon size={40} icon="food" color="#fff" style={styles.avatar} />
                                 <Text variant="titleLarge" style={styles.title}>
-                                    {`Meal at: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                                    {`${i18n.t('trackDietCard.mealAt')}: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                 </Text>
                             </View>
                             
@@ -74,7 +79,7 @@ export default function TrackDietCard() {
                                     onPress={() => diet.id && setDeleteDialog({ visible: true, id: diet.id })}
                                     style={styles.button}
                                 >
-                                    Delete
+                                    {i18n.t('trackDietCard.delete')}
                                 </Button>
                                 <Button
                                     mode="contained"
@@ -86,7 +91,7 @@ export default function TrackDietCard() {
                                     }))}
                                     style={styles.button}
                                 >
-                                    Edit
+                                    {i18n.t('trackDietCard.edit')}
                                 </Button>
                             </View>
                         </View>
