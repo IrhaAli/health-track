@@ -11,6 +11,7 @@ import { Divider, Button, Text, HelperText, Surface } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDietData, updateDietData } from "@/store/trackSlice";
 import { DietDataEntry, isDietDataEntry } from "@/types/track";
+import i18n from "@/services/i18n";
 
 export default function TrackDietForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -93,13 +94,13 @@ export default function TrackDietForm() {
 
         if ((!dialogType || dialogType !== DialogType.EDIT) && !imageURI) {
             setShowError(true);
-            setErrorString('Please add meal picture!');
+            setErrorString(i18n.t('trackDiet.errors.addPicture'));
             return;
         }
 
         if (dialogType === DialogType.EDIT && isDietDataEntry(currentDietData) && !imageURI && !currentDietData.meal_picture) {
             setShowError(true);
-            setErrorString('Please add meal picture!');
+            setErrorString(i18n.t('trackDiet.errors.addPicture'));
             return;
         }
 
@@ -154,7 +155,7 @@ export default function TrackDietForm() {
         <View style={styles.trackDietForm}>
             <Surface style={styles.formContainer} elevation={3}>
                 <View style={styles.timeSection}>
-                    <Text variant="titleLarge" style={styles.sectionTitle}>Time of Meal</Text>
+                    <Text variant="titleLarge" style={styles.sectionTitle}>{i18n.t('trackDiet.timeOfMeal')}</Text>
                     <View style={styles.timePickerContainer}>
                         {Platform.OS === "android" ? (
                             <>
@@ -186,7 +187,7 @@ export default function TrackDietForm() {
                             style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
                             textColor="white"
                         >
-                            Add Meal Picture
+                            {i18n.t('trackDiet.addMealPicture')}
                         </Button>
                     )}
 
@@ -218,7 +219,7 @@ export default function TrackDietForm() {
                     }}
                     disabled={loading}
                 >
-                    Cancel
+                    {i18n.t('trackDiet.cancel')}
                 </Button>
                 <Button 
                     mode="contained"
@@ -227,7 +228,7 @@ export default function TrackDietForm() {
                     loading={loading}
                     style={styles.button}
                 >
-                    Submit
+                    {i18n.t('trackDiet.submit')}
                 </Button>
             </View>
 
