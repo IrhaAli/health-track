@@ -1,7 +1,7 @@
 import { db } from '@/services/firebaseConfig';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
-import { DietDataEntry, SleepDataEntry, TrackState, WaterDataEntry, WeightDataEntry } from "../types/track";
+import { DietDataEntry, DietDataState, SleepDataEntry, SleepDataState, TrackState, WaterDataEntry, WaterDataState, WeightDataEntry, WeightDataState } from "../types/track";
 
 const initialState: TrackState = {
   currentDate: `${new Date().toISOString().split('T')[0]}`,
@@ -138,6 +138,40 @@ export const fetchDietData = createFetchThunk<DietDataEntry & { id: string }>(
   'Diet', 'diet_tracking', 'date', mappers.diet,
   state => state.dietData as Record<string, (DietDataEntry & { id: string })[]>
 );
+
+// Generic function to get data for a specific date
+const getDataForDate = <T extends { date?: string | Date, wakeup_time?: string | Date }>(
+  data: Record<string, T[]>,
+  date: string,
+  dateField: keyof T = 'date' as keyof T
+): T[] => {
+  const [year, month] = date.split('-');
+  const formattedMonth = `${year}-${month}`;
+  const monthData = data[formattedMonth] || [];
+  const day = parseInt(date.split('-')[2]);
+  const monthNum = parseInt(month) - 1;
+  const yearNum = parseInt(year);
+
+  return monthData.filter(entry => {
+    const entryDate = new Date(entry[dateField] as string);
+    return entryDate.getFullYear() === yearNum &&
+           entryDate.getMonth() === monthNum &&
+           entryDate.getDate() === day;
+  });
+};
+
+// Type-safe helper functions using the generic function
+export const getWaterDataForDate = (data: WaterDataState, date: string): WaterDataEntry[] => 
+  getDataForDate(data, date);
+
+export const getDietDataForDate = (data: DietDataState, date: string): DietDataEntry[] =>
+  getDataForDate(data, date);
+
+export const getSleepDataForDate = (data: SleepDataState, date: string): SleepDataEntry[] =>
+  getDataForDate(data, date, 'wakeup_time');
+
+export const getWeightDataForDate = (data: WeightDataState, date: string): WeightDataEntry[] =>
+  getDataForDate(data, date);
 
 // Generic delete helper
 const deleteDataHelper = async (
