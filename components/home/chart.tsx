@@ -5,7 +5,6 @@ import { BarChart } from "react-native-gifted-charts";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import i18n from "@/services/i18n";
-import { DietDataState, SleepDataState, WaterDataState, WeightDataState } from "@/types/track";
 
 interface ChartProps {
   type: 'fasting' | 'meal' | 'sleep' | 'water' | 'weight';
