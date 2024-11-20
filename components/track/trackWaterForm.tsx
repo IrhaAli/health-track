@@ -70,8 +70,7 @@ export default function TrackWaterForm() {
         setFormState(prev => ({ ...prev, loading: true, error: { show: false, message: null } }));
 
         try {
-            const waterDate = new Date(currentDate);
-            waterDate.setHours(new Date().getHours(), new Date().getMinutes());
+            const waterDate = new Date(currentDate + 'T' + new Date().toISOString().split('T')[1]);
 
             if (dialogType !== DialogType.EDIT) {
                 dispatch(addWaterData({
