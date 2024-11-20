@@ -107,15 +107,9 @@ export default function TrackWeightForm() {
             entry => new Date(entry.date).toLocaleDateString().split('/').reverse().join('-') === currentDate
         );
 
-        if (dialogType !== DialogType.EDIT && existingEntry) {
+        if ((dialogType !== DialogType.EDIT && existingEntry) || (dialogType === DialogType.EDIT && !existingEntry)) {
             setShowError(true);
-            setErrorString(i18n.t('trackWeight.errors.existingData'));
-            return;
-        }
-
-        if (dialogType === DialogType.EDIT && !existingEntry) {
-            setShowError(true);
-            setErrorString(i18n.t('trackWeight.errors.noData'));
+            setErrorString(i18n.t(`trackWeight.errors.${dialogType === DialogType.EDIT ? 'noData' : 'existingData'}`));
             return;
         }
 
@@ -126,12 +120,10 @@ export default function TrackWeightForm() {
                 return;
             }
 
-            if ((dialogType === DialogType.EDIT) && isWeightDataEntry(currentWeightData)) {
-                if (!imageURI && !currentWeightData.picture) {
-                    setShowError(true);
-                    setErrorString(i18n.t('trackWeight.errors.addPicture'));
-                    return;
-                }
+            if ((dialogType === DialogType.EDIT) && isWeightDataEntry(currentWeightData) && !imageURI && !currentWeightData.picture) {
+                setShowError(true);
+                setErrorString(i18n.t('trackWeight.errors.addPicture'));
+                return;
             }
 
             setLoading(true);
@@ -141,7 +133,7 @@ export default function TrackWeightForm() {
                 const convertedWeight = weightType !== "kg" ? parseFloat(weight) * (weightType.length === 0 ? 1 : conversionRate[weightType]) : parseFloat(weight);
 
                 if (dialogType !== DialogType.EDIT) {
-                    let weightData: WeightDataEntry = { user_id: currentUser.uid, date: new Date(currentDate), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
+                    let weightData: WeightDataEntry = { user_id: currentUser.uid, date: new Date(currentDate + 'T' + new Date().toISOString().split('T')[1]), weight: convertedWeight, measurement_unit: weightType.length === 0 ? "kg" : weightType, picture: imageURI ? await uploadImage() : '' }
                     dispatch(addWeightData({ currentDate: currentDate, addWeight: weightData }));
                 }
                 if (dialogType === DialogType.EDIT && isWeightDataEntry(currentWeightData)) {
