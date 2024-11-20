@@ -19,16 +19,14 @@ export default function TrackSleepForm() {
     const dialogType = useSelector((state: RootState) => state.trackDialog.dialogType);
 
     const [sleepDateTime, setSleepDateTime] = useState(() => {
-        const date = new Date(currentDate);
-        date.setDate(date.getDate() - 1);
-        date.setHours(22, 0, 0, 0);
+        const date = new Date(currentDate + 'T' + new Date().toISOString().split('T')[1]);
+        date.setDate(date.getDate() - 1); // Deduct one day
+        date.setHours(22, 0, 0, 0); // Set time to 10 pm
         return date;
     });
 
     const [wakeupTime, setWakeupTime] = useState(() => {
-        const date = new Date(currentDate);
-        const now = new Date();
-        date.setHours(now.getHours(), now.getMinutes(), 0, 0);
+        const date = new Date(currentDate + 'T' + new Date().toISOString().split('T')[1]);
         return date;
     });
 
