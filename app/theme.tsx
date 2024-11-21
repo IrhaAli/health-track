@@ -17,6 +17,7 @@ export const Colors = {
     tabIconSelected: tintColorLight,
     submitButton: 'tomato',
     primaryColor: 'tomato',
+    disabledButton: '#B0B0B0',
   },
   dark: {
     text: '#ECEDEE',
@@ -27,6 +28,7 @@ export const Colors = {
     tabIconSelected: tintColorDark,
     submitButton: 'tomato',
     primaryColor: 'tomato',
+    disabledButton: '#B0B0B0',
   },
 };
 
