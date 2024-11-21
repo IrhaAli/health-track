@@ -8,6 +8,7 @@ import AppMediaMealComponent from "./meal";
 import AppMediaWeightComponent from "./weight";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 enum MediaTabEnum {
     MEAL = 'meal',
@@ -98,7 +99,7 @@ export default function AppMediaComponent() {
                     size={30}
                     icon={icon}
                     color='#fff'
-                    style={[{ backgroundColor: disabled ? '#B0B0B0' : 'tomato' }]}
+                    style={[{ backgroundColor: disabled ? '#B0B0B0' : Colors.light.submitButton }]}
                 />
             )}
             mode="text"
