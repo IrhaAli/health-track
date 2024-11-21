@@ -52,7 +52,18 @@ export default function TrackDietCard() {
             </Portal>
 
             {dietEntries.map((diet: DietDataEntry, index: number) => (
-                <Animated.View key={diet.id || index} style={[styles.fadeIn, { opacity: fadeAnim }]}>
+                <Animated.View
+                    key={diet.id || index}
+                    style={[styles.fadeIn, {
+                        opacity: fadeAnim,
+                        transform: [{
+                            translateY: fadeAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [20, 0]
+                            })
+                        }]
+                    }]}
+                >
                     <Divider />
                     <Surface style={styles.surface} elevation={0}>
                         <View style={styles.contentContainer}>
@@ -62,11 +73,11 @@ export default function TrackDietCard() {
                                     {`${i18n.t('trackDietCard.mealAt')}: ${new Date(diet.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                                 </Text>
                             </View>
-                            
+
                             {diet.meal_picture && (
                                 <Image style={styles.mealImage} source={{ uri: diet.meal_picture }} />
                             )}
-                            
+
                             <View style={styles.buttonContainer}>
                                 <Button
                                     mode="contained-tonal"
@@ -141,6 +152,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     fadeIn: {
+        width: '100%',
         transform: [{
             translateY: 20
         }]
