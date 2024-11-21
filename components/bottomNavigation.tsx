@@ -3,7 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { View, Text, StyleSheet, Animated, useColorScheme } from "react-native";
 import { TouchableRipple } from "react-native-paper";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+import { Colors } from "@/app/theme";
 import { useDispatch } from "react-redux";
 import i18n from '@/services/i18n';
 import { usePathname, useRouter } from "expo-router";
@@ -84,11 +84,11 @@ export const BottomTabBar = React.memo(({ onIndexChange, currentIndex }: BottomT
                         <MaterialCommunityIcons
                             name={route.icon as any}
                             size={24}
-                            color={i === currentIndex ? 'tomato' : '#666666'}
+                            color={i === currentIndex ? Colors.light.primaryColor : Colors.light.tabIconDefault}
                         />
                         <Text style={[
                             styles.tabText,
-                            { color: i === currentIndex ? 'tomato' : '#666666' }
+                            { color: i === currentIndex ? Colors.light.primaryColor : Colors.light.tabIconDefault }
                         ]}>
                             {route.title}
                         </Text>
