@@ -88,15 +88,32 @@ export default function TrackSleepForm() {
 
     const handleTimeChange = (setter: Function, otherTime: Date, minGap = 60) => 
         (event: DateTimePickerEvent, date?: Date) => {
+            if (event.type === 'dismissed') {
+                if (setter === setSleepDateTime) {
+                    setShowSleepTimeSelector(false);
+                } else if (setter === setWakeupTime) {
+                    setShowWakeupTimeSelector(false);
+                }
+                return;
+            }
+            
             if (!date) return;
+            
             const diffHours = Math.abs(date.getTime() - otherTime.getTime()) / (1000 * 60 * 60);
             
             if (diffHours < 1) {
                 const adjustment = minGap * 60 * 1000;
                 const adjustedTime = new Date(date.getTime() + adjustment);
                 setter(adjustedTime);
+            } else {
+                setter(date);
             }
-            setter(date);
+
+            if (setter === setSleepDateTime) {
+                setShowSleepTimeSelector(false);
+            } else if (setter === setWakeupTime) {
+                setShowWakeupTimeSelector(false);
+            }
         };
 
     const onSubmit = async () => {
