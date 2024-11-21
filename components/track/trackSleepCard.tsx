@@ -7,6 +7,7 @@ import { deleteSleepData, getSleepDataForDate } from "@/store/trackSlice";
 import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackSleepCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -99,6 +100,7 @@ export default function TrackSleepCard() {
                                         dialogType: DialogType.EDIT
                                     }))}
                                     style={styles.btn}
+                                    buttonColor={Colors.light.submitButton}
                                 >
                                     {i18n.t('trackSleepCard.edit')}
                                 </Button>
