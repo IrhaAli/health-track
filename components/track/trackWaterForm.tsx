@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
@@ -116,76 +116,79 @@ export default function TrackWaterForm() {
     };
 
     return (
-        <View style={styles.container}>
-            {isWaterDataEntry(formState.currentWaterData) && (
-                <Surface style={styles.currentIntakeCard} elevation={2}>
-                    <Text variant="bodyLarge" style={styles.intakeText}>
-                        {i18n.t('trackWater.consumed', {
-                            amount: formState.currentWaterData.intake_amount,
-                            type: formState.currentWaterData.waterType
-                        })}
-                    </Text>
-                    <Text variant="bodyMedium" style={styles.addMoreText}>
-                        {i18n.t('trackWater.addMore')}
-                    </Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container}>
+                {isWaterDataEntry(formState.currentWaterData) && (
+                    <Surface style={styles.currentIntakeCard} elevation={2}>
+                        <Text variant="bodyLarge" style={styles.intakeText}>
+                            {i18n.t('trackWater.consumed', {
+                                amount: formState.currentWaterData.intake_amount,
+                                type: formState.currentWaterData.waterType
+                            })}
+                        </Text>
+                        <Text variant="bodyMedium" style={styles.addMoreText}>
+                            {i18n.t('trackWater.addMore')}
+                        </Text>
+                    </Surface>
+                )}
+
+                <Surface style={[styles.inputContainer, { marginBottom: 16 }]} elevation={3}>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder={i18n.t('trackWater.addWater')}
+                            value={formState.water}
+                            onChangeText={water => setFormState(prev => ({ ...prev, water }))}
+                            keyboardType="numeric"
+                            maxLength={4}
+                            editable={!formState.loading}
+                            mode="flat"
+                        />
+                        
+                        <Dropdown 
+                            style={[styles.dropdown, formState.isWaterTypeFocus && { borderColor: "#6200ee" }]}
+                            data={waterTypeOptions}
+                            labelField="label"
+                            valueField="value"
+                            value={formState.waterType}
+                            onChange={item => setFormState(prev => ({ 
+                                ...prev, 
+                                waterType: item.value as "millilitres",
+                                isWaterTypeFocus: false
+                            }))}
+                            disable={formState.loading}
+                        />
+                    </View>
                 </Surface>
-            )}
 
-            <Surface style={[styles.inputContainer, { marginBottom: 16 }]} elevation={3}>
-                <View style={styles.inputWrapper}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder={i18n.t('trackWater.addWater')}
-                        value={formState.water}
-                        onChangeText={water => setFormState(prev => ({ ...prev, water }))}
-                        keyboardType="numeric"
-                        maxLength={4}
-                        editable={!formState.loading}
-                        mode="flat"
-                    />
-                    
-                    <Dropdown 
-                        style={[styles.dropdown, formState.isWaterTypeFocus && { borderColor: "#6200ee" }]}
-                        data={waterTypeOptions}
-                        labelField="label"
-                        valueField="value"
-                        value={formState.waterType}
-                        onChange={item => setFormState(prev => ({ 
-                            ...prev, 
-                            waterType: item.value as "millilitres",
-                            isWaterTypeFocus: false
-                        }))}
-                        disable={formState.loading}
-                    />
+                <Divider style={{ marginBottom: 16 }} />
+
+                <View style={styles.formSubmission}>
+                    <Button 
+                        mode="text" 
+                        onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}
+                        disabled={formState.loading}
+                    >
+                        {i18n.t('trackWater.cancel')}
+                    </Button>
+                    <Button 
+                        mode="contained" 
+                        onPress={handleSubmit}
+                        disabled={formState.loading || !formState.water}
+                        loading={formState.loading}
+                        style={styles.button}
+                    >
+                        {dialogType === DialogType.EDIT ? i18n.t('trackWater.update') : i18n.t('trackWater.submit')}
+                    </Button>
                 </View>
-            </Surface>
 
-            <Divider style={{ marginBottom: 16 }} />
-
-            <View style={styles.formSubmission}>
-                <Button 
-                    mode="text" 
-                    onPress={() => dispatch(setDialog({ showDialog: false, dialogTab: null, dialogType: null }))}
-                    disabled={formState.loading}
-                >
-                    {i18n.t('trackWater.cancel')}
-                </Button>
-                <Button 
-                    mode="contained" 
-                    onPress={handleSubmit}
-                    disabled={formState.loading || !formState.water}
-                    loading={formState.loading}
-                >
-                    {dialogType === DialogType.EDIT ? i18n.t('trackWater.update') : i18n.t('trackWater.submit')}
-                </Button>
+                {formState.error.show && (
+                    <HelperText type="error" visible={true} style={styles.errorText}>
+                        {formState.error.message}
+                    </HelperText>
+                )}
             </View>
-
-            {formState.error.show && (
-                <HelperText type="error" visible={true} style={styles.errorText}>
-                    {formState.error.message}
-                </HelperText>
-            )}
-        </View>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -210,5 +213,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5'
     },
     formSubmission: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-    errorText: { textAlign: 'center', marginTop: 8 }
+    errorText: { textAlign: 'center', marginTop: 8 },
+    button: { borderRadius: 8, minWidth: 100 }
 });
