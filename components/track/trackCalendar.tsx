@@ -5,6 +5,7 @@ import { setCurrentDate, setCurrentMonth } from "@/store/trackSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Button, Text } from 'react-native-paper';
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 // Configure calendar localization
 LocaleConfig.locales[i18n.locale] = {
@@ -157,7 +158,7 @@ export default function TrackComponent() {
       markedDates={{
         [currentDate]: {
           selected: true,
-          selectedColor: "tomato",
+          selectedColor: Colors.light.submitButton,
           selectedTextColor: "white",
         },
       }}
