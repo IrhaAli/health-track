@@ -320,6 +320,7 @@ export default function TrackWeightForm() {
                         disabled={loading || !weight || (!imageURI && isWeightDataEntry(currentWeightData) && !currentWeightData.picture)} 
                         loading={loading}
                         style={styles.button}
+                        buttonColor={(!loading && weight && imageURI) ? Colors.light.submitButton : Colors.light.disabledButton}
                     >
                         {dialogType === DialogType.EDIT ? i18n.t('trackWeight.update') : i18n.t('trackWeight.submit')}
                     </Button>
