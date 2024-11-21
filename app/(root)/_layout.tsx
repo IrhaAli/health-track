@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import React from "react";
-import { Colors } from "@/constants/Colors";
+import { Colors } from "@/app/theme";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { View, StyleSheet } from 'react-native';
 import { StatusBar } from 'react-native';
