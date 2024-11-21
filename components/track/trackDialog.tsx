@@ -122,6 +122,6 @@ const styles = StyleSheet.create({
         textTransform: 'capitalize'
     },
     divider: {
-        marginTop: 10
+        marginTop: 20
     }
 });
