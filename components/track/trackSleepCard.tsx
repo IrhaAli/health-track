@@ -58,7 +58,15 @@ export default function TrackSleepCard() {
             {sleepEntries.map((sleep: SleepDataEntry, index: number) => (
                 <Animated.View
                     key={sleep.id || index}
-                    style={[styles.fadeIn, { opacity: fadeAnim }]}
+                    style={[styles.fadeIn, {
+                        opacity: fadeAnim,
+                        transform: [{
+                            translateY: fadeAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [20, 0]
+                            })
+                        }]
+                    }]}
                 >
                     <Divider />
                     <Surface style={styles.surface} elevation={0}>
@@ -127,6 +135,7 @@ const styles = StyleSheet.create({
     },
     btn: { flex: 1 },
     fadeIn: {
+        width: '100%',
         transform: [{
             translateY: 20
         }]
