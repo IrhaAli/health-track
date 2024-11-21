@@ -7,6 +7,7 @@ import { WeightDataEntry } from "../../types/track";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackWeightCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -101,6 +102,7 @@ export default function TrackWeightCard() {
                                         dialogType: DialogType.EDIT
                                     }))}
                                     style={styles.button}
+                                    buttonColor={Colors.light.submitButton}
                                 >
                                     {i18n.t('trackWeightCard.edit')}
                                 </Button>
