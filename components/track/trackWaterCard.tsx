@@ -8,6 +8,7 @@ import { View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
 import { getWaterDataForDate } from "@/store/trackSlice";
+import { Colors } from "@/app/theme";
 
 export default function TrackWaterCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -103,6 +104,7 @@ export default function TrackWaterCard() {
                                         dialogType: DialogType.EDIT
                                     }))}
                                     style={styles.button}
+                                    buttonColor={Colors.light.submitButton}
                                 >
                                     {i18n.t('trackWaterCard.edit')}
                                 </Button>
@@ -144,7 +146,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start'
     },
     button: {
-        flex: 1
+        flex: 1,
     },
     fadeIn: {
         width: '100%',
