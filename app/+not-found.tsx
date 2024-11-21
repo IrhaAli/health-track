@@ -2,13 +2,14 @@ import { Link, Stack } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import React from 'react';
 import { Surface, Text, Button, Icon } from 'react-native-paper';
+import { Colors } from '@/app/theme';
 
 export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
       <Surface style={styles.container} elevation={0}>
-        <Icon source="alert-circle-outline" size={64} color="tomato" />
+        <Icon source="alert-circle-outline" size={64} color={Colors.light.primaryColor} />
         <Text variant="headlineMedium" style={styles.title}>
           This screen doesn't exist.
         </Text>
