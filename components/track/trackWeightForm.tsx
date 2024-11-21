@@ -13,6 +13,7 @@ import { addWeightData, updateWeightData } from "@/store/trackSlice";
 import { WeightDataEntry, isWeightDataEntry } from "@/types/track";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 enum WeightTypeEnum {
     LBS = 'lbs',
@@ -234,7 +235,7 @@ export default function TrackWeightForm() {
                                 }, 100);
                             }} 
                             disabled={loading}
-                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            style={[styles.cameraButton, { backgroundColor: Colors.light.submitButton }]}
                             textColor="white"
                         >
                             {i18n.t('trackWeight.addWeightPicture')}
@@ -265,7 +266,7 @@ export default function TrackWeightForm() {
                                 }, 100);
                             }} 
                             disabled={loading}
-                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            style={[styles.cameraButton, { backgroundColor: Colors.light.submitButton }]}
                             textColor="white"
                         >
                             {i18n.t('trackWeight.addWeightPicture')}
