@@ -148,15 +148,11 @@ const getDataForDate = <T extends { date?: string | Date, wakeup_time?: string |
   const [year, month] = date.split('-');
   const formattedMonth = `${year}-${month}`;
   const monthData = data[formattedMonth] || [];
-  const day = parseInt(date.split('-')[2]);
-  const monthNum = parseInt(month) - 1;
-  const yearNum = parseInt(year);
 
   return monthData.filter(entry => {
     const entryDate = new Date(entry[dateField] as string);
-    return entryDate.getFullYear() === yearNum &&
-           entryDate.getMonth() === monthNum &&
-           entryDate.getDate() === day;
+    const entryDateStr = entryDate.toISOString().split('T')[0];
+    return entryDateStr === date;
   });
 };
 
