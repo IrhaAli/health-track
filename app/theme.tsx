@@ -4,20 +4,46 @@ import AppLoading from 'expo-app-loading';
 import { MD3LightTheme as DefaultTheme } from 'react-native-paper';
 import React from 'react';
 
+const tintColorLight = '#fff';
+const tintColorDark = '#fff';
+
+export const Colors = {
+  light: {
+    text: '#11181C',
+    background: '#fff',
+    tint: tintColorLight,
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: tintColorLight,
+    submitButton: 'tomato',
+    primaryColor: 'tomato',
+  },
+  dark: {
+    text: '#ECEDEE',
+    background: '#151718',
+    tint: tintColorDark,
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: tintColorDark,
+    submitButton: 'tomato',
+    primaryColor: 'tomato',
+  },
+};
+
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: 'tomato',
-    secondary: 'yellow',
+    primary: Colors.light.text,
+    secondary: Colors.light.icon,
   },
 };
 
 const themeColor = theme.colors.primary;
-const lightThemeColor = '#f2f7f7';
+const lightThemeColor = Colors.light.background;
 
 function getTheme() {
-  const disabledColor = 'grey';
+  const disabledColor = Colors.light.tabIconDefault;
   const [fontsLoaded] = useFonts({ 'HelveticaNeue': require('../assets/fonts/HelveticaNeueMedium.otf'), });
 
   if (!fontsLoaded) {
@@ -26,37 +52,38 @@ function getTheme() {
 
   return {
     // arrows
-    arrowColor: 'black',
+    arrowColor: Colors.light.text,
     arrowStyle: {padding: 0},
     // knob
     expandableKnobColor: themeColor,
     // month
-    monthTextColor: 'black',
+    monthTextColor: Colors.light.text,
     textMonthFontSize: 16,
     textMonthFontFamily: 'HelveticaNeue',
     textMonthFontWeight: 'bold' as const,
     // day names
-    textSectionTitleColor: 'black',
+    textSectionTitleColor: Colors.light.text,
     textDayHeaderFontSize: 12,
     textDayHeaderFontFamily: 'HelveticaNeue',
     textDayHeaderFontWeight: 'normal' as const,
     // dates
     dayTextColor: themeColor,
-    todayTextColor: theme.colors.secondary,
+    todayTextColor: Colors.light.icon,
     textDayFontSize: 18,
     textDayFontFamily: 'HelveticaNeue',
     textDayFontWeight: '500' as const,
     textDayStyle: {marginTop: Platform.OS === 'android' ? 2 : 4},
     // selected date
     selectedDayBackgroundColor: themeColor,
-    selectedDayTextColor: 'white',
+    selectedDayTextColor: Colors.light.background,
     // disabled date
     textDisabledColor: disabledColor,
     // dot (marked date)
     dotColor: themeColor,
-    selectedDotColor: 'white',
+    selectedDotColor: Colors.light.background,
     disabledDotColor: disabledColor,
-    dotStyle: {marginTop: -2}
+    dotStyle: {marginTop: -2},
+    buttonBackgroundColor: Colors.light.submitButton,
   };
 }
 
