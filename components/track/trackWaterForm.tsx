@@ -12,6 +12,7 @@ import { addWaterData, updateWaterData } from "@/store/trackSlice";
 import { WaterDataEntry, WaterDataState, isWaterDataEntry } from "@/types/track";
 import { clearImageURI } from "@/store/cameraSlice";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 const WaterTypeEnum = {
     MILLILITRES: "millilitres",
@@ -176,7 +177,10 @@ export default function TrackWaterForm() {
                         onPress={handleSubmit}
                         disabled={formState.loading || !formState.water}
                         loading={formState.loading}
-                        style={styles.button}
+                        style={[
+                            styles.button,
+                            { backgroundColor: (!formState.loading && formState.water) ? Colors.light.submitButton : Colors.light.disabledButton }
+                        ]}
                     >
                         {dialogType === DialogType.EDIT ? i18n.t('trackWater.update') : i18n.t('trackWater.submit')}
                     </Button>
