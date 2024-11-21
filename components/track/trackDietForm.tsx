@@ -263,7 +263,8 @@ const styles = StyleSheet.create({
     },
     imageSection: {
         alignItems: 'center',
-        gap: 16
+        gap: 16,
+        width: '100%'
     },
     cameraButton: {
         width: '100%',
@@ -273,7 +274,8 @@ const styles = StyleSheet.create({
         position: 'relative',
         borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
+        width: '100%'
     },
     deleteButton: {
         position: 'absolute',
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
         margin: 0
     },
     image: {
-        width: 300,
+        width: '100%',
         height: 300,
         resizeMode: 'cover'
     },
