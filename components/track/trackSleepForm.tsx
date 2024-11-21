@@ -12,6 +12,7 @@ import { addSleepData, updateSleepData } from "@/store/trackSlice";
 import { clearImageURI } from "@/store/cameraSlice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackSleepForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -325,6 +326,7 @@ export default function TrackSleepForm() {
                     disabled={loading} 
                     loading={loading}
                     style={styles.button}
+                    buttonColor={(!loading && sleepDateTime && wakeupTime) ? Colors.light.submitButton : Colors.light.disabledButton}
                 >
                     {dialogType === DialogType.EDIT ? i18n.t('trackSleep.update') : i18n.t('trackSleep.submit')}
                 </Button>
