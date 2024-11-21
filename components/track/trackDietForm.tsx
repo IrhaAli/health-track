@@ -228,6 +228,7 @@ export default function TrackDietForm() {
                     disabled={loading || (!imageURI && isDietDataEntry(currentDietData) && !currentDietData.meal_picture)}
                     loading={loading}
                     style={styles.button}
+                    buttonColor={(!loading && imageURI) ? Colors.light.submitButton : Colors.light.disabledButton}
                 >
                     {i18n.t('trackDiet.submit')}
                 </Button>
