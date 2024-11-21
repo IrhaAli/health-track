@@ -60,7 +60,7 @@ export default function TrackWaterCard() {
             {waterEntries.map((water: WaterDataEntry, index: number) => (
                 <Animated.View
                     key={water.id || index}
-                    style={[styles.fadeSlide, {
+                    style={[styles.fadeIn, {
                         opacity: fadeAnim,
                         transform: [{
                             translateY: fadeAnim.interpolate({
@@ -146,7 +146,10 @@ const styles = StyleSheet.create({
     button: {
         flex: 1
     },
-    fadeSlide: {
-        width: '100%'
+    fadeIn: {
+        width: '100%',
+        transform: [{
+            translateY: 20
+        }]
     }
 });
