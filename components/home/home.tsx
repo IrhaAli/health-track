@@ -7,7 +7,7 @@ import { fetchDietData, fetchSleepData, fetchWaterData, fetchWeightData, setCurr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from "@/services/i18n";
 import ChartComponent from "./chart";
-
+import { Colors } from "@/app/theme";
 const CHART_CONFIG = [
   { type: 'meal', color: '#FF9800', titleKey: 'dailyMealCount', noDataKey: 'noMealData' },
   { type: 'fasting', color: '#4CAF50', titleKey: 'dailyFastingHours', noDataKey: 'noFastingData' },
@@ -92,7 +92,7 @@ export default function HomeComponent() {
                     size={30}
                     icon={icon}
                     color='#fff'
-                    style={{ backgroundColor: disabled ? '#B0B0B0' : 'tomato' }} />
+                    style={{ backgroundColor: disabled ? '#B0B0B0' : Colors.light.submitButton }} />
             )}
             mode="text"
             onPress={onPress}
