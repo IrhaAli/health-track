@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { View, StyleSheet, Image, TouchableWithoutFeedback, Keyboard, Dimensions } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useDispatch, useSelector } from "react-redux";
@@ -382,7 +382,8 @@ const styles = StyleSheet.create({
         position: 'relative',
         borderRadius: 12,
         overflow: 'hidden',
-        alignSelf: 'center'
+        alignSelf: 'stretch',
+        width: '100%'
     },
     deleteButton: {
         position: 'absolute',
@@ -392,8 +393,8 @@ const styles = StyleSheet.create({
         margin: 0
     },
     image: {
-        width: 200,
-        height: 200,
+        width: '100%',
+        height: 300,
         resizeMode: 'cover'
     },
     divider: {
