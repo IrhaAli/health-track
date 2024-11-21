@@ -17,6 +17,7 @@ import i18n from "@/services/i18n";
 import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { I18nManager } from 'react-native';
+import { Colors } from "@/app/theme";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -422,7 +423,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedLanguage: {
-    backgroundColor: 'tomato',
+    backgroundColor: Colors.light.primaryColor,
   },
   selectedLanguageLabel: {
     color: 'white',
