@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
 import i18n from '@/services/i18n';
 import { I18nManager } from 'react-native';
+import { Colors } from "@/app/theme";
 
 export default function ProfileFooterLinks() {
   const userObjStr = useSelector((state: RootState) => state.user.userData);
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   selectedLanguage: {
-    backgroundColor: 'tomato',
+    backgroundColor: Colors.light.submitButton,
   },
   selectedLanguageLabel: {
     color: 'white',
