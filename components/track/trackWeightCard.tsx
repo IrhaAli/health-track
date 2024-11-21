@@ -56,7 +56,7 @@ export default function TrackWeightCard() {
             {weightEntries.map((weight: WeightDataEntry, index: number) => (
                 <Animated.View
                     key={weight.id || index}
-                    style={{
+                    style={[styles.fadeIn, {
                         opacity: fadeAnim,
                         transform: [{
                             translateY: fadeAnim.interpolate({
@@ -64,7 +64,7 @@ export default function TrackWeightCard() {
                                 outputRange: [20, 0]
                             })
                         }]
-                    }}
+                    }]}
                 >
                     <Divider />
                     <Surface style={styles.surface} elevation={0}>
@@ -155,5 +155,11 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1
+    },
+    fadeIn: {
+        width: '100%',
+        transform: [{
+            translateY: 20
+        }]
     }
 });
