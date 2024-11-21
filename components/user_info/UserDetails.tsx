@@ -1,26 +1,32 @@
 import React, { useState } from "react";
+import { StyleSheet, View, ScrollView } from "react-native";
+import { Dropdown } from "react-native-element-dropdown";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
+  Surface,
   Text,
   TextInput,
-  View,
-  Image,
-} from "react-native";
-import { Dropdown } from "react-native-element-dropdown";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import DateTimePicker from "@react-native-community/datetimepicker";
+  useTheme,
+  Button,
+  Portal,
+  Modal,
+  Title,
+} from "react-native-paper";
 
 export default function UserDetails({
   userDetails,
   setUserDetails,
   isSignUpPage,
 }: any) {
+  const theme = useTheme();
   const [measurementType, setMeasurementType] = useState("cm");
   const [weightType, setWeightType] = useState("");
   const [feet, setFeet] = useState("");
   const [inches, setInches] = useState("");
+
+  const [showWakeupPicker, setShowWakeupPicker] = useState(false);
+  const [showSleepPicker, setShowSleepPicker] = useState(false);
+  const [showDOBPicker, setShowDOBPicker] = useState(false);
 
   const [isGenderFocus, setIsGenderFocus] = useState(false);
   const [isBodyTypeFocus, setIsBodyTypeFocus] = useState(false);
@@ -68,378 +74,279 @@ export default function UserDetails({
     setUserDetails((prev: any) => ({ ...prev, [key]: value }));
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Background Information</Text>
-      <View style={styles.inputView}>
-        {isSignUpPage && (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              value={userDetails.fullName}
-              onChangeText={(value) => updateUserDetails(value, "fullName")}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
+  const onTimeChange = (event: any, selectedDate: Date | undefined, timeType: string) => {
+    if (timeType === 'wakeup') {
+      setShowWakeupPicker(false);
+      if (selectedDate) {
+        updateUserDetails(selectedDate, "wakeupTime");
+      }
+    } else if (timeType === 'sleep') {
+      setShowSleepPicker(false);
+      if (selectedDate) {
+        updateUserDetails(selectedDate, "sleepTime");
+      }
+    } else if (timeType === 'dob') {
+      setShowDOBPicker(false);
+      if (selectedDate) {
+        updateUserDetails(selectedDate, "dob");
+      }
+    }
+  };
 
-            <Text>Date of Birth</Text>
-            {userDetails?.dob && <DateTimePicker
-              mode="date"
-              value={userDetails.dob}
-              onChange={(event: any, value: Date | undefined) =>
-                updateUserDetails(value, "dob")
-              }
-            />}
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isGenderFocus && { borderColor: "blue" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              iconStyle={styles.iconStyle}
-              data={genderOptions}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isGenderFocus ? "Select Gender" : "..."}
-              value={userDetails.gender}
-              onFocus={() => setIsGenderFocus(true)}
-              onBlur={() => setIsGenderFocus(false)}
-              onChange={(item: any) => {
-                updateUserDetails(item.value, "gender");
-                setIsGenderFocus(false);
-              }}
-              renderLeftIcon={() => (
-                <AntDesign
-                  style={styles.icon}
-                  color={isGenderFocus ? "blue" : "black"}
-                  name="Safety"
-                  size={20}
-                />
-              )}
-            />
-            {measurementType === "cm" ? (
+  return (
+    <Surface style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Title style={styles.title}>Background Information</Title>
+        <View style={styles.inputView}>
+          {isSignUpPage && (
+            <>
               <TextInput
-                style={styles.input}
-                placeholder="Height in cm"
-                value={userDetails.height}
-                onChangeText={(value) => updateUserDetails(value, "height")}
+                mode="outlined"
+                label="Full Name"
+                value={userDetails.fullName}
+                onChangeText={(value) => updateUserDetails(value, "fullName")}
                 autoCorrect={false}
                 autoCapitalize="none"
+                style={styles.input}
               />
-            ) : (
-              <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="ft"
-                  value={feet}
-                  onChangeText={setFeet}
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="in"
-                  value={inches}
-                  onChangeText={setInches}
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                />
-              </>
-            )}
 
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isMeasurementTypeFocus && { borderColor: "blue" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              iconStyle={styles.iconStyle}
-              data={measurementTypeOptions}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={
-                !isMeasurementTypeFocus ? "Select Measurement Unit" : "..."
-              }
-              value={measurementType}
-              onFocus={() => setIsMeasurementTypeFocus(true)}
-              onBlur={() => setIsMeasurementTypeFocus(false)}
-              onChange={(item: any) => {
-                setMeasurementType(item.value);
-                setIsMeasurementTypeFocus(false);
-              }}
-              renderLeftIcon={() => (
-                <AntDesign
-                  style={styles.icon}
-                  color={isMeasurementTypeFocus ? "blue" : "black"}
-                  name="Safety"
-                  size={20}
+              <Button 
+                mode="outlined"
+                onPress={() => setShowDOBPicker(true)}
+                style={styles.dateButton}
+              >
+                {userDetails.dob ? userDetails.dob.toLocaleDateString() : 'Select Date of Birth'}
+              </Button>
+
+              {showDOBPicker && (
+                <DateTimePicker
+                  mode="date"
+                  value={userDetails.dob || new Date()}
+                  onChange={(event, date) => onTimeChange(event, date, 'dob')}
                 />
               )}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Add weight here..."
-              value={userDetails.weight}
-              onChangeText={(value) => updateUserDetails(value, "weight")}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isWeightTypeFocus && { borderColor: "blue" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              iconStyle={styles.iconStyle}
-              data={weightTypeOptions}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isWeightTypeFocus ? "Select Weight Unit" : "..."}
-              value={weightType}
-              onFocus={() => setIsWeightTypeFocus(true)}
-              onBlur={() => setIsWeightTypeFocus(false)}
-              onChange={(item: any) => {
-                setWeightType(item.value);
-                setIsWeightTypeFocus(false);
-              }}
-              renderLeftIcon={() => (
-                <AntDesign
-                  style={styles.icon}
-                  color={isWeightTypeFocus ? "blue" : "black"}
-                  name="Safety"
-                  size={20}
+
+              <Dropdown
+                style={[styles.dropdown, isGenderFocus && { borderColor: theme.colors.primary }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={genderOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isGenderFocus ? "Select Gender" : "..."}
+                value={userDetails.gender}
+                onFocus={() => setIsGenderFocus(true)}
+                onBlur={() => setIsGenderFocus(false)}
+                onChange={(item) => {
+                  updateUserDetails(item.value, "gender");
+                  setIsGenderFocus(false);
+                }}
+              />
+
+              {measurementType === "cm" ? (
+                <TextInput
+                  mode="outlined"
+                  label="Height (cm)"
+                  value={userDetails.height}
+                  onChangeText={(value) => updateUserDetails(value, "height")}
+                  keyboardType="numeric"
+                  style={styles.input}
                 />
+              ) : (
+                <View style={styles.feetInchContainer}>
+                  <TextInput
+                    mode="outlined"
+                    label="Feet"
+                    value={feet}
+                    onChangeText={setFeet}
+                    keyboardType="numeric"
+                    style={[styles.input, styles.feetInput]}
+                  />
+                  <TextInput
+                    mode="outlined"
+                    label="Inches"
+                    value={inches}
+                    onChangeText={setInches}
+                    keyboardType="numeric"
+                    style={[styles.input, styles.inchesInput]}
+                  />
+                </View>
               )}
-            />
-          </>
-        )}
-        <Dropdown
-          style={[styles.dropdown, isBodyTypeFocus && { borderColor: "blue" }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={bodyTypeOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isBodyTypeFocus ? "Select Body Type" : "..."}
-          value={userDetails.bodyType}
-          onFocus={() => setIsBodyTypeFocus(true)}
-          onBlur={() => setIsBodyTypeFocus(false)}
-          onChange={(item: any) => {
-            updateUserDetails(item.value, "bodyType");
-            setIsBodyTypeFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isBodyTypeFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
+
+              <Dropdown
+                style={[styles.dropdown, isMeasurementTypeFocus && { borderColor: theme.colors.primary }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={measurementTypeOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Measurement Unit"
+                value={measurementType}
+                onFocus={() => setIsMeasurementTypeFocus(true)}
+                onBlur={() => setIsMeasurementTypeFocus(false)}
+                onChange={(item) => {
+                  setMeasurementType(item.value);
+                  setIsMeasurementTypeFocus(false);
+                }}
+              />
+
+              <TextInput
+                mode="outlined"
+                label="Weight"
+                value={userDetails.weight}
+                onChangeText={(value) => updateUserDetails(value, "weight")}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+
+              <Dropdown
+                style={[styles.dropdown, isWeightTypeFocus && { borderColor: theme.colors.primary }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={weightTypeOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Weight Unit"
+                value={weightType}
+                onFocus={() => setIsWeightTypeFocus(true)}
+                onBlur={() => setIsWeightTypeFocus(false)}
+                onChange={(item) => {
+                  setWeightType(item.value);
+                  setIsWeightTypeFocus(false);
+                }}
+              />
+            </>
+          )}
+
+          <Dropdown
+            style={[styles.dropdown, isBodyTypeFocus && { borderColor: theme.colors.primary }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            data={bodyTypeOptions}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Body Type"
+            value={userDetails.bodyType}
+            onFocus={() => setIsBodyTypeFocus(true)}
+            onBlur={() => setIsBodyTypeFocus(false)}
+            onChange={(item) => {
+              updateUserDetails(item.value, "bodyType");
+              setIsBodyTypeFocus(false);
+            }}
+          />
+
+          <Dropdown
+            style={[styles.dropdown, isActivityFocus && { borderColor: theme.colors.primary }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            data={activityTypeOptions}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Activity Type"
+            value={userDetails.activityType}
+            onFocus={() => setIsActivityFocus(true)}
+            onBlur={() => setIsActivityFocus(false)}
+            onChange={(item) => {
+              updateUserDetails(item.value, "activityType");
+              setIsActivityFocus(false);
+            }}
+          />
+
+          <Text variant="bodyMedium" style={styles.inputLabel}>Wake up time</Text>
+          <Button 
+            mode="outlined"
+            onPress={() => setShowWakeupPicker(true)}
+            style={styles.dateButton}
+          >
+            {userDetails.wakeupTime ? userDetails.wakeupTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Select Wakeup Time'}
+          </Button>
+
+          {showWakeupPicker && (
+            <DateTimePicker
+              mode="time"
+              value={userDetails.wakeupTime || new Date()}
+              onChange={(event, date) => onTimeChange(event, date, 'wakeup')}
             />
           )}
-        />
-        <Dropdown
-          style={[styles.dropdown, isActivityFocus && { borderColor: "blue" }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={activityTypeOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isActivityFocus ? "Select Activity Type" : "..."}
-          value={userDetails.activityType}
-          onFocus={() => setIsActivityFocus(true)}
-          onBlur={() => setIsActivityFocus(false)}
-          onChange={(item: any) => {
-            updateUserDetails(item.value, "activityType");
-            setIsActivityFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isActivityFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
+
+          <Text variant="bodyMedium" style={styles.inputLabel}>Sleep time</Text>
+          <Button 
+            mode="outlined"
+            onPress={() => setShowSleepPicker(true)}
+            style={styles.dateButton}
+          >
+            {userDetails.sleepTime ? userDetails.sleepTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Select Sleep Time'}
+          </Button>
+
+          {showSleepPicker && (
+            <DateTimePicker
+              mode="time"
+              value={userDetails.sleepTime || new Date()}
+              onChange={(event, date) => onTimeChange(event, date, 'sleep')}
             />
           )}
-        />
-        <Text>Wakeup Time</Text>
-        {userDetails?.wakeupTime && <DateTimePicker
-          mode="time"
-          value={userDetails.wakeupTime}
-          onChange={(event: any, value: Date | undefined) =>
-            updateUserDetails(value, "wakeupTime")
-          }
-        />}
-        <Text>Sleep Time</Text>
-        {userDetails?.sleepTime && <DateTimePicker
-          mode="time"
-          value={userDetails.sleepTime}
-          onChange={(event: any, value: Date | undefined) =>
-            updateUserDetails(value, "sleepTime")
-          }
-        />}
-        <Text>Health Goal</Text>
-        <Dropdown
-          style={[
-            styles.dropdown,
-            isHealthGoalTypeFocus && { borderColor: "blue" },
-          ]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          iconStyle={styles.iconStyle}
-          data={healthGoalOptions}
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isHealthGoalTypeFocus ? "Select Health Goal" : "..."}
-          value={userDetails.healthGoal}
-          onFocus={() => setIsHealthGoalTypeFocus(true)}
-          onBlur={() => setIsHealthGoalTypeFocus(false)}
-          onChange={(item: any) => {
-            updateUserDetails(item.value, "healthGoal");
-            setIsHealthGoalTypeFocus(false);
-          }}
-          renderLeftIcon={() => (
-            <AntDesign
-              style={styles.icon}
-              color={isGenderFocus ? "blue" : "black"}
-              name="Safety"
-              size={20}
-            />
-          )}
-        />
-      </View>
-    </SafeAreaView>
+
+          <Dropdown
+            style={[styles.dropdown, isHealthGoalTypeFocus && { borderColor: theme.colors.primary }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            data={healthGoalOptions}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Health Goal"
+            value={userDetails.healthGoal}
+            onFocus={() => setIsHealthGoalTypeFocus(true)}
+            onBlur={() => setIsHealthGoalTypeFocus(false)}
+            onChange={(item) => {
+              updateUserDetails(item.value, "healthGoal");
+              setIsHealthGoalTypeFocus(false);
+            }}
+          />
+        </View>
+      </ScrollView>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
-  socialIcons: {
-    display: "flex",
-    flexDirection: "row",
-  },
   container: {
-    alignItems: "center",
-    paddingTop: 70,
+    flex: 1,
   },
-  image: {
-    height: 160,
-    width: 170,
+  scrollContent: {
+    padding: 16,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+    textAlign: 'center',
+    marginBottom: 24,
   },
   inputView: {
-    gap: 15,
-    width: "100%",
-    paddingHorizontal: 40,
-    marginBottom: 5,
+    gap: 16,
   },
   input: {
-    height: 50,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
+    backgroundColor: 'transparent',
   },
-  rememberView: {
-    width: "100%",
-    paddingHorizontal: 50,
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
-    marginBottom: 8,
+  feetInchContainer: {
+    flexDirection: 'row',
+    gap: 8,
   },
-  switch: {
-    flexDirection: "row",
-    gap: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  feetInput: {
+    flex: 1,
   },
-  rememberText: {
-    fontSize: 13,
-  },
-  forgetText: {
-    fontSize: 11,
-    color: "red",
-  },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
-  },
-  optionsText: {
-    textAlign: "center",
-    paddingVertical: 10,
-    color: "gray",
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  mediaIcons: {
-    flexDirection: "row",
-    gap: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 23,
-  },
-  icons: {
-    width: 40,
-    height: 40,
-  },
-  footerText: {
-    textAlign: "center",
-    color: "gray",
-  },
-  signup: {
-    color: "red",
-    fontSize: 13,
+  inchesInput: {
+    flex: 1,
   },
   dropdown: {
-    height: 50,
-    borderColor: "gray",
-    borderWidth: 0.5,
-    borderRadius: 8,
+    height: 56,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
     paddingHorizontal: 8,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  label: {
-    position: "absolute",
-    backgroundColor: "white",
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 14,
   },
   placeholderStyle: {
     fontSize: 16,
@@ -447,12 +354,10 @@ const styles = StyleSheet.create({
   selectedTextStyle: {
     fontSize: 16,
   },
-  iconStyle: {
-    width: 20,
-    height: 20,
+  dateButton: {
+    marginVertical: 8,
   },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 16,
-  },
+  inputLabel: {
+    marginBottom: 8,
+  }
 });
