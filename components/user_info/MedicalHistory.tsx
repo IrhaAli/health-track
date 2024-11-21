@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Image,
-} from "react-native";
+import { StyleSheet, View, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { router } from "expo-router";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Surface, Text, Button, TextInput, Card, IconButton, useTheme } from 'react-native-paper';
 
 interface Item {
   user_id: string;
@@ -22,13 +15,16 @@ interface Item {
   allergies: string;
   is_deleted: boolean;
 }
+
 interface MedicalCondition extends Array<Item> {}
 
 export default function MedicalHistory({
   medicalHistory,
   setMedicalHistory,
 }: any) {
+  const theme = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -49,21 +45,17 @@ export default function MedicalHistory({
     allergies: "",
     is_deleted: true,
   };
-  const [currentMedicalCondition, setCurrentMedicalCondition] =
-    useState<Item>(emptyCondition);
+
+  const [currentMedicalCondition, setCurrentMedicalCondition] = useState<Item>(emptyCondition);
   const [isConditionFocus, setIsConditionFocus] = useState(false);
   const [isTreatmentStatusFocus, setIsTreatmentStatusFocus] = useState(false);
+
   const conditionOptions = [
-    {
-      label: "Heart Condition",
-      value: "heart_condition",
-    },
+    { label: "Heart Condition", value: "heart_condition" },
   ];
+
   const treatmentStatusOptions = [
-    {
-      label: "Taking Medication",
-      value: "taking_medication",
-    },
+    { label: "Taking Medication", value: "taking_medication" },
   ];
 
   const addMedicalHistory = () => {
@@ -87,207 +79,180 @@ export default function MedicalHistory({
     );
   };
 
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setCurrentMedicalCondition(prev => ({
+        ...prev,
+        diagnosis_date: selectedDate
+      }));
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Medical History</Text>
-      <View style={styles.inputView}>
-        <>
-          {/* Added conditions */}
+    <Surface style={styles.container}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text variant="headlineMedium" style={styles.title}>Medical History</Text>
+        <View style={styles.content}>
           {medicalHistory.map((item: any, index: number) => {
-            return (
-              !item.is_deleted && (
-                <View key={index}>
-                  <Pressable
-                    style={styles.button}
-                    onPress={() => removeMedicalHistory(index)}
-                  >
-                    <Text style={styles.buttonText}>Remove Record</Text>
-                  </Pressable>
-                  <Text>Condition # {index + 1}</Text>
-                  <Text>Condition: {medicalHistory[index].condition}</Text>
-                  <Text>Diagnosis Date {`${item.diagnosis_date}`}</Text>
-                  <Text>Treatment Status: {item.treatment_status}</Text>
-                  <Text>Allergies {item.allergies}</Text>
-                </View>
-              )
+            return !item.is_deleted && (
+              <Card key={index} style={styles.card}>
+                <Card.Content>
+                  <View style={styles.cardHeader}>
+                    <Text variant="titleMedium">Condition #{index + 1}</Text>
+                    <IconButton
+                      icon="delete"
+                      mode="contained-tonal"
+                      onPress={() => removeMedicalHistory(index)}
+                    />
+                  </View>
+                  <Text variant="bodyMedium">Condition: {item.condition}</Text>
+                  <Text variant="bodyMedium">
+                    Diagnosis Date: {new Date(item.diagnosis_date).toLocaleDateString()}
+                  </Text>
+                  <Text variant="bodyMedium">Treatment Status: {item.treatment_status}</Text>
+                  <Text variant="bodyMedium">Allergies: {item.allergies}</Text>
+                </Card.Content>
+              </Card>
             );
           })}
-          <>
-            <Text>Condition</Text>
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isConditionFocus && { borderColor: "blue" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              iconStyle={styles.iconStyle}
-              data={conditionOptions}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isConditionFocus ? "Select a Condition" : "..."}
-              value={currentMedicalCondition.condition}
-              onFocus={() => setIsConditionFocus(true)}
-              onBlur={() => setIsConditionFocus(false)}
-              onChange={(item: any) => {
-                setCurrentMedicalCondition((prev) => ({
-                  ...prev,
-                  condition: item.value,
-                }));
-                setIsConditionFocus(false);
-              }}
-              renderLeftIcon={() => (
-                <AntDesign
-                  style={styles.icon}
-                  color={isConditionFocus ? "blue" : "black"}
-                  name="Safety"
-                  size={20}
-                />
-              )}
-            />
-            <Text>Diagnosis Date</Text>
-            <DateTimePicker
-              mode="date"
-              value={currentMedicalCondition.diagnosis_date}
-              onChange={(event: any, value: Date | undefined) =>
-                setCurrentMedicalCondition((prev) => ({
-                  ...prev,
-                  diagnosis_date: value || new Date(),
-                }))
-              }
-            />
-            <Text>Treatment Status</Text>
-            <Dropdown
-              style={[
-                styles.dropdown,
-                isTreatmentStatusFocus && { borderColor: "blue" },
-              ]}
-              placeholderStyle={styles.placeholderStyle}
-              selectedTextStyle={styles.selectedTextStyle}
-              iconStyle={styles.iconStyle}
-              data={treatmentStatusOptions}
-              maxHeight={300}
-              labelField="label"
-              valueField="value"
-              placeholder={!isTreatmentStatusFocus ? "Treatment Status" : "..."}
-              value={currentMedicalCondition.treatment_status}
-              onFocus={() => setIsTreatmentStatusFocus(true)}
-              onBlur={() => setIsTreatmentStatusFocus(false)}
-              onChange={(item: any) => {
-                setCurrentMedicalCondition((prev) => ({
-                  ...prev,
-                  treatment_status: item.value,
-                }));
-                setIsTreatmentStatusFocus(false);
-              }}
-              renderLeftIcon={() => (
-                <AntDesign
-                  style={styles.icon}
-                  color={isConditionFocus ? "blue" : "black"}
-                  name="Safety"
-                  size={20}
-                />
-              )}
-            />
-            <Text>Allergies</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Any allergies..."
-              value={currentMedicalCondition.allergies}
-              onChangeText={(item: string) => {
-                setCurrentMedicalCondition((prev) => ({
-                  ...prev,
-                  allergies: item,
-                }));
-              }}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
 
-            <Pressable
-              style={
-                currentMedicalCondition.condition.length === 0
-                  ? styles.button_disabled
-                  : styles.button
-              }
-              onPress={addMedicalHistory}
-              disabled={currentMedicalCondition.condition.length === 0}
-            >
-              <Text style={styles.buttonText}>Add</Text>
-            </Pressable>
-          </>
-        </>
-      </View>
-    </SafeAreaView>
+          <Card style={styles.inputCard}>
+            <Card.Content>
+              <Text variant="titleMedium" style={styles.sectionTitle}>Add New Condition</Text>
+              
+              <Text variant="bodyMedium">Condition</Text>
+              <Dropdown
+                style={[styles.dropdown, isConditionFocus && { borderColor: theme.colors.primary }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={conditionOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isConditionFocus ? "Select a Condition" : "..."}
+                value={currentMedicalCondition.condition}
+                onFocus={() => setIsConditionFocus(true)}
+                onBlur={() => setIsConditionFocus(false)}
+                onChange={(item) => {
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    condition: item.value,
+                  }));
+                  setIsConditionFocus(false);
+                }}
+              />
+
+              <Text variant="bodyMedium" style={styles.inputLabel}>Diagnosis Date</Text>
+              <Button
+                mode="outlined"
+                onPress={() => setShowDatePicker(true)}
+                style={styles.dateButton}
+              >
+                {currentMedicalCondition.diagnosis_date.toLocaleDateString()}
+              </Button>
+              
+              {showDatePicker && (
+                <DateTimePicker
+                  value={currentMedicalCondition.diagnosis_date}
+                  mode="date"
+                  onChange={onDateChange}
+                />
+              )}
+
+              <Text variant="bodyMedium" style={styles.inputLabel}>Treatment Status</Text>
+              <Dropdown
+                style={[styles.dropdown, isTreatmentStatusFocus && { borderColor: theme.colors.primary }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={treatmentStatusOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isTreatmentStatusFocus ? "Treatment Status" : "..."}
+                value={currentMedicalCondition.treatment_status}
+                onFocus={() => setIsTreatmentStatusFocus(true)}
+                onBlur={() => setIsTreatmentStatusFocus(false)}
+                onChange={(item) => {
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    treatment_status: item.value,
+                  }));
+                  setIsTreatmentStatusFocus(false);
+                }}
+              />
+
+              <TextInput
+                label="Allergies"
+                mode="outlined"
+                style={styles.input}
+                placeholder="Any allergies..."
+                value={currentMedicalCondition.allergies}
+                onChangeText={(text) => {
+                  setCurrentMedicalCondition((prev) => ({
+                    ...prev,
+                    allergies: text,
+                  }));
+                }}
+              />
+
+              <Button
+                mode="contained"
+                onPress={addMedicalHistory}
+                disabled={currentMedicalCondition.condition.length === 0}
+                style={styles.addButton}
+              >
+                Add Condition
+              </Button>
+            </Card.Content>
+          </Card>
+        </View>
+      </ScrollView>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    paddingTop: 70,
+    flex: 1,
   },
-  image: {
-    height: 160,
-    width: 170,
+  scrollContent: {
+    padding: 16,
+    flexGrow: 1,
+  },
+  content: {
+    gap: 16,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textTransform: "uppercase",
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "red",
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: 'bold',
   },
-  inputView: {
-    gap: 15,
-    width: "100%",
-    paddingHorizontal: 40,
-    marginBottom: 5,
+  card: {
+    marginBottom: 12,
   },
-  input: {
-    height: 50,
-    paddingHorizontal: 20,
-    borderColor: "red",
-    borderWidth: 1,
-    borderRadius: 7,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  button: {
-    backgroundColor: "red",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+  inputCard: {
+    marginTop: 16,
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  buttonView: {
-    width: "100%",
-    paddingHorizontal: 50,
-  },
-  icons: {
-    width: 40,
-    height: 40,
-  },
-  signup: {
-    color: "red",
-    fontSize: 13,
+  sectionTitle: {
+    marginBottom: 16,
   },
   dropdown: {
     height: 50,
-    borderColor: "gray",
-    borderWidth: 0.5,
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,
-  },
-  icon: {
-    marginRight: 5,
+    marginBottom: 16,
   },
   placeholderStyle: {
     fontSize: 16,
@@ -295,17 +260,17 @@ const styles = StyleSheet.create({
   selectedTextStyle: {
     fontSize: 16,
   },
-  iconStyle: {
-    width: 20,
-    height: 20,
+  input: {
+    marginTop: 8,
+    marginBottom: 16,
   },
-  button_disabled: {
-    backgroundColor: "#FFCCCB",
-    height: 45,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+  inputLabel: {
+    marginBottom: 8,
   },
+  dateButton: {
+    marginBottom: 16,
+  },
+  addButton: {
+    marginTop: 8,
+  }
 });
