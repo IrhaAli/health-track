@@ -7,6 +7,7 @@ import { deleteDietData, getDietDataForDate } from "@/store/trackSlice";
 import { Image, View, Animated, StyleSheet } from "react-native";
 import { setDialog, DialogTab, DialogType } from "@/store/trackDialogSlice";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackDietCard() {
     const dispatch = useDispatch<AppDispatch>();
@@ -96,6 +97,7 @@ export default function TrackDietCard() {
                                         dialogType: DialogType.EDIT
                                     }))}
                                     style={styles.button}
+                                    buttonColor={Colors.light.submitButton}
                                 >
                                     {i18n.t('trackDietCard.edit')}
                                 </Button>
