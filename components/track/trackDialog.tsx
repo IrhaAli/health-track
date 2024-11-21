@@ -9,6 +9,7 @@ import { DietDataEntry, SleepDataEntry, WaterDataEntry, WeightDataEntry, isDietD
 import TrackForms from "./trackForms";
 import AppCamera from "../camera";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackDialog() {
     const dispatch = useDispatch<AppDispatch>();
@@ -78,6 +79,7 @@ export default function TrackDialog() {
                     const initialTab = filteredButtons.length > 0 ? filteredButtons[0].value : DialogTab.DIET;
                     dispatch(setDialog({ showDialog: true, dialogTab: initialTab, dialogType: DialogType.ADD }));
                 }}
+                buttonColor={Colors.light.submitButton}
             >
                 {i18n.t(filteredButtons.length > 1 ? 'trackDialog.addTrack' : 'trackDialog.addMeal')}
             </Button>
