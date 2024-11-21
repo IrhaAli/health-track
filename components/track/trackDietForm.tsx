@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDietData, updateDietData } from "@/store/trackSlice";
 import { DietDataEntry, isDietDataEntry } from "@/types/track";
 import i18n from "@/services/i18n";
+import { Colors } from "@/app/theme";
 
 export default function TrackDietForm() {
     const dispatch = useDispatch<AppDispatch>();
@@ -184,7 +185,7 @@ export default function TrackDietForm() {
                             mode="contained-tonal"
                             onPress={handleCameraPress}
                             disabled={loading}
-                            style={[styles.cameraButton, { backgroundColor: 'tomato' }]}
+                            style={[styles.cameraButton, { backgroundColor: Colors.light.submitButton }]}
                             textColor="white"
                         >
                             {i18n.t('trackDiet.addMealPicture')}
