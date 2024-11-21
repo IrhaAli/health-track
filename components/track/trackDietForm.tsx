@@ -110,7 +110,7 @@ export default function TrackDietForm() {
             if (dialogType !== DialogType.EDIT) {
                 const addDiet = { 
                     user_id: currentUser.uid, 
-                    date: mealTime, 
+                    date: new Date(currentDate + 'T' + new Date().toISOString().split('T')[1]),
                     meal_picture: await uploadImage() 
                 };
                 dispatch(addDietData({ currentDate, addDiet }));
